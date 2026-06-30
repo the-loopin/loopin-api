@@ -1,0 +1,59 @@
+# Target Build Directories
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Local Environment Configurations and Secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# H2 Database Disk Files (In case file-based storage is used locally)
+*.mv.db
+*.trace.db
+
+# Logs
+*.log
+logs/
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+### VS Code ###
+.vscode/
+*.code-workspace
+.history/
+
+### STS (Spring Tool Suite) ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Help files
+HELP.md
