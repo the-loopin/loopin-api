@@ -1,0 +1,37 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: loopin-api
+
+  # Persistence Engine Datastore Mapping
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:mem:loopindb;DB_CLOSE_DELAY=-1}
+    driver-class-name: org.h2.Driver
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+
+  # Embedded H2 Database Web Panel Management
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+  # Object Relational Mapping (ORM) Definitions
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# Local Content Check Rule Targets
+moderation:
+  banned-words: ${BANNED_WORDS_LIST:scam,spam,offensiveword1,offensiveword2}
