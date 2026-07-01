@@ -1,4 +1,4 @@
-package com.loopin.api.exception;
+package com.loopin.api.common.exception;
 
 import com.loopin.api.dto.error.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
