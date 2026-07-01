@@ -7,6 +7,7 @@ import com.loopin.api.entity.Event;
 import com.loopin.api.entity.common.enums.EventCategory;
 import com.loopin.api.entity.common.enums.EventStatus;
 import com.loopin.api.entity.common.enums.EventType;
+import com.loopin.api.exception.DuplicateResourceException;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.service.abstraction.EventService;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -72,6 +74,7 @@ public class EventServiceImpl implements EventService {
     public EventResponse createEvent(EventCreateRequest request) {
         validateDateRange(request.getStartDateTime(), request.getEndDateTime());
         validatePrice(request.getIsFree(), request.getPrice());
+        validateEventDoesNotAlreadyExist(request);
 
         Event event = eventMapper.toEntity(request);
         Event savedEvent = eventRepository.save(event);
@@ -125,8 +128,42 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    private void validateEventDoesNotAlreadyExist(EventCreateRequest request) {
+        boolean exists = eventRepository.exists(
+                Specification.where(notDeleted())
+                        .and(titleEqualsIgnoreCase(request.getTitle()))
+                        .and(cityEqualsIgnoreCase(request.getCity()))
+                        .and(startsAt(request.getStartDateTime()))
+        );
+
+        if (exists) {
+            throw new DuplicateResourceException("Event already exists with same title, city, and start date time");
+        }
+    }
+
     private Specification<Event> alwaysTrue() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+    }
+
+    private Specification<Event> titleEqualsIgnoreCase(String title) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(
+                        criteriaBuilder.lower(root.get("title")),
+                        title.toLowerCase()
+                );
+    }
+
+    private Specification<Event> cityEqualsIgnoreCase(String city) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(
+                        criteriaBuilder.lower(root.get("city")),
+                        city.toLowerCase()
+                );
+    }
+
+    private Specification<Event> startsAt(LocalDateTime startDateTime) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("startDateTime"), startDateTime);
     }
 
     private Specification<Event> hasId(Long id) {
