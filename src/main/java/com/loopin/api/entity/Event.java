@@ -1,9 +1,9 @@
 package com.loopin.api.entity;
 
-import com.loopin.api.entity.common.entity.BaseEntity;
-import com.loopin.api.entity.common.enums.EventCategory;
-import com.loopin.api.entity.common.enums.EventStatus;
-import com.loopin.api.entity.common.enums.EventType;
+import com.loopin.api.common.entity.BaseEntity;
+import com.loopin.api.common.enums.EventCategory;
+import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.common.enums.EventType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
