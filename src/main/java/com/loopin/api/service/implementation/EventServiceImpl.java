@@ -125,6 +125,10 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    private Specification<Event> alwaysTrue() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+    }
+
     private Specification<Event> hasId(Long id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
     }
@@ -139,7 +143,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> hasType(EventType type) {
         if (type == null) {
-            return null;
+            return alwaysTrue();
         }
 
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("type"), type);
@@ -147,7 +151,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> hasCategory(EventCategory category) {
         if (category == null) {
-            return null;
+            return alwaysTrue();
         }
 
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("category"), category);
@@ -155,7 +159,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> cityContains(String city) {
         if (city == null || city.isBlank()) {
-            return null;
+            return alwaysTrue();
         }
 
         String cityPattern = "%" + city.trim().toLowerCase() + "%";
@@ -165,7 +169,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> hasIsFree(Boolean isFree) {
         if (isFree == null) {
-            return null;
+            return alwaysTrue();
         }
 
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isFree"), isFree);
@@ -173,7 +177,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> searchInTitleOrDescription(String search) {
         if (search == null || search.isBlank()) {
-            return null;
+            return alwaysTrue();
         }
 
         String searchPattern = "%" + search.trim().toLowerCase() + "%";
@@ -185,7 +189,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> startsOnOrAfter(LocalDate startDate) {
         if (startDate == null) {
-            return null;
+            return alwaysTrue();
         }
 
         return (root, query, criteriaBuilder) ->
@@ -194,7 +198,7 @@ public class EventServiceImpl implements EventService {
 
     private Specification<Event> startsOnOrBefore(LocalDate endDate) {
         if (endDate == null) {
-            return null;
+            return alwaysTrue();
         }
 
         return (root, query, criteriaBuilder) ->

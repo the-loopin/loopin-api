@@ -8,6 +8,7 @@ public class LoopinApiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(LoopinApiApplication.class, args);
+		System.out.println("API Started...");
 	}
 
 }
