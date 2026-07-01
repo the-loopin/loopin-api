@@ -45,7 +45,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponse createGroup(CreateGroupRequest request, String currentUsername) {
-        User currentUser = userRepository.findByUsername(currentUsername)
+        User currentUser = userRepository.findByEmail(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
 
         // Event is optional: null eventId => independent group
@@ -81,7 +81,7 @@ public class GroupServiceImpl implements GroupService {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAcceptsMembershipChanges(group);
 
-        if (!group.getAdmin().getUsername().equals(currentUsername)) {
+        if (!group.getAdmin().getEmail().equals(currentUsername)) {
             throw new InvalidGroupStateException("Only the group admin can update this group");
         }
 
@@ -160,7 +160,7 @@ public class GroupServiceImpl implements GroupService {
 
         EventGroup group = findGroupOrThrow(groupId);
 
-        if (!group.getAdmin().getUsername().equals(currentUsername)) {
+        if (!group.getAdmin().getEmail().equals(currentUsername)) {
             throw new InvalidGroupStateException(
                     "Only the group admin can update the group status");
         }

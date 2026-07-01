@@ -36,7 +36,7 @@ public class GroupMapper {
                 group.getId(),
                 group.getEvent() != null ? group.getEvent().getId() : null,
                 group.getAdmin().getId(),
-                group.getAdmin().getUsername(),
+                group.getAdmin().getEmail(),
                 group.getTitle(),
                 group.getGroupSize(),
                 group.getMaxMembers(),
