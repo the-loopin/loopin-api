@@ -1,4 +1,4 @@
-package com.loopin.api.dto;
+package com.loopin.api.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,11 +1,10 @@
 package com.loopin.api.controller;
 
-import com.loopin.api.dto.UserProfileRequest;
-import com.loopin.api.dto.UserProfileResponse;
-import com.loopin.api.entity.UserProfile;
+import com.loopin.api.dto.request.UpdateUserProfileRequest;
+import com.loopin.api.dto.response.UserProfileResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import com.loopin.api.service.UserProfileService;
+import com.loopin.api.service.abstraction.UserProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +24,7 @@ public class UserProfileController {
         return ResponseEntity.ok(response);
     }
     @PutMapping("/me")
-    public ResponseEntity<UserProfileResponse> updateMyProfile(@Valid @RequestBody UserProfileRequest request) {
+    public ResponseEntity<UserProfileResponse> updateMyProfile(@Valid @RequestBody UpdateUserProfileRequest request) {
         Long currentUserId = 1L;
 
         UserProfileResponse response = profileService.updateProfile(currentUserId, request);
