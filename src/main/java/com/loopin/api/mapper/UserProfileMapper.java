@@ -20,7 +20,7 @@ public class UserProfileMapper {
         response.setBio(profile.getBio());
 
         if (profile.getUser() != null) {
-            response.setUsername(profile.getUser().getUsername());
+            response.setUsername(profile.getUser().getEmail());
             response.setEmail(profile.getUser().getEmail());
         }
 
