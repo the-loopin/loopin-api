@@ -121,7 +121,7 @@ public class GroupServiceImpl implements GroupService {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAcceptsMembershipChanges(group);
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         if (groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
