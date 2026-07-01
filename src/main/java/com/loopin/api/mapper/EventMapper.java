@@ -4,7 +4,7 @@ import com.loopin.api.dto.event.request.EventCreateRequest;
 import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
-import com.loopin.api.entity.common.enums.EventStatus;
+import com.loopin.api.common.enums.EventStatus;
 import org.springframework.stereotype.Component;
 
 @Component
