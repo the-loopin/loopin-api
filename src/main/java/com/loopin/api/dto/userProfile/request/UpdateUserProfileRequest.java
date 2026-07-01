@@ -1,11 +1,11 @@
-package com.loopin.api.dto;
+package com.loopin.api.dto.userProfile.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserProfileRequest {
+public class UpdateUserProfileRequest {
 
     @NotBlank(message = "Name field cannot be blank")
     @Size(max = 100, message = "Name can be a maximum of 100 characters")

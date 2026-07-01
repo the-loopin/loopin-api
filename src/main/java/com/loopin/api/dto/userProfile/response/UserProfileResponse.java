@@ -1,4 +1,4 @@
-package com.loopin.api.dto.response;
+package com.loopin.api.dto.userProfile.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

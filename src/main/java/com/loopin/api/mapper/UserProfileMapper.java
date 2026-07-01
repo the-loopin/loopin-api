@@ -1,10 +1,9 @@
 package com.loopin.api.mapper;
 
-import com.loopin.api.dto.response.UserProfileResponse;
-import com.loopin.api.dto.request.UpdateUserProfileRequest;
+import com.loopin.api.dto.userProfile.request.UpdateUserProfileRequest;
+import com.loopin.api.dto.userProfile.response.UserProfileResponse;
 import com.loopin.api.entity.UserProfile;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class UserProfileMapper {

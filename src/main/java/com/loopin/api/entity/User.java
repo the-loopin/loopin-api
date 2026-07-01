@@ -25,6 +25,9 @@ public class User extends BaseEntity {
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> roles;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserBadge> badges;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserProfile profile;
 }

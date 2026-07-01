@@ -1,7 +1,7 @@
 package com.loopin.api.service.implementation;
 
-import com.loopin.api.dto.request.UpdateUserProfileRequest;
-import com.loopin.api.dto.response.UserProfileResponse;
+import com.loopin.api.dto.userProfile.request.UpdateUserProfileRequest;
+import com.loopin.api.dto.userProfile.response.UserProfileResponse;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.mapper.UserProfileMapper;
 import com.loopin.api.repository.UserProfileRepository;
@@ -17,7 +17,7 @@ import java.util.List;
 public class UserProfileServiceImpl implements UserProfileService {
 
     private final UserProfileRepository profileRepository;
-    private final UserProfileMapper profileMapper; // Mapper asılılıq olaraq daxil edilir
+    private final UserProfileMapper profileMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -25,7 +25,6 @@ public class UserProfileServiceImpl implements UserProfileService {
         UserProfile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User profile not found."));
 
-        // Köməkçi private metod əvəzinə mapper çağırılır
         return profileMapper.toResponse(profile);
     }
 
@@ -35,13 +34,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         UserProfile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User profile not found."));
 
-        profile.setName(request.getName());
-        profile.setCity(request.getCity());
-        profile.setBio(request.getBio());
+        profileMapper.updateEntity(profile, request);
 
         UserProfile updatedProfile = profileRepository.save(profile);
 
-        // Yenilənmiş entity mapper vasitəsilə response-a çevrilir
         return profileMapper.toResponse(updatedProfile);
     }
 
@@ -60,6 +56,4 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .map(badge -> badge.getBadgeType().name())
                 .toList();
     }
-
-
 }

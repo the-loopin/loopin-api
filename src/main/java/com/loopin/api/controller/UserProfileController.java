@@ -1,7 +1,7 @@
 package com.loopin.api.controller;
 
-import com.loopin.api.dto.request.UpdateUserProfileRequest;
-import com.loopin.api.dto.response.UserProfileResponse;
+import com.loopin.api.dto.userProfile.request.UpdateUserProfileRequest;
+import com.loopin.api.dto.userProfile.response.UserProfileResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.loopin.api.service.abstraction.UserProfileService;
@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping
@@ -33,7 +34,7 @@ public class UserProfileController {
     @GetMapping("/me/badges")
     public ResponseEntity<List<String>> getMyBadges() {
         Long currentUserId = 1L;
-        return ResponseEntity.ok(List.of("EVENT_ATTENDEE", "GROUP_CREATOR"));
+        return ResponseEntity.ok(profileService.getUserBadges(currentUserId));
     }
 }
 
