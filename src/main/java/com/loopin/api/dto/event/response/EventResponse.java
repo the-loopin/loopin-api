@@ -1,8 +1,8 @@
 package com.loopin.api.dto.event.response;
 
-import com.loopin.api.entity.common.enums.EventCategory;
-import com.loopin.api.entity.common.enums.EventStatus;
-import com.loopin.api.entity.common.enums.EventType;
+import com.loopin.api.common.enums.EventCategory;
+import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.common.enums.EventType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
