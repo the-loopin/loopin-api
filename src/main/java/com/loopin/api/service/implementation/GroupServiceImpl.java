@@ -10,9 +10,9 @@ import com.loopin.api.entity.Event;
 import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.GroupMember;
 import com.loopin.api.entity.User;
-import com.loopin.api.entity.common.enums.GroupStatus;
-import com.loopin.api.exception.InvalidGroupStateException;
-import com.loopin.api.exception.ResourceNotFoundException;
+import com.loopin.api.common.enums.GroupStatus;
+import com.loopin.api.common.exception.InvalidGroupStateException;
+import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.GroupMemberRepository;
@@ -45,7 +45,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponse createGroup(CreateGroupRequest request, String currentUsername) {
-        User currentUser = userRepository.findByUsername(currentUsername)
+        User currentUser = userRepository.findByEmail(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
 
         // Event is optional: null eventId => independent group
@@ -81,7 +81,7 @@ public class GroupServiceImpl implements GroupService {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAcceptsMembershipChanges(group);
 
-        if (!group.getAdmin().getUsername().equals(currentUsername)) {
+        if (!group.getAdmin().getEmail().equals(currentUsername)) {
             throw new InvalidGroupStateException("Only the group admin can update this group");
         }
 
@@ -121,7 +121,7 @@ public class GroupServiceImpl implements GroupService {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAcceptsMembershipChanges(group);
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         if (groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
@@ -160,7 +160,7 @@ public class GroupServiceImpl implements GroupService {
 
         EventGroup group = findGroupOrThrow(groupId);
 
-        if (!group.getAdmin().getUsername().equals(currentUsername)) {
+        if (!group.getAdmin().getEmail().equals(currentUsername)) {
             throw new InvalidGroupStateException(
                     "Only the group admin can update the group status");
         }

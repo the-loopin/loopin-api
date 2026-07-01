@@ -1,7 +1,7 @@
 package com.loopin.api.entity;
 
-import com.loopin.api.entity.common.entity.BaseEntity;
-import com.loopin.api.entity.common.enums.BadgeType;
+import com.loopin.api.common.entity.BaseEntity;
+import com.loopin.api.common.enums.BadgeType;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -10,6 +10,7 @@ public interface UserService {
     UserResponse registerUser(UserRegisterRequest request);
     List<UserResponse> getAllUsers();
     UserResponse getUserById(Long id);
+    UserResponse getUserByEmail(String email);
     UserResponse updateUserRole(Long id, Role role);
     void deleteUser(Long id);
 }

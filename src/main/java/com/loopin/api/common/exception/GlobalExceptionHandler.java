@@ -1,4 +1,4 @@
-package com.loopin.api.exception;
+package com.loopin.api.common.exception;
 
 import com.loopin.api.dto.error.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -112,5 +112,20 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(
+            org.springframework.web.server.ResponseStatusException exception,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+                HttpStatus.valueOf(exception.getStatusCode().value()),
+                exception.getReason(),
+                request.getRequestURI(),
+                null
+        );
+
+        return ResponseEntity.status(exception.getStatusCode()).body(response);
     }
 }

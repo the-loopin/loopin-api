@@ -3,8 +3,8 @@ package com.loopin.api.service.abstraction;
 import com.loopin.api.dto.event.request.EventCreateRequest;
 import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
-import com.loopin.api.entity.common.enums.EventCategory;
-import com.loopin.api.entity.common.enums.EventType;
+import com.loopin.api.common.enums.EventCategory;
+import com.loopin.api.common.enums.EventType;
 
 import java.time.LocalDate;
 import java.util.List;

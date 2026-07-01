@@ -7,7 +7,7 @@ import com.loopin.api.dto.response.GroupResponse;
 import com.loopin.api.entity.Event;
 import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.User;
-import com.loopin.api.entity.common.enums.GroupStatus;
+import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.repository.GroupMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ public class GroupMapper {
                 group.getId(),
                 group.getEvent() != null ? group.getEvent().getId() : null,
                 group.getAdmin().getId(),
-                group.getAdmin().getUsername(),
+                group.getAdmin().getEmail(),
                 group.getTitle(),
                 group.getGroupSize(),
                 group.getMaxMembers(),
