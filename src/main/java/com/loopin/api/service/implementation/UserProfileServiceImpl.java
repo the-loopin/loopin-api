@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Transactional(readOnly = true)
     public UserProfileResponse getProfile(Long userId) {
         UserProfile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User profile not found."));
+                .orElseThrow(() -> new NoSuchElementException("User profile not found."));
 
         return profileMapper.toResponse(profile);
     }
@@ -32,7 +33,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Transactional
     public UserProfileResponse updateProfile(Long userId, UpdateUserProfileRequest request) {
         UserProfile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User profile not found."));
+                .orElseThrow(() -> new NoSuchElementException("User profile not found."));
 
         profileMapper.updateEntity(profile, request);
 
@@ -45,7 +46,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Transactional(readOnly = true)
     public List<String> getUserBadges(Long userId) {
         UserProfile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User profile not found."));
+                .orElseThrow(() -> new NoSuchElementException("User profile not found."));
 
         if (profile.getUser() == null || profile.getUser().getBadges() == null) {
             return List.of();
