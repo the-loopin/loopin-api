@@ -1,9 +1,9 @@
 package com.loopin.api.mapper;
 
 import com.loopin.api.dto.response.UserProfileResponse;
+import com.loopin.api.dto.request.UpdateUserProfileRequest;
 import com.loopin.api.entity.UserProfile;
 import org.springframework.stereotype.Component;
-import com.loopin.api.dto.response.UserProfileResponse;
 import java.util.List;
 
 @Component
@@ -26,5 +26,11 @@ public class UserProfileMapper {
         }
 
         return response;
+    }
+
+    public void updateEntity(UserProfile profile, UpdateUserProfileRequest request) {
+        profile.setName(request.getName());
+        profile.setCity(request.getCity());
+        profile.setBio(request.getBio());
     }
 }
