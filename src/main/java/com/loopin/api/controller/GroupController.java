@@ -1,0 +1,77 @@
+package com.loopin.api.controller;
+
+
+import com.loopin.api.dto.request.CreateGroupRequest;
+import com.loopin.api.dto.request.UpdateGroupRequest;
+import com.loopin.api.dto.request.UpdateGroupStatusRequest;
+import com.loopin.api.dto.response.GroupResponse;
+import com.loopin.api.service.implementation.GroupServiceImpl;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/groups")
+public class GroupController {
+
+    private final GroupServiceImpl groupService;
+
+    public GroupController(GroupServiceImpl groupService) {
+        this.groupService = groupService;
+    }
+
+    @PostMapping
+    public ResponseEntity<GroupResponse> createGroup(@Valid @RequestBody CreateGroupRequest request,
+                                                     Authentication authentication) {
+        String currentUsername = authentication.getName();
+        GroupResponse response = groupService.createGroup(request, currentUsername);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{groupId}")
+    public ResponseEntity<GroupResponse> getGroup(@PathVariable Long groupId) {
+        return ResponseEntity.ok(groupService.getGroup(groupId));
+    }
+
+    @PostMapping("/{groupId}/members/{userId}")
+    public ResponseEntity<Void> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
+        groupService.addMember(groupId, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/{groupId}")
+    public ResponseEntity<GroupResponse> updateGroup(
+            @PathVariable Long groupId,
+            @Valid @RequestBody UpdateGroupRequest request,
+            Authentication authentication) {
+
+        GroupResponse response = groupService.updateGroup(
+                groupId,
+                request,
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+    @PatchMapping("/{groupId}/status")
+    public ResponseEntity<GroupResponse> updateGroupStatus(
+            @PathVariable Long groupId,
+            @Valid @RequestBody UpdateGroupStatusRequest request,
+            Authentication authentication) {
+
+        GroupResponse response = groupService.updateGroupStatus(
+                groupId,
+                request,
+                authentication.getName());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{groupId}/members/{userId}")
+    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
+        groupService.removeMember(groupId, userId);
+        return ResponseEntity.noContent().build();
+    }
+}
