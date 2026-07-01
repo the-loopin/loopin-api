@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.loopin.api.exception.DuplicateResourceException;
+import com.loopin.api.common.exception.DuplicateResourceException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -60,6 +60,14 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         User user = userRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new NoSuchElementException("User not found."));
+        return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         return userMapper.toResponse(user);
     }
