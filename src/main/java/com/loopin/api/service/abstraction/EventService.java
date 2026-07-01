@@ -1,0 +1,31 @@
+package com.loopin.api.service.abstraction;
+
+import com.loopin.api.dto.event.request.EventCreateRequest;
+import com.loopin.api.dto.event.request.EventUpdateRequest;
+import com.loopin.api.dto.event.response.EventResponse;
+import com.loopin.api.entity.common.enums.EventCategory;
+import com.loopin.api.entity.common.enums.EventType;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public interface EventService {
+
+    List<EventResponse> getPublishedEvents(
+            EventType type,
+            EventCategory category,
+            String city,
+            Boolean isFree,
+            String search,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
+    EventResponse getPublishedEventById(Long id);
+
+    EventResponse createEvent(EventCreateRequest request);
+
+    EventResponse updateEvent(Long id, EventUpdateRequest request);
+
+    void deleteEvent(Long id);
+}

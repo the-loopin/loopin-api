@@ -1,0 +1,207 @@
+package com.loopin.api.service.implementation;
+
+import com.loopin.api.dto.event.request.EventCreateRequest;
+import com.loopin.api.dto.event.request.EventUpdateRequest;
+import com.loopin.api.dto.event.response.EventResponse;
+import com.loopin.api.entity.Event;
+import com.loopin.api.entity.common.enums.EventCategory;
+import com.loopin.api.entity.common.enums.EventStatus;
+import com.loopin.api.entity.common.enums.EventType;
+import com.loopin.api.mapper.EventMapper;
+import com.loopin.api.repository.EventRepository;
+import com.loopin.api.service.abstraction.EventService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+@Service
+@RequiredArgsConstructor
+public class EventServiceImpl implements EventService {
+
+    private final EventRepository eventRepository;
+    private final EventMapper eventMapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventResponse> getPublishedEvents(
+            EventType type,
+            EventCategory category,
+            String city,
+            Boolean isFree,
+            String search,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        Specification<Event> specification = Specification
+                .where(notDeleted())
+                .and(hasStatus(EventStatus.PUBLISHED))
+                .and(hasType(type))
+                .and(hasCategory(category))
+                .and(cityContains(city))
+                .and(hasIsFree(isFree))
+                .and(searchInTitleOrDescription(search))
+                .and(startsOnOrAfter(startDate))
+                .and(startsOnOrBefore(endDate));
+
+        return eventRepository.findAll(specification)
+                .stream()
+                .map(eventMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventResponse getPublishedEventById(Long id) {
+        Event event = eventRepository.findOne(
+                Specification.where(notDeleted())
+                        .and(hasStatus(EventStatus.PUBLISHED))
+                        .and(hasId(id))
+        ).orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
+
+        return eventMapper.toResponse(event);
+    }
+
+    @Override
+    @Transactional
+    public EventResponse createEvent(EventCreateRequest request) {
+        validateDateRange(request.getStartDateTime(), request.getEndDateTime());
+        validatePrice(request.getIsFree(), request.getPrice());
+
+        Event event = eventMapper.toEntity(request);
+        Event savedEvent = eventRepository.save(event);
+
+        return eventMapper.toResponse(savedEvent);
+    }
+
+    @Override
+    @Transactional
+    public EventResponse updateEvent(Long id, EventUpdateRequest request) {
+        validateDateRange(request.getStartDateTime(), request.getEndDateTime());
+        validatePrice(request.getIsFree(), request.getPrice());
+
+        Event event = findActiveEventById(id);
+        eventMapper.updateEntity(event, request);
+
+        Event savedEvent = eventRepository.save(event);
+        return eventMapper.toResponse(savedEvent);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEvent(Long id) {
+        Event event = findActiveEventById(id);
+        event.markAsDeleted();
+        eventRepository.save(event);
+    }
+
+    private Event findActiveEventById(Long id) {
+        return eventRepository.findOne(
+                Specification.where(notDeleted()).and(hasId(id))
+        ).orElseThrow(() -> new NoSuchElementException("Event not found with id: " + id));
+    }
+
+    private void validateDateRange(java.time.LocalDateTime startDateTime, java.time.LocalDateTime endDateTime) {
+        if (!endDateTime.isAfter(startDateTime)) {
+            throw new IllegalArgumentException("End date and time must be after start date and time");
+        }
+    }
+
+    private void validatePrice(Boolean isFree, BigDecimal price) {
+        if (Boolean.TRUE.equals(isFree)) {
+            if (price != null && price.compareTo(BigDecimal.ZERO) != 0) {
+                throw new IllegalArgumentException("Free events must have price 0 or null");
+            }
+            return;
+        }
+
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Paid events must have price greater than 0");
+        }
+    }
+
+    private Specification<Event> alwaysTrue() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+    }
+
+    private Specification<Event> hasId(Long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+    }
+
+    private Specification<Event> notDeleted() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.isNull(root.get("deletedAt"));
+    }
+
+    private Specification<Event> hasStatus(EventStatus status) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), status);
+    }
+
+    private Specification<Event> hasType(EventType type) {
+        if (type == null) {
+            return alwaysTrue();
+        }
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("type"), type);
+    }
+
+    private Specification<Event> hasCategory(EventCategory category) {
+        if (category == null) {
+            return alwaysTrue();
+        }
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("category"), category);
+    }
+
+    private Specification<Event> cityContains(String city) {
+        if (city == null || city.isBlank()) {
+            return alwaysTrue();
+        }
+
+        String cityPattern = "%" + city.trim().toLowerCase() + "%";
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("city")), cityPattern);
+    }
+
+    private Specification<Event> hasIsFree(Boolean isFree) {
+        if (isFree == null) {
+            return alwaysTrue();
+        }
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isFree"), isFree);
+    }
+
+    private Specification<Event> searchInTitleOrDescription(String search) {
+        if (search == null || search.isBlank()) {
+            return alwaysTrue();
+        }
+
+        String searchPattern = "%" + search.trim().toLowerCase() + "%";
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), searchPattern),
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), searchPattern)
+        );
+    }
+
+    private Specification<Event> startsOnOrAfter(LocalDate startDate) {
+        if (startDate == null) {
+            return alwaysTrue();
+        }
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(root.get("startDateTime"), startDate.atStartOfDay());
+    }
+
+    private Specification<Event> startsOnOrBefore(LocalDate endDate) {
+        if (endDate == null) {
+            return alwaysTrue();
+        }
+
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThan(root.get("startDateTime"), endDate.plusDays(1).atStartOfDay());
+    }
+}

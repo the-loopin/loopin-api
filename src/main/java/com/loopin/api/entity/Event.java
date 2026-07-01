@@ -1,12 +1,20 @@
 package com.loopin.api.entity;
 
 import com.loopin.api.entity.common.entity.BaseEntity;
+import com.loopin.api.entity.common.enums.EventCategory;
+import com.loopin.api.entity.common.enums.EventStatus;
+import com.loopin.api.entity.common.enums.EventType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,9 +25,45 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Event extends BaseEntity {
 
+    @Column(nullable = false, length = 120)
     private String title;
+
+    @Column(nullable = false, length = 2000)
     private String description;
-    private String location;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private EventType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private EventCategory category;
+
+    @Column(nullable = false, length = 100)
+    private String city;
+
+    @Column(length = 255)
+    private String address;
+
+    @Column(nullable = false)
+    private LocalDateTime startDateTime;
+
+    @Column(nullable = false)
     private LocalDateTime endDateTime;
-    private boolean isCompleted = false;
+
+    @Column(nullable = false)
+    private Boolean isFree;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(nullable = false, length = 120)
+    private String organizerName;
+
+    @Column(length = 500)
+    private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private EventStatus status = EventStatus.PUBLISHED;
 }
