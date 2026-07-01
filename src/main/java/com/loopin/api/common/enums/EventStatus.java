@@ -1,4 +1,4 @@
-package com.loopin.api.entity.common.enums;
+package com.loopin.api.common.enums;
 
 public enum EventStatus {
     DRAFT,
