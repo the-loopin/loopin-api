@@ -110,10 +110,12 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(readOnly = true)
     public Page<EventResponse> getEvents(EventStatus status, Pageable pageable) {
-        Page<Event> eventPage = (status != null)
-                ? eventRepository.findByStatus(status, pageable)
-                : eventRepository.findAll(pageable);
-        return eventPage.map(eventMapper::toResponse);
+        org.springframework.data.jpa.domain.Specification<Event> spec =
+                (root, query, cb) -> cb.isNull(root.get("deletedAt"));
+        if (status != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+        return eventRepository.findAll(spec, pageable).map(eventMapper::toResponse);
     }
 
     @Override
