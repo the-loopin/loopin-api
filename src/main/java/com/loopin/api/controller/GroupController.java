@@ -1,9 +1,9 @@
 package com.loopin.api.controller;
 
-import com.loopin.api.dto.request.CreateGroupRequest;
-import com.loopin.api.dto.request.UpdateGroupRequest;
-import com.loopin.api.dto.request.UpdateGroupStatusRequest;
-import com.loopin.api.dto.response.GroupResponse;
+import com.loopin.api.dto.group.request.CreateGroupRequest;
+import com.loopin.api.dto.group.request.UpdateGroupRequest;
+import com.loopin.api.dto.group.request.UpdateGroupStatusRequest;
+import com.loopin.api.dto.group.response.GroupResponse;
 import com.loopin.api.service.implementation.GroupServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
