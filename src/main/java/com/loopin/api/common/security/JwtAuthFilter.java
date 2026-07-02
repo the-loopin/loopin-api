@@ -63,19 +63,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (jwtUtils.isTokenValid(jwt)) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
-
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (JwtException | IllegalArgumentException exception) {
+        } catch (Exception e) {
             SecurityContextHolder.clearContext();
+            // Log the parsing failure, but let the request continue.
+            // If the endpoint is public, it will succeed. If protected, it will fail at the security interceptor level.
         }
 
         filterChain.doFilter(request, response);
