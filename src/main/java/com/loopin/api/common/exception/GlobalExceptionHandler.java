@@ -158,4 +158,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(exception.getStatusCode()).body(response);
     }
+
+    @ExceptionHandler(InvalidGroupStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidGroupState(
+            InvalidGroupStateException exception,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request.getRequestURI(),
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 }
