@@ -2,7 +2,7 @@ package com.loopin.api.service.implementation;
 
 
 import com.loopin.api.dto.request.CreateGroupRequest;
-import com.loopin.api.dto.GroupMapper;
+import com.loopin.api.mapper.GroupMapper;
 import com.loopin.api.dto.request.UpdateGroupRequest;
 import com.loopin.api.dto.request.UpdateGroupStatusRequest;
 import com.loopin.api.dto.response.GroupResponse;

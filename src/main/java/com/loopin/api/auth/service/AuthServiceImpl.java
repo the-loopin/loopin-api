@@ -1,13 +1,12 @@
-package com.loopin.api.service.implementation;
+package com.loopin.api.auth.service;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.security.JwtUtils;
-import com.loopin.api.dto.auth.request.GoogleLoginRequest;
-import com.loopin.api.dto.auth.response.AuthResponse;
+import com.loopin.api.auth.dto.GoogleLoginRequest;
+import com.loopin.api.auth.dto.AuthResponse;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.repository.UserRepository;
-import com.loopin.api.service.abstraction.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
