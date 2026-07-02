@@ -17,9 +17,9 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NoSuchElementException.class)
+    @ExceptionHandler({NoSuchElementException.class, ResourceNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleNotFound(
-            NoSuchElementException exception,
+            Exception exception,
             HttpServletRequest request
     ) {
         ErrorResponse response = buildErrorResponse(
@@ -30,6 +30,36 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            org.springframework.http.converter.HttpMessageNotReadableException exception,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Invalid request payload or value",
+                request.getRequestURI(),
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            org.springframework.security.access.AccessDeniedException exception,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage() != null ? exception.getMessage() : "Access denied",
+                request.getRequestURI(),
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
