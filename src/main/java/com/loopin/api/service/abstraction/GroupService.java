@@ -5,10 +5,11 @@ import com.loopin.api.dto.group.request.UpdateGroupRequest;
 import com.loopin.api.dto.group.request.UpdateGroupStatusRequest;
 import com.loopin.api.dto.group.response.GroupResponse;
 
+import java.util.List;
+
 public interface GroupService {
     public GroupResponse createGroup(CreateGroupRequest request, String currentUsername);
-    public void addMember(Long groupId, Long userId);
-    public void removeMember(Long groupId, Long userId);
+    public List<GroupResponse> getAllGroups(Long eventId);
     public GroupResponse updateGroup(Long groupId, UpdateGroupRequest request, String currentUsername);
     public GroupResponse updateGroupStatus(
             Long groupId,
