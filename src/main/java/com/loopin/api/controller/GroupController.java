@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/groups")
 public class GroupController {
@@ -31,16 +33,16 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/event/{eventId}")
+    public ResponseEntity<List<GroupResponse>> getAllGroups(@PathVariable Long eventId) {
+        return ResponseEntity.ok(groupService.getAllGroups(eventId));
+    }
+
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupResponse> getGroup(@PathVariable Long groupId) {
         return ResponseEntity.ok(groupService.getGroup(groupId));
     }
 
-    @PostMapping("/{groupId}/members/{userId}")
-    public ResponseEntity<Void> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        groupService.addMember(groupId, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
 
     @PutMapping("/{groupId}")
     public ResponseEntity<GroupResponse> updateGroup(
@@ -75,11 +77,6 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{groupId}/members/{userId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        groupService.removeMember(groupId, userId);
-        return ResponseEntity.noContent().build();
-    }
 
     private String resolveUsername(Authentication authentication, String emailHeader) {
         if (authentication != null && authentication.getName() != null) {
