@@ -12,7 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/groups")
+@RequestMapping("/groups")
 public class GroupController {
 
     private final GroupServiceImpl groupService;
