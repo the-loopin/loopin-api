@@ -51,14 +51,11 @@ public class UserController {
             return ResponseEntity.ok(userService.getUserById(userIdHeader));
         }
 
-        org.springframework.security.core.Authentication authentication = 
-                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Access denied. Authentication required.");
-        }
+        String email = com.loopin.api.common.security.SecurityUtils.getCurrentUserEmail()
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.UNAUTHORIZED, "Access denied. Authentication required."));
         
-        return ResponseEntity.ok(userService.getUserByEmail(authentication.getName()));
+        return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
     @PutMapping("/{id}/role")
