@@ -79,12 +79,9 @@ public class AdminController {
     }
 
     private String resolveAdminIdentifier(Authentication authentication, String userIdHeader) {
-        if (userIdHeader != null && !userIdHeader.isBlank()) {
-            return userIdHeader;
-        }
-        if (authentication != null && authentication.getName() != null) {
+        if (authentication != null && authentication.getName() != null && !authentication.getName().isBlank()) {
             return authentication.getName();
         }
-        return "admin";
+        return (userIdHeader != null && !userIdHeader.isBlank()) ? userIdHeader : null;
     }
 }
