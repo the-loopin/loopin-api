@@ -38,7 +38,10 @@ public class AdminServiceImpl implements AdminService {
     @Transactional(readOnly = true)
     public DashboardStatsResponse getDashboardStats() {
         long totalUsers = userRepository.countByIsActiveTrue();
-        long activeEvents = eventRepository.countByStatus(EventStatus.PUBLISHED);
+        long activeEvents = eventRepository.count((root, query, cb) -> cb.and(
+                cb.isNull(root.get("deletedAt")),
+                cb.equal(root.get("status"), EventStatus.PUBLISHED)
+        ));
         long totalGroups = eventGroupRepository.count();
 
         return DashboardStatsResponse.builder()
