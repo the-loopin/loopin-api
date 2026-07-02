@@ -2,7 +2,7 @@ package com.loopin.api.controller;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.security.JwtUtils;
-import com.loopin.api.dto.auth.request.GoogleLoginRequest;
+import com.loopin.api.auth.dto.GoogleLoginRequest;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.repository.UserRepository;

@@ -1,8 +1,8 @@
-package com.loopin.api.controller;
+package com.loopin.api.auth.controller;
 
-import com.loopin.api.dto.auth.request.GoogleLoginRequest;
-import com.loopin.api.dto.auth.response.AuthResponse;
-import com.loopin.api.service.abstraction.AuthService;
+import com.loopin.api.auth.dto.GoogleLoginRequest;
+import com.loopin.api.auth.dto.AuthResponse;
+import com.loopin.api.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
