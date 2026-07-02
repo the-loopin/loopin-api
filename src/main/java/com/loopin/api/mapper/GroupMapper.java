@@ -11,6 +11,10 @@ import com.loopin.api.repository.GroupMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 @RequiredArgsConstructor
 public class GroupMapper {
@@ -44,6 +48,16 @@ public class GroupMapper {
                 memberCount,
                 group.getCreatedAt()
         );
+    }
+
+    public List<GroupResponse> toGroupResponseList(List<EventGroup> groups) {
+        if (groups == null || groups.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return groups.stream()
+                .map(this::toGroupResponse)
+                .collect(Collectors.toList());
     }
 
 }
