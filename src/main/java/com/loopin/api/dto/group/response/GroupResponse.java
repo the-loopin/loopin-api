@@ -1,4 +1,4 @@
-package com.loopin.api.dto.response;
+package com.loopin.api.dto.group.response;
 
 
 

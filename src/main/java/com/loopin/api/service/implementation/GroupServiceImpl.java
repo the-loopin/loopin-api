@@ -1,11 +1,11 @@
 package com.loopin.api.service.implementation;
 
 
-import com.loopin.api.dto.request.CreateGroupRequest;
+import com.loopin.api.dto.group.request.CreateGroupRequest;
 import com.loopin.api.mapper.GroupMapper;
-import com.loopin.api.dto.request.UpdateGroupRequest;
-import com.loopin.api.dto.request.UpdateGroupStatusRequest;
-import com.loopin.api.dto.response.GroupResponse;
+import com.loopin.api.dto.group.request.UpdateGroupRequest;
+import com.loopin.api.dto.group.request.UpdateGroupStatusRequest;
+import com.loopin.api.dto.group.response.GroupResponse;
 import com.loopin.api.entity.Event;
 import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.GroupMember;
