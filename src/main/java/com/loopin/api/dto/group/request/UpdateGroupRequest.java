@@ -1,4 +1,4 @@
-package com.loopin.api.dto.request;
+package com.loopin.api.dto.group.request;
 
 
 import com.loopin.api.common.enums.GroupSizeType;
