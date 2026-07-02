@@ -119,8 +119,10 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void deleteEvent(Long eventId, String currentAdminIdentifier) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
+        Event event = eventRepository.findOne((root, query, cb) -> cb.and(
+                cb.isNull(root.get("deletedAt")),
+                cb.equal(root.get("id"), eventId)
+        )).orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
 
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
