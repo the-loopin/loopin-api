@@ -11,5 +11,5 @@ public interface GroupMemberService {
     public GroupMemberResponse getById(Long id);
     public List<GroupMemberResponse> getByGroupId(Long groupId);
     public void removeMember(Long groupId, Long userId);
-    public GroupMemberResponse addMember(GroupMemberRequest dto);
+    public GroupMemberResponse addMember(Long groupId,GroupMemberRequest dto);
 }

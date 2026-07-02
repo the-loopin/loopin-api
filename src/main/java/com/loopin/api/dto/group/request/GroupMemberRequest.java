@@ -7,8 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class GroupMemberRequest {
-    @NotNull
-    private Long groupId;
 
     @NotNull
     private Long userId;

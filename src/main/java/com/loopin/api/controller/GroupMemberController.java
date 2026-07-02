@@ -2,7 +2,7 @@ package com.loopin.api.controller;
 
 import com.loopin.api.dto.group.request.GroupMemberRequest;
 import com.loopin.api.dto.group.response.GroupMemberResponse;
-import com.loopin.api.service.implementation.GroupMemberServiceImpl;
+import com.loopin.api.service.abstraction.GroupMemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,16 +16,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GroupMemberController {
 
-    private final GroupMemberServiceImpl groupMemberService;
+    private final GroupMemberService groupMemberService;
 
     @PostMapping
-    public ResponseEntity<GroupMemberResponse> addMember(@Valid @RequestBody GroupMemberRequest dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(groupMemberService.addMember(dto));
+    public ResponseEntity<GroupMemberResponse> addMember(
+            @PathVariable Long groupId,
+            @Valid @RequestBody GroupMemberRequest dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(groupMemberService.addMember(groupId, dto));
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<GroupMemberResponse> getById(@PathVariable Long userId) {
-        return ResponseEntity.ok(groupMemberService.getById(userId));
+    @GetMapping("/{memberId}")
+    public ResponseEntity<GroupMemberResponse> getById(@PathVariable Long memberId) {
+        return ResponseEntity.ok(groupMemberService.getById(memberId));
     }
 
     @GetMapping
@@ -33,9 +37,9 @@ public class GroupMemberController {
         return ResponseEntity.ok(groupMemberService.getByGroupId(groupId));
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        groupMemberService.removeMember(groupId, userId);
+    @DeleteMapping("/{memberId}")
+    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long memberId) {
+        groupMemberService.removeMember(groupId, memberId);
         return ResponseEntity.noContent().build();
     }
 

@@ -32,17 +32,17 @@ public class GroupMemberServiceImpl implements GroupMemberService {
 
     @Override
     @Transactional
-    public GroupMemberResponse addMember(GroupMemberRequest dto) {
-        EventGroup group = eventGroupRepository.findById(dto.getGroupId())
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + dto.getGroupId()));
+    public GroupMemberResponse addMember(Long groupId,GroupMemberRequest dto) {
+        EventGroup group = eventGroupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getUserId()));
 
-        if (groupMemberRepository.existsByGroup_IdAndUser_Id(group.getId(), user.getId())) {
-            throw new DuplicateResourceException("Group member already exists: " + dto.getGroupId());
+        if (groupMemberRepository.existsByGroupIdAndUserId(group.getId(), user.getId())) {
+            throw new DuplicateResourceException("Group member already exists: " + groupId);
         }
 
-        long currentMembers = groupMemberRepository.countByGroup_Id(group.getId());
+        long currentMembers = groupMemberRepository.countByGroupId(group.getId());
         if (currentMembers >= group.getMaxMembers()) {
             throw  new InvalidGroupStateException("Group member is too large");
         }
@@ -71,7 +71,7 @@ public class GroupMemberServiceImpl implements GroupMemberService {
             throw new ResourceNotFoundException("Group not found with id: " + groupId);
         }
 
-        List<GroupMember> members = groupMemberRepository.findByGroup_Id(groupId);
+        List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
 
         return groupMemberMapper.toResponseList(members);
     }
@@ -80,10 +80,10 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     @Override
     @Transactional
     public void removeMember(Long groupId, Long userId) {
-        if (!groupMemberRepository.existsByGroup_IdAndUser_Id(groupId, userId)) {
+        if (!groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
             throw new ResourceNotFoundException("User or group not found");
         }
-        groupMemberRepository.deleteByGroup_IdAndUser_Id(groupId, userId);
+        groupMemberRepository.deleteByGroupIdAndUserId(groupId, userId);
     }
 
 
