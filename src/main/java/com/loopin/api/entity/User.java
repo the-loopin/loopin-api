@@ -28,6 +28,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role = Role.USER;
 
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserProfile profile;
 

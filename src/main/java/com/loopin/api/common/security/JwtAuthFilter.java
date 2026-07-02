@@ -1,6 +1,7 @@
 package com.loopin.api.common.security;
 
 import com.loopin.api.service.implementation.CustomUserDetailsService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,25 +56,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String jwt = authHeader.substring(7);
         try {
+            final String jwt = authHeader.substring(7);
             final String userEmail = jwtUtils.getUsernameFromToken(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 if (jwtUtils.isTokenValid(jwt)) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-                    
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             userDetails.getAuthorities()
                     );
-                    
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
         } catch (Exception e) {
+            SecurityContextHolder.clearContext();
             // Log the parsing failure, but let the request continue.
             // If the endpoint is public, it will succeed. If protected, it will fail at the security interceptor level.
         }

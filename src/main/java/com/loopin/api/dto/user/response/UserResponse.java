@@ -18,6 +18,7 @@ public class UserResponse {
     private String name;
     private String googleId;
     private Role role;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

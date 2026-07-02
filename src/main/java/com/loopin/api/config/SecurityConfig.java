@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import jakarta.servlet.DispatcherType;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -42,12 +43,15 @@ public class SecurityConfig {
                 .accessDeniedHandler(customAccessDeniedHandler)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
-                .requestMatchers("/users/me").authenticated()
-                .requestMatchers("/users/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/events/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/groups/**").permitAll()
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/auth/**", "/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users/register", "/api/users/register").permitAll()
+                .requestMatchers("/users/me", "/api/users/me").authenticated()
+                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/users/**", "/api/users/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/events/**", "/api/events/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/groups/**", "/api/groups/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

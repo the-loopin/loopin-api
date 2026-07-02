@@ -18,6 +18,7 @@ public class UserMapper {
                 .name(user.getName())
                 .googleId(user.getGoogleId())
                 .role(user.getRole())
+                .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
