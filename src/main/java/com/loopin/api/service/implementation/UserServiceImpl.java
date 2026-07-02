@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
+import com.loopin.api.common.exception.DuplicateResourceException;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +27,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse registerUser(UserRegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered.");
+            throw new DuplicateResourceException("Email is already registered.");
         }
 
         if (request.getGoogleId() != null && !request.getGoogleId().isBlank()) {
             if (userRepository.existsByGoogleId(request.getGoogleId())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Google ID is already registered.");
+                throw new DuplicateResourceException("Google ID is already registered.");
             }
         }
 
@@ -60,7 +60,15 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         User user = userRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+                .orElseThrow(() -> new NoSuchElementException("User not found."));
+        return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found."));
         return userMapper.toResponse(user);
     }
 
@@ -68,7 +76,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse updateUserRole(Long id, Role role) {
         User user = userRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+                .orElseThrow(() -> new NoSuchElementException("User not found."));
         user.setRole(role);
         User updatedUser = userRepository.save(user);
         return userMapper.toResponse(updatedUser);
@@ -78,7 +86,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(Long id) {
         User user = userRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
+                .orElseThrow(() -> new NoSuchElementException("User not found."));
         user.markAsDeleted();
         userRepository.save(user);
     }

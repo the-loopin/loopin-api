@@ -1,4 +1,4 @@
-package com.loopin.api.exception;
+package com.loopin.api.common.exception;
 
 public class DuplicateResourceException extends RuntimeException {
 

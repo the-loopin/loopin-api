@@ -1,7 +1,7 @@
 package com.loopin.api.dto.request;
 
 
-import com.loopin.api.entity.common.enums.GroupSizeType;
+import com.loopin.api.common.enums.GroupSizeType;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;

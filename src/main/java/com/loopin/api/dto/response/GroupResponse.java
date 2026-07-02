@@ -2,8 +2,8 @@ package com.loopin.api.dto.response;
 
 
 
-import com.loopin.api.entity.common.enums.GroupSizeType;
-import com.loopin.api.entity.common.enums.GroupStatus;
+import com.loopin.api.common.enums.GroupSizeType;
+import com.loopin.api.common.enums.GroupStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

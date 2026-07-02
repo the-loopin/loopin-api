@@ -45,8 +45,20 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyProfile(
             @RequestHeader(value = "X-User-Id", required = false) Long userIdHeader) {
-        securityContext.requireAuthenticatedUser(userIdHeader);
-        return ResponseEntity.ok(userService.getUserById(userIdHeader));
+        
+        if (userIdHeader != null) {
+            securityContext.requireAuthenticatedUser(userIdHeader);
+            return ResponseEntity.ok(userService.getUserById(userIdHeader));
+        }
+
+        org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Access denied. Authentication required.");
+        }
+        
+        return ResponseEntity.ok(userService.getUserByEmail(authentication.getName()));
     }
 
     @PutMapping("/{id}/role")

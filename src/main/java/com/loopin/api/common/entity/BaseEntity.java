@@ -1,4 +1,4 @@
-package com.loopin.api.entity.common.entity;
+package com.loopin.api.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;

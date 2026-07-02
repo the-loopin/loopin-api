@@ -1,8 +1,8 @@
 package com.loopin.api.entity;
 
-import com.loopin.api.entity.common.entity.BaseEntity;
-import com.loopin.api.entity.common.enums.GroupSizeType;
-import com.loopin.api.entity.common.enums.GroupStatus;
+import com.loopin.api.common.entity.BaseEntity;
+import com.loopin.api.common.enums.GroupSizeType;
+import com.loopin.api.common.enums.GroupStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
