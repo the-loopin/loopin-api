@@ -21,6 +21,8 @@ import com.loopin.api.service.abstraction.GroupService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class GroupServiceImpl implements GroupService {
 
@@ -116,39 +118,17 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    @Transactional
-    public void addMember(Long groupId, Long userId) {
-        EventGroup group = findGroupOrThrow(groupId);
-        validateGroupAcceptsMembershipChanges(group);
+    @Transactional(readOnly = true)
+    public List<GroupResponse> getAllGroups(Long eventId) {
 
-        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-
-        if (groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
-            throw new InvalidGroupStateException("User is already a member of this group");
+        if (!eventRepository.existsById(eventId)) {
+            throw new ResourceNotFoundException("Event not found with id: " + eventId);
         }
 
-        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
-        if (currentMemberCount >= group.getMaxMembers()) {
-            throw new InvalidGroupStateException("Group has reached its maximum number of members");
-        }
+        List<EventGroup> groups = eventGroupRepository.findByEventId(eventId);
+        List<GroupResponse> groupResponses = groupMapper.toGroupResponseList(groups);
 
-        GroupMember member = new GroupMember();
-        member.setGroup(group);
-        member.setUser(user);
-        groupMemberRepository.save(member);
-    }
-
-    @Override
-    @Transactional
-    public void removeMember(Long groupId, Long userId) {
-        EventGroup group = findGroupOrThrow(groupId);
-        validateGroupAcceptsMembershipChanges(group);
-
-        GroupMember member = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Membership not found"));
-
-        groupMemberRepository.delete(member);
+        return groupResponses;
     }
 
     @Override
