@@ -27,9 +27,12 @@ public class GroupMemberController {
                 .body(groupMemberService.addMember(groupId, dto));
     }
 
-    @GetMapping("/{memberId}")
-    public ResponseEntity<GroupMemberResponse> getById(@PathVariable Long memberId) {
-        return ResponseEntity.ok(groupMemberService.getById(memberId));
+    @GetMapping("/{userId}")
+    public ResponseEntity<GroupMemberResponse> getByUserId(
+            @PathVariable Long groupId,
+            @PathVariable Long userId
+    ) {
+        return ResponseEntity.ok(groupMemberService.getByGroupIdAndUserId(groupId, userId));
     }
 
     @GetMapping
@@ -37,9 +40,9 @@ public class GroupMemberController {
         return ResponseEntity.ok(groupMemberService.getByGroupId(groupId));
     }
 
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long memberId) {
-        groupMemberService.removeMember(groupId, memberId);
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
+        groupMemberService.removeMember(groupId, userId);
         return ResponseEntity.noContent().build();
     }
 

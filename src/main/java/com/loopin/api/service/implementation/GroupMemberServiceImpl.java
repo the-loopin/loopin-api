@@ -1,22 +1,17 @@
 package com.loopin.api.service.implementation;
 
-import com.loopin.api.common.exception.DuplicateResourceException;
-import com.loopin.api.common.exception.InvalidGroupStateException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.group.request.GroupMemberRequest;
 import com.loopin.api.dto.group.response.GroupMemberResponse;
-import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.GroupMember;
-import com.loopin.api.entity.User;
 import com.loopin.api.mapper.GroupMemberMapper;
 import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.GroupMemberRepository;
-import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.GroupMemberService;
+import com.loopin.api.service.abstraction.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.util.List;
 
@@ -24,44 +19,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GroupMemberServiceImpl implements GroupMemberService {
 
+    private final GroupService groupService;
     private final GroupMemberRepository groupMemberRepository;
     private final EventGroupRepository eventGroupRepository;
-    private final UserRepository userRepository;
     private final GroupMemberMapper groupMemberMapper;
-
 
     @Override
     @Transactional
-    public GroupMemberResponse addMember(Long groupId,GroupMemberRequest dto) {
-        EventGroup group = eventGroupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + dto.getUserId()));
-
-        if (groupMemberRepository.existsByGroupIdAndUserId(group.getId(), user.getId())) {
-            throw new DuplicateResourceException("Group member already exists: " + groupId);
-        }
-
-        long currentMembers = groupMemberRepository.countByGroupId(group.getId());
-        if (currentMembers >= group.getMaxMembers()) {
-            throw  new InvalidGroupStateException("Group member is too large");
-        }
-
-        GroupMember member = new GroupMember();
-        member.setGroup(group);
-        member.setUser(user);
-
-        return GroupMemberResponse.from(groupMemberRepository.save(member));
+    public GroupMemberResponse addMember(Long groupId, GroupMemberRequest dto) {
+        groupService.addMember(groupId, dto.getUserId());
+        return getByGroupIdAndUserId(groupId, dto.getUserId());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public GroupMemberResponse getById(Long id) {
+    public GroupMemberResponse getByGroupIdAndUserId(Long groupId, Long userId) {
+        GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Group membership not found for group " + groupId + " and user " + userId));
 
-        GroupMember groupMember = groupMemberRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Group member not found with id: " + id));
-
-        return GroupMemberResponse.from(groupMember);
+        return groupMemberMapper.toResponse(groupMember);
     }
 
     @Override
@@ -71,24 +48,12 @@ public class GroupMemberServiceImpl implements GroupMemberService {
             throw new ResourceNotFoundException("Group not found with id: " + groupId);
         }
 
-        List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
-
-        return groupMemberMapper.toResponseList(members);
+        return groupMemberMapper.toResponseList(groupMemberRepository.findByGroupId(groupId));
     }
-
 
     @Override
     @Transactional
     public void removeMember(Long groupId, Long userId) {
-        if (!groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
-            throw new ResourceNotFoundException("User or group not found");
-        }
-        groupMemberRepository.deleteByGroupIdAndUserId(groupId, userId);
-    }
-
-
-    private GroupMember findEntityById(Long id) {
-        return groupMemberRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + id));
+        groupService.removeMember(groupId, userId);
     }
 }
