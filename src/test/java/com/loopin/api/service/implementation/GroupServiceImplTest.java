@@ -172,6 +172,25 @@ class GroupServiceImplTest {
         verify(eventGroupRepository, never()).save(group);
     }
 
+    @Test
+    void removeMember_ReopensFullGroupWhenCapacityIsNoLongerMet() {
+        EventGroup group = group(user(1L, "admin@email.com"), GroupSizeType.TWO, GroupStatus.FULL);
+        User memberUser = user(2L, "member@email.com");
+        GroupMember member = new GroupMember();
+        member.setGroup(group);
+        member.setUser(memberUser);
+
+        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(groupMemberRepository.findByGroupIdAndUserId(1L, 2L)).thenReturn(Optional.of(member));
+        when(groupMemberRepository.countByGroupId(1L)).thenReturn(2);
+
+        groupService.removeMember(1L, 2L);
+
+        assertEquals(GroupStatus.OPEN, group.getStatus());
+        verify(groupMemberRepository).delete(member);
+        verify(eventGroupRepository).save(group);
+    }
+
     private EventGroup group(User admin, GroupSizeType groupSize, GroupStatus status) {
         EventGroup group = new EventGroup();
         group.setId(1L);
