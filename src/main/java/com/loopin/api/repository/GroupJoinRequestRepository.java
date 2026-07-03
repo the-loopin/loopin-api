@@ -16,6 +16,8 @@ public interface GroupJoinRequestRepository extends JpaRepository<GroupJoinReque
 
     List<GroupJoinRequest> findByGroupIdAndStatus(Long groupId, RequestStatus status);
 
+    Optional<GroupJoinRequest> findByIdAndGroupId(Long id, Long groupId);
+
     Optional<GroupJoinRequest> findByGroupIdAndUserId(Long groupId, Long userId);
 
     boolean existsByGroupIdAndUserIdAndStatus(Long groupId, Long userId, RequestStatus status);
