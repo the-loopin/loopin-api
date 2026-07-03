@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,6 +21,7 @@ public class GroupJoinRequestResponse {
     private Long userId;
     private RequestStatus status;
     private String message;
+    private LocalDateTime createdAt;
 
     public static GroupJoinRequestResponse from(GroupJoinRequest request) {
         return new GroupJoinRequestResponse(
@@ -26,7 +29,8 @@ public class GroupJoinRequestResponse {
                 request.getGroup().getId(),
                 request.getUser().getId(),
                 request.getStatus(),
-                request.getMessage()
+                request.getMessage(),
+                request.getCreatedAt()
         );
     }
 }
