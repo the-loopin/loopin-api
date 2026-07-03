@@ -1,8 +1,18 @@
 package com.loopin.api.common.enums;
 
 public enum GroupSizeType {
-    TWO,
-    THREE,
-    FOUR,
-    FOUR_PLUS
+    TWO(2),
+    THREE(3),
+    FOUR(4),
+    FOUR_PLUS(10);
+
+    private final int maxMembers;
+
+    GroupSizeType(int maxMembers) {
+        this.maxMembers = maxMembers;
+    }
+
+    public int getMaxMembers() {
+        return maxMembers;
+    }
 }
