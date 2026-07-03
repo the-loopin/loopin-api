@@ -11,6 +11,7 @@ import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.GroupMember;
 import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.GroupStatus;
+import com.loopin.api.common.enums.GroupSizeType;
 import com.loopin.api.common.exception.InvalidGroupStateException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.repository.EventGroupRepository;
@@ -56,6 +57,7 @@ public class GroupServiceImpl implements GroupService {
         }
 
         EventGroup group = groupMapper.toEntity(request,currentUser,event);
+        applyCapacityFromGroupSize(group);
 
         EventGroup savedGroup = eventGroupRepository.save(group);
 
@@ -64,6 +66,7 @@ public class GroupServiceImpl implements GroupService {
         creatorMembership.setGroup(savedGroup);
         creatorMembership.setUser(currentUser);
         groupMemberRepository.save(creatorMembership);
+        refreshGroupCapacityStatus(savedGroup, 1);
 
         GroupResponse response=groupMapper.toGroupResponse(savedGroup);
         return response;
@@ -87,13 +90,6 @@ public class GroupServiceImpl implements GroupService {
 
         int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
 
-        if (request.getMaxMembers() != null
-                && request.getMaxMembers() > 0
-                && request.getMaxMembers() < currentMemberCount) {
-            throw new InvalidGroupStateException(
-                    "Max members cannot be less than the current member count: " + currentMemberCount);
-        }
-
         if (request.getTitle() != null) {
             group.setTitle(request.getTitle());
         }
@@ -102,14 +98,18 @@ public class GroupServiceImpl implements GroupService {
             group.setGroupSize(request.getGroupSize());
         }
 
-        if (request.getMaxMembers() != null) {
-            group.setMaxMembers(request.getMaxMembers());
+        applyCapacityFromGroupSize(group);
+
+        if (group.getMaxMembers() < currentMemberCount) {
+            throw new InvalidGroupStateException(
+                    "Max members cannot be less than the current member count: " + currentMemberCount);
         }
 
         if (request.getGroupNote() != null) {
             group.setGroupNote(request.getGroupNote());
         }
 
+        refreshGroupCapacityStatus(group, currentMemberCount);
         EventGroup updatedGroup = eventGroupRepository.save(group);
 
         return groupMapper.toGroupResponse(updatedGroup);
@@ -119,7 +119,10 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void addMember(Long groupId, Long userId) {
         EventGroup group = findGroupOrThrow(groupId);
-        validateGroupAcceptsMembershipChanges(group);
+        applyCapacityFromGroupSize(group);
+        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
+        refreshGroupCapacityStatus(group, currentMemberCount);
+        validateGroupAcceptsNewMembers(group);
 
         User user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
@@ -128,8 +131,8 @@ public class GroupServiceImpl implements GroupService {
             throw new InvalidGroupStateException("User is already a member of this group");
         }
 
-        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
         if (currentMemberCount >= group.getMaxMembers()) {
+            refreshGroupCapacityStatus(group, currentMemberCount);
             throw new InvalidGroupStateException("Group has reached its maximum number of members");
         }
 
@@ -137,6 +140,7 @@ public class GroupServiceImpl implements GroupService {
         member.setGroup(group);
         member.setUser(user);
         groupMemberRepository.save(member);
+        refreshGroupCapacityStatus(group, currentMemberCount + 1);
     }
 
     @Override
@@ -148,7 +152,9 @@ public class GroupServiceImpl implements GroupService {
         GroupMember member = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Membership not found"));
 
+        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
         groupMemberRepository.delete(member);
+        refreshGroupCapacityStatus(group, currentMemberCount - 1);
     }
 
     @Override
@@ -170,6 +176,36 @@ public class GroupServiceImpl implements GroupService {
         EventGroup updatedGroup = eventGroupRepository.save(group);
 
         return groupMapper.toGroupResponse(updatedGroup);
+    }
+
+    private void applyCapacityFromGroupSize(EventGroup group) {
+        GroupSizeType groupSize = group.getGroupSize();
+        if (groupSize == null) {
+            throw new InvalidGroupStateException("Group size is required");
+        }
+        group.setMaxMembers(groupSize.getMaxMembers());
+    }
+
+    private void refreshGroupCapacityStatus(EventGroup group, int memberCount) {
+        if (group.getStatus() == GroupStatus.ARCHIVED || group.getStatus() == GroupStatus.CANCELLED) {
+            return;
+        }
+
+        GroupStatus capacityStatus = memberCount >= group.getMaxMembers()
+                ? GroupStatus.FULL
+                : GroupStatus.OPEN;
+
+        if (group.getStatus() != capacityStatus) {
+            group.setStatus(capacityStatus);
+            eventGroupRepository.save(group);
+        }
+    }
+
+    private void validateGroupAcceptsNewMembers(EventGroup group) {
+        validateGroupAcceptsMembershipChanges(group);
+        if (group.getStatus() == GroupStatus.FULL) {
+            throw new InvalidGroupStateException("Group has reached its maximum number of members");
+        }
     }
 
     private void validateGroupAcceptsMembershipChanges(EventGroup group) {
