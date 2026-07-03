@@ -144,6 +144,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(InvalidGroupStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidGroupState(
+            InvalidGroupStateException exception,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+                HttpStatus.CONFLICT,
+                exception.getMessage(),
+                request.getRequestURI(),
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(
             org.springframework.web.server.ResponseStatusException exception,
