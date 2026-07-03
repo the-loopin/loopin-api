@@ -24,5 +24,6 @@ public class GroupJoinRequest extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RequestStatus status = RequestStatus.PENDING;
 
+    @Column(length = 500)
     private String message;
 }
