@@ -4,6 +4,7 @@ import com.loopin.api.common.enums.GroupSizeType;
 import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.common.exception.InvalidGroupStateException;
 import com.loopin.api.dto.group.request.CreateGroupRequest;
+import com.loopin.api.dto.group.request.UpdateGroupRequest;
 import com.loopin.api.dto.group.response.GroupResponse;
 import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.GroupMember;
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -131,6 +133,43 @@ class GroupServiceImplTest {
         assertEquals(group, memberCaptor.getValue().getGroup());
         assertEquals(newMember, memberCaptor.getValue().getUser());
         assertEquals(GroupStatus.OPEN, group.getStatus());
+    }
+
+    @Test
+    void updateGroup_DerivesCapacityFromUpdatedGroupSizeAndMarksFull() {
+        User admin = user(1L, "admin@email.com");
+        EventGroup group = group(admin, GroupSizeType.FOUR, GroupStatus.OPEN);
+        UpdateGroupRequest request = new UpdateGroupRequest();
+        request.setGroupSize(GroupSizeType.THREE);
+
+        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(groupMemberRepository.countByGroupId(1L)).thenReturn(3);
+        when(eventGroupRepository.save(group)).thenReturn(group);
+        when(groupMapper.toGroupResponse(group)).thenReturn(mock(GroupResponse.class));
+
+        groupService.updateGroup(1L, request, "admin@email.com");
+
+        assertEquals(GroupSizeType.THREE, group.getGroupSize());
+        assertEquals(3, group.getMaxMembers());
+        assertEquals(GroupStatus.FULL, group.getStatus());
+        verify(eventGroupRepository, times(2)).save(group);
+    }
+
+    @Test
+    void updateGroup_RejectsGroupSizeBelowCurrentMemberCount() {
+        User admin = user(1L, "admin@email.com");
+        EventGroup group = group(admin, GroupSizeType.FOUR_PLUS, GroupStatus.OPEN);
+        UpdateGroupRequest request = new UpdateGroupRequest();
+        request.setGroupSize(GroupSizeType.FOUR);
+
+        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(groupMemberRepository.countByGroupId(1L)).thenReturn(5);
+
+        assertThrows(
+                InvalidGroupStateException.class,
+                () -> groupService.updateGroup(1L, request, "admin@email.com"));
+
+        verify(eventGroupRepository, never()).save(group);
     }
 
     private EventGroup group(User admin, GroupSizeType groupSize, GroupStatus status) {
