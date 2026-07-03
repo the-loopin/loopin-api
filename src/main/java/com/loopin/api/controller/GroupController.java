@@ -36,12 +36,6 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getGroup(groupId));
     }
 
-    @PostMapping("/{groupId}/members/{userId}")
-    public ResponseEntity<Void> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        groupService.addMember(groupId, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
     @PutMapping("/{groupId}")
     public ResponseEntity<GroupResponse> updateGroup(
             @PathVariable Long groupId,
@@ -73,12 +67,6 @@ public class GroupController {
                 currentUsername);
 
         return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{groupId}/members/{userId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        groupService.removeMember(groupId, userId);
-        return ResponseEntity.noContent().build();
     }
 
     private String resolveUsername(Authentication authentication, String emailHeader) {
