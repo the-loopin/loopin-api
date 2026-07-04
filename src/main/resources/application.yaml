@@ -7,6 +7,11 @@ spring:
   application:
     name: loopin-api
 
+  data:
+    redis:
+      repositories:
+        enabled: false
+
   # Persistence Engine Datastore Mapping
   datasource:
     url: ${DATABASE_URL:jdbc:h2:mem:loopindb;DB_CLOSE_DELAY=-1}
@@ -38,6 +43,9 @@ moderation:
 
 rate-limit:
   enabled: ${RATE_LIMIT_ENABLED:true}
+  storage: ${RATE_LIMIT_STORAGE:local}
+  key-prefix: ${RATE_LIMIT_KEY_PREFIX:loopin:rate-limit}
+  trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}
   policies:
     - name: auth
       requests: ${RATE_LIMIT_AUTH_REQUESTS:10}

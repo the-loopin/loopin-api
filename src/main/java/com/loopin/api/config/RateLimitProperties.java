@@ -12,6 +12,9 @@ import java.util.List;
 public class RateLimitProperties {
 
     private boolean enabled = true;
+    private Storage storage = Storage.LOCAL;
+    private String keyPrefix = "loopin:rate-limit";
+    private List<String> trustedProxies = new ArrayList<>();
     private List<Policy> policies = new ArrayList<>();
 
     public boolean isEnabled() {
@@ -20,6 +23,30 @@ public class RateLimitProperties {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Storage getStorage() {
+        return storage;
+    }
+
+    public void setStorage(Storage storage) {
+        this.storage = storage;
+    }
+
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    public void setKeyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
+    }
+
+    public List<String> getTrustedProxies() {
+        return trustedProxies;
+    }
+
+    public void setTrustedProxies(List<String> trustedProxies) {
+        this.trustedProxies = trustedProxies;
     }
 
     public List<Policy> getPolicies() {
@@ -86,5 +113,10 @@ public class RateLimitProperties {
         public void setPaths(List<String> paths) {
             this.paths = paths;
         }
+    }
+
+    public enum Storage {
+        LOCAL,
+        REDIS
     }
 }
