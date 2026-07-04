@@ -40,10 +40,9 @@ public class AdminController {
     public ResponseEntity<UserResponse> updateUserRole(
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRoleRequest request,
-            Authentication authentication,
-            @RequestHeader(value = "X-User-Id", required = false) String userIdHeader
+            Authentication authentication
     ) {
-        String adminIdentifier = resolveAdminIdentifier(authentication, userIdHeader);
+        String adminIdentifier = resolveAdminIdentifier(authentication);
         UserResponse response = adminService.updateUserRole(id, request.getRole(), adminIdentifier);
         return ResponseEntity.ok(response);
     }
@@ -51,10 +50,9 @@ public class AdminController {
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long id,
-            Authentication authentication,
-            @RequestHeader(value = "X-User-Id", required = false) String userIdHeader
+            Authentication authentication
     ) {
-        String adminIdentifier = resolveAdminIdentifier(authentication, userIdHeader);
+        String adminIdentifier = resolveAdminIdentifier(authentication);
         adminService.deleteUser(id, adminIdentifier);
         return ResponseEntity.noContent().build();
     }
@@ -70,18 +68,17 @@ public class AdminController {
     @DeleteMapping("/events/{id}")
     public ResponseEntity<Void> deleteEvent(
             @PathVariable Long id,
-            Authentication authentication,
-            @RequestHeader(value = "X-User-Id", required = false) String userIdHeader
+            Authentication authentication
     ) {
-        String adminIdentifier = resolveAdminIdentifier(authentication, userIdHeader);
+        String adminIdentifier = resolveAdminIdentifier(authentication);
         adminService.deleteEvent(id, adminIdentifier);
         return ResponseEntity.noContent().build();
     }
 
-    private String resolveAdminIdentifier(Authentication authentication, String userIdHeader) {
+    private String resolveAdminIdentifier(Authentication authentication) {
         if (authentication != null && authentication.getName() != null && !authentication.getName().isBlank()) {
             return authentication.getName();
         }
-        return (userIdHeader != null && !userIdHeader.isBlank()) ? userIdHeader : null;
+        return null;
     }
 }
