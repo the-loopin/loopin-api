@@ -1,0 +1,233 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users
+      author: loopin
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_users, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: name, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: email, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: google_id, type: VARCHAR(255) }
+              - column: { name: role, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: is_active, type: BOOLEAN, constraints: { nullable: false } }
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: email
+            constraintName: uk_users_email
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: google_id
+            constraintName: uk_users_google_id
+      rollback:
+        - dropTable:
+            tableName: users
+
+  - changeSet:
+      id: 002-create-events
+      author: loopin
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_events, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: title, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: description, type: VARCHAR(2000), constraints: { nullable: false } }
+              - column: { name: type, type: VARCHAR(30), constraints: { nullable: false } }
+              - column: { name: category, type: VARCHAR(30), constraints: { nullable: false } }
+              - column: { name: city, type: VARCHAR(100), constraints: { nullable: false } }
+              - column: { name: address, type: VARCHAR(255) }
+              - column: { name: start_date_time, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: end_date_time, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: is_free, type: BOOLEAN, constraints: { nullable: false } }
+              - column: { name: price, type: "DECIMAL(10, 2)" }
+              - column: { name: organizer_name, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: image_url, type: VARCHAR(500) }
+              - column: { name: status, type: VARCHAR(30), constraints: { nullable: false } }
+      rollback:
+        - dropTable:
+            tableName: events
+
+  - changeSet:
+      id: 003-create-user-profiles
+      author: loopin
+      changes:
+        - createTable:
+            tableName: user_profiles
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_user_profiles, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: name, type: VARCHAR(255) }
+              - column: { name: city, type: VARCHAR(255) }
+              - column: { name: bio, type: VARCHAR(255) }
+        - addUniqueConstraint:
+            tableName: user_profiles
+            columnNames: user_id
+            constraintName: uk_user_profiles_user_id
+        - addForeignKeyConstraint:
+            baseTableName: user_profiles
+            baseColumnNames: user_id
+            constraintName: fk_user_profiles_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+      rollback:
+        - dropTable:
+            tableName: user_profiles
+
+  - changeSet:
+      id: 004-create-event-groups
+      author: loopin
+      changes:
+        - createTable:
+            tableName: event_groups
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_event_groups, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: event_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: admin_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: title, type: VARCHAR(255) }
+              - column: { name: group_size, type: VARCHAR(255) }
+              - column: { name: max_members, type: INT, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(255) }
+              - column: { name: group_note, type: VARCHAR(255) }
+        - addForeignKeyConstraint:
+            baseTableName: event_groups
+            baseColumnNames: event_id
+            constraintName: fk_event_groups_event_id
+            referencedTableName: events
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: event_groups
+            baseColumnNames: admin_id
+            constraintName: fk_event_groups_admin_id
+            referencedTableName: users
+            referencedColumnNames: id
+      rollback:
+        - dropTable:
+            tableName: event_groups
+
+  - changeSet:
+      id: 005-create-group-members
+      author: loopin
+      changes:
+        - createTable:
+            tableName: group_members
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_group_members, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: group_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: joined_at, type: TIMESTAMP }
+        - addForeignKeyConstraint:
+            baseTableName: group_members
+            baseColumnNames: group_id
+            constraintName: fk_group_members_group_id
+            referencedTableName: event_groups
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: group_members
+            baseColumnNames: user_id
+            constraintName: fk_group_members_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+      rollback:
+        - dropTable:
+            tableName: group_members
+
+  - changeSet:
+      id: 006-create-group-join-requests
+      author: loopin
+      changes:
+        - createTable:
+            tableName: group_join_requests
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_group_join_requests, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: group_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(255) }
+              - column: { name: message, type: VARCHAR(500) }
+        - addForeignKeyConstraint:
+            baseTableName: group_join_requests
+            baseColumnNames: group_id
+            constraintName: fk_group_join_requests_group_id
+            referencedTableName: event_groups
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: group_join_requests
+            baseColumnNames: user_id
+            constraintName: fk_group_join_requests_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+      rollback:
+        - dropTable:
+            tableName: group_join_requests
+
+  - changeSet:
+      id: 007-create-group-messages
+      author: loopin
+      changes:
+        - createTable:
+            tableName: group_messages
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_group_messages, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: group_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: sender_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: message_text, type: VARCHAR(255), constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: group_messages
+            baseColumnNames: group_id
+            constraintName: fk_group_messages_group_id
+            referencedTableName: event_groups
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: group_messages
+            baseColumnNames: sender_id
+            constraintName: fk_group_messages_sender_id
+            referencedTableName: users
+            referencedColumnNames: id
+      rollback:
+        - dropTable:
+            tableName: group_messages
+
+  - changeSet:
+      id: 008-create-user-badges
+      author: loopin
+      changes:
+        - createTable:
+            tableName: user_badges
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_user_badges, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: badge_type, type: VARCHAR(255) }
+        - addForeignKeyConstraint:
+            baseTableName: user_badges
+            baseColumnNames: user_id
+            constraintName: fk_user_badges_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+      rollback:
+        - dropTable:
+            tableName: user_badges
