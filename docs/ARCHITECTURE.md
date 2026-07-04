@@ -31,7 +31,7 @@ flowchart TD
         Groups --> DB
         Chat --> DB
         Admin --> DB
-        
+
         API --> Liquibase[Liquibase Migrations]
         Liquibase --> DB
     end
