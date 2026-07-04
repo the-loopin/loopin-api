@@ -35,3 +35,34 @@ spring:
 # Local Content Check Rule Targets
 moderation:
   banned-words: ${BANNED_WORDS_LIST:scam,spam,offensiveword1,offensiveword2}
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  policies:
+    - name: auth
+      requests: ${RATE_LIMIT_AUTH_REQUESTS:10}
+      window: ${RATE_LIMIT_AUTH_WINDOW:1m}
+      methods:
+        - POST
+      paths:
+        - /auth/**
+        - /users/register
+    - name: public-read
+      requests: ${RATE_LIMIT_PUBLIC_READ_REQUESTS:120}
+      window: ${RATE_LIMIT_PUBLIC_READ_WINDOW:1m}
+      methods:
+        - GET
+      paths:
+        - /events/**
+        - /groups/**
+    - name: authenticated-write
+      requests: ${RATE_LIMIT_AUTHENTICATED_WRITE_REQUESTS:60}
+      window: ${RATE_LIMIT_AUTHENTICATED_WRITE_WINDOW:1m}
+      methods:
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+      paths:
+        - /events/**
+        - /groups/**
