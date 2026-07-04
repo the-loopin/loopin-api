@@ -97,4 +97,30 @@ class RateLimitFilterTest {
                 .andExpect(jsonPath("$.error").value("Too Many Requests"))
                 .andExpect(jsonPath("$.message", containsString("Rate limit exceeded")));
     }
+
+    @Test
+    void untrustedForwardedForHeaderDoesNotBypassLimit() throws Exception {
+        GoogleLoginRequest request = new GoogleLoginRequest("google-id-123", "user@email.com", "John Doe");
+
+        mockMvc.perform(post("/auth/google")
+                        .with(servletRequest -> {
+                            servletRequest.setRemoteAddr("192.0.2.30");
+                            return servletRequest;
+                        })
+                        .header("X-Forwarded-For", "198.51.100.10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/auth/google")
+                        .with(servletRequest -> {
+                            servletRequest.setRemoteAddr("192.0.2.30");
+                            return servletRequest;
+                        })
+                        .header("X-Forwarded-For", "198.51.100.11")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.message", containsString("Rate limit exceeded")));
+    }
 }
