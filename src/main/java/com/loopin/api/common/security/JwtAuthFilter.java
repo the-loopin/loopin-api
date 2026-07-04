@@ -33,22 +33,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // Extract simulation headers for backwards compatibility in existing tests
-        final String roleHeader = request.getHeader("X-User-Role");
-        final String userIdHeader = request.getHeader("X-User-Id");
-
-        if ((roleHeader != null || userIdHeader != null) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            String role = (roleHeader != null) ? roleHeader.toUpperCase() : "USER";
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userIdHeader != null ? userIdHeader : "mockUser",
-                    null,
-                    Collections.singletonList(authority)
-            );
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
-
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
