@@ -12,3 +12,11 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
+
+jwt:
+  secret: aVerySecretKeyThatIsAtLeast32BytesLongForHS256SignatureVerification!
+  expiration: 86400000
+
+cors:
+  allowed-origins: "*"
+
