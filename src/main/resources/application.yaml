@@ -12,30 +12,27 @@ spring:
       repositories:
         enabled: false
 
-  # Persistence Engine Datastore Mapping
+  # PostgreSQL persistence configuration. Override all values per environment.
   datasource:
-    url: ${DATABASE_URL:jdbc:h2:mem:loopindb;DB_CLOSE_DELAY=-1}
-    driver-class-name: org.h2.Driver
-    username: ${DATABASE_USERNAME:sa}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/loopin}
+    driver-class-name: org.postgresql.Driver
+    username: ${DATABASE_USERNAME:loopin}
     password: ${DATABASE_PASSWORD:}
 
-  # Embedded H2 Database Web Panel Management
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: ${LIQUIBASE_ENABLED:true}
+    contexts: ${LIQUIBASE_CONTEXTS:}
 
-  # Object Relational Mapping (ORM) Definitions
+  # ORM validates mappings only; schema changes are managed by Liquibase.
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${JPA_FORMAT_SQL:false}
 
 # Local Content Check Rule Targets
 moderation:

@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/loopin}
+    username: ${DATABASE_USERNAME:loopin}
+    password: ${DATABASE_PASSWORD:loopin}
+
+  liquibase:
+    contexts: local
+
+  jpa:
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: ${JPA_FORMAT_SQL:true}
