@@ -3,7 +3,9 @@ package com.loopin.api.config;
 import com.loopin.api.common.security.CustomAccessDeniedHandler;
 import com.loopin.api.common.security.CustomAuthEntryPoint;
 import com.loopin.api.common.security.JwtAuthFilter;
+import com.loopin.api.common.ratelimit.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,6 +31,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final CustomAuthEntryPoint customAuthEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
@@ -54,9 +57,17 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/groups/**", "/api/groups/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(rateLimitFilter, JwtAuthFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration() {
+        FilterRegistrationBean<RateLimitFilter> registration = new FilterRegistrationBean<>(rateLimitFilter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean

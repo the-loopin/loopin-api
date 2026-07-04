@@ -7,6 +7,11 @@ spring:
   application:
     name: loopin-api
 
+  data:
+    redis:
+      repositories:
+        enabled: false
+
   # Persistence Engine Datastore Mapping
   datasource:
     url: ${DATABASE_URL:jdbc:h2:mem:loopindb;DB_CLOSE_DELAY=-1}
@@ -35,3 +40,37 @@ spring:
 # Local Content Check Rule Targets
 moderation:
   banned-words: ${BANNED_WORDS_LIST:scam,spam,offensiveword1,offensiveword2}
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  storage: ${RATE_LIMIT_STORAGE:local}
+  key-prefix: ${RATE_LIMIT_KEY_PREFIX:loopin:rate-limit}
+  trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}
+  policies:
+    - name: auth
+      requests: ${RATE_LIMIT_AUTH_REQUESTS:10}
+      window: ${RATE_LIMIT_AUTH_WINDOW:1m}
+      methods:
+        - POST
+      paths:
+        - /auth/**
+        - /users/register
+    - name: public-read
+      requests: ${RATE_LIMIT_PUBLIC_READ_REQUESTS:120}
+      window: ${RATE_LIMIT_PUBLIC_READ_WINDOW:1m}
+      methods:
+        - GET
+      paths:
+        - /events/**
+        - /groups/**
+    - name: authenticated-write
+      requests: ${RATE_LIMIT_AUTHENTICATED_WRITE_REQUESTS:60}
+      window: ${RATE_LIMIT_AUTHENTICATED_WRITE_WINDOW:1m}
+      methods:
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+      paths:
+        - /events/**
+        - /groups/**
