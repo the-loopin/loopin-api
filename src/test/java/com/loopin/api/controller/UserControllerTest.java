@@ -23,6 +23,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.loopin.api.common.security.JwtUtils;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -36,6 +38,9 @@ class UserControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @BeforeEach
     void setUp() {
@@ -80,26 +85,42 @@ class UserControllerTest {
         // Setup users
         userRepository.save(new User("user1@email.com", "User 1", null));
         userRepository.save(new User("user2@email.com", "User 2", null));
+        User admin = new User("admin@email.com", "Admin", null);
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+
+        String token = jwtUtils.generateToken(admin.getEmail(), Role.ADMIN.name());
 
         mockMvc.perform(get("/users")
-                        .header("X-User-Role", "ADMIN"))
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$", hasSize(3)));
     }
 
     @Test
     void getAllUsers_NonAdmin_ThrowsForbidden() throws Exception {
+        User user = new User("user@email.com", "User", null);
+        user.setRole(Role.USER);
+        userRepository.save(user);
+
+        String token = jwtUtils.generateToken(user.getEmail(), Role.USER.name());
+
         mockMvc.perform(get("/users")
-                        .header("X-User-Role", "USER"))
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void getUserById_Admin_Success() throws Exception {
+        User admin = new User("admin@email.com", "Admin", null);
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+
+        String token = jwtUtils.generateToken(admin.getEmail(), Role.ADMIN.name());
         User user = userRepository.save(new User("user@email.com", "User", null));
 
         mockMvc.perform(get("/users/" + user.getId())
-                        .header("X-User-Role", "ADMIN"))
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("user@email.com")));
     }
@@ -107,9 +128,13 @@ class UserControllerTest {
     @Test
     void getMyProfile_Success() throws Exception {
         User user = userRepository.save(new User("me@email.com", "Me", null));
+        user.setRole(Role.USER);
+        userRepository.save(user);
+
+        String token = jwtUtils.generateToken(user.getEmail(), Role.USER.name());
 
         mockMvc.perform(get("/users/me")
-                        .header("X-User-Id", user.getId().toString()))
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("me@email.com")));
     }
@@ -122,11 +147,16 @@ class UserControllerTest {
 
     @Test
     void updateUserRole_Admin_Success() throws Exception {
+        User admin = new User("admin@email.com", "Admin", null);
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+
+        String token = jwtUtils.generateToken(admin.getEmail(), Role.ADMIN.name());
         User user = userRepository.save(new User("user@email.com", "User", null));
         UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.ADMIN);
 
         mockMvc.perform(put("/users/" + user.getId() + "/role")
-                        .header("X-User-Role", "ADMIN")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -135,10 +165,15 @@ class UserControllerTest {
 
     @Test
     void deleteUser_Admin_SoftDeletesUser() throws Exception {
+        User admin = new User("admin@email.com", "Admin", null);
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+
+        String token = jwtUtils.generateToken(admin.getEmail(), Role.ADMIN.name());
         User user = userRepository.save(new User("delete@email.com", "Delete Me", null));
 
         mockMvc.perform(delete("/users/" + user.getId())
-                        .header("X-User-Role", "ADMIN"))
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNoContent());
 
         // Active lookup should not find it
