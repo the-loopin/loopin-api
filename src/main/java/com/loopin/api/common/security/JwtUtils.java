@@ -14,10 +14,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    @Value("${jwt.secret:aVerySecretKeyThatIsAtLeast32BytesLongForHS256SignatureVerification!}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration:86400000}") // 1 day in ms
+    @Value("${jwt.expiration}")
     private long jwtExpirationMs;
 
     private SecretKey getSigningKey() {
