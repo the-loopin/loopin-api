@@ -44,6 +44,15 @@ databaseChangeLog:
                 updated_at TIMESTAMP NOT NULL DEFAULT now()
               );
 
+              CREATE INDEX IF NOT EXISTS event_embeddings_model_idx
+                ON event_embeddings (embedding_model);
+
+              CREATE INDEX IF NOT EXISTS user_interest_embeddings_model_idx
+                ON user_interest_embeddings (embedding_model);
+
+              CREATE INDEX IF NOT EXISTS community_embeddings_model_idx
+                ON community_embeddings (embedding_model);
+
               CREATE INDEX IF NOT EXISTS event_embeddings_vector_cosine_idx
                 ON event_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
