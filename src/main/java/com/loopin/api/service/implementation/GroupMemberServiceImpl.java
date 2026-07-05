@@ -26,8 +26,8 @@ public class GroupMemberServiceImpl implements GroupMemberService {
 
     @Override
     @Transactional
-    public GroupMemberResponse addMember(Long groupId, GroupMemberRequest dto) {
-        groupService.addMember(groupId, dto.getUserId());
+    public GroupMemberResponse addMember(Long groupId, GroupMemberRequest dto, String currentUsername) {
+        groupService.addMember(groupId, dto.getUserId(), currentUsername);
         return getByGroupIdAndUserId(groupId, dto.getUserId());
     }
 
@@ -53,7 +53,7 @@ public class GroupMemberServiceImpl implements GroupMemberService {
 
     @Override
     @Transactional
-    public void removeMember(Long groupId, Long userId) {
-        groupService.removeMember(groupId, userId);
+    public void removeMember(Long groupId, Long userId, String currentUsername) {
+        groupService.removeMember(groupId, userId, currentUsername);
     }
 }

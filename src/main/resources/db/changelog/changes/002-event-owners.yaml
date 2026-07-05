@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-add-event-owner
+      author: loopin
+      changes:
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: owner_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: events
+            baseColumnNames: owner_id
+            constraintName: fk_events_owner_id
+            referencedTableName: users
+            referencedColumnNames: id
+        - createIndex:
+            tableName: events
+            indexName: idx_events_owner_id
+            columns:
+              - column:
+                  name: owner_id
+      rollback:
+        - dropIndex:
+            tableName: events
+            indexName: idx_events_owner_id
+        - dropForeignKeyConstraint:
+            baseTableName: events
+            constraintName: fk_events_owner_id
+        - dropColumn:
+            tableName: events
+            columnName: owner_id

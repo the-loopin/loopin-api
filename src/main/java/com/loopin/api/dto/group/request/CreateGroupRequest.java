@@ -4,6 +4,7 @@ package com.loopin.api.dto.group.request;
 import com.loopin.api.common.enums.GroupSizeType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +12,7 @@ import lombok.Setter;
 @Setter
 public class CreateGroupRequest {
 
-    // Optional. If null -> independent group (not tied to an event).
+    @NotNull(message = "Event ID is required")
     private Long eventId;
 
     @NotBlank

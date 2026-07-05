@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -21,10 +23,11 @@ public class GroupMemberController {
     @PostMapping
     public ResponseEntity<GroupMemberResponse> addMember(
             @PathVariable Long groupId,
-            @Valid @RequestBody GroupMemberRequest dto
+            @Valid @RequestBody GroupMemberRequest dto,
+            Authentication authentication
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(groupMemberService.addMember(groupId, dto));
+                .body(groupMemberService.addMember(groupId, dto, resolveUsername(authentication)));
     }
 
     @GetMapping("/{userId}")
@@ -41,9 +44,19 @@ public class GroupMemberController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        groupMemberService.removeMember(groupId, userId);
+    public ResponseEntity<Void> removeMember(
+            @PathVariable Long groupId,
+            @PathVariable Long userId,
+            Authentication authentication
+    ) {
+        groupMemberService.removeMember(groupId, userId, resolveUsername(authentication));
         return ResponseEntity.noContent().build();
     }
 
+    private String resolveUsername(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        return authentication.getName();
+    }
 }

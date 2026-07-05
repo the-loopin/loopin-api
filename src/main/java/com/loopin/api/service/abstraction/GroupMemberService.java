@@ -9,6 +9,6 @@ import java.util.List;
 public interface GroupMemberService {
     GroupMemberResponse getByGroupIdAndUserId(Long groupId, Long userId);
     List<GroupMemberResponse> getByGroupId(Long groupId);
-    void removeMember(Long groupId, Long userId);
-    GroupMemberResponse addMember(Long groupId, GroupMemberRequest dto);
+    void removeMember(Long groupId, Long userId, String currentUsername);
+    GroupMemberResponse addMember(Long groupId, GroupMemberRequest dto, String currentUsername);
 }
