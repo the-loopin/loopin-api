@@ -16,8 +16,13 @@ erDiagram
     USERS ||--o| GROUP_MEMBERS : "belongs to (1:N)"
     USERS ||--o| GROUP_JOIN_REQUESTS : "requests (1:N)"
     USERS ||--o| GROUP_MESSAGES : "sends (1:N)"
+    USERS ||--o{ USER_INTERESTS : "selects interests"
 
     EVENTS ||--o| EVENT_GROUPS : "contains (1:N)"
+    EVENTS ||--o{ EVENT_INTERESTS : "tagged with interests"
+
+    INTERESTS ||--o{ USER_INTERESTS : "chosen by users"
+    INTERESTS ||--o{ EVENT_INTERESTS : "tags events"
 
     EVENT_GROUPS ||--o| GROUP_MEMBERS : "has (1:N)"
     EVENT_GROUPS ||--o| GROUP_JOIN_REQUESTS : "receives (1:N)"
@@ -119,6 +124,31 @@ erDiagram
         timestamp deleted_at
         varchar badge_type
     }
+
+    INTERESTS {
+        bigint id PK
+        uuid public_id UK
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+        varchar name
+        varchar slug UK
+        varchar category
+    }
+
+    USER_INTERESTS {
+        bigint user_id PK, FK
+        bigint interest_id PK, FK
+        decimal weight
+        varchar source
+        timestamp created_at
+    }
+
+    EVENT_INTERESTS {
+        bigint event_id PK, FK
+        bigint interest_id PK, FK
+        timestamp created_at
+    }
 ```
 
 ---
@@ -191,6 +221,29 @@ Persists the chat history for each event group.
 Badges awarded to users (e.g. "Frequent Organizer", "Early Adopter").
 * `user_id` (BIGINT, Foreign Key -> `users.id`): Reference to recipient.
 * `badge_type` (VARCHAR): Badge classification.
+
+### 9. `interests`
+Normalized interest catalog used for profile preferences, event tagging, recommendations, and future matching.
+* `id` (BIGINT, Primary Key): Internal interest identifier.
+* `public_id` (UUID, Unique, Not Null): Public API identifier.
+* `name` (VARCHAR(120), Not Null): Display label.
+* `slug` (VARCHAR(140), Unique, Not Null): Stable normalized key. Duplicate interests are prevented by `uk_interests_slug`.
+* `category` (VARCHAR(80)): Optional grouping label.
+* `created_at` / `updated_at` / `deleted_at`: Audit timestamps.
+
+### 10. `user_interests`
+Join table connecting users to selected interests.
+* `user_id` (BIGINT, Primary Key, Foreign Key -> `users.id`): User reference.
+* `interest_id` (BIGINT, Primary Key, Foreign Key -> `interests.id`): Interest reference.
+* `weight` (DECIMAL(5,2), Not Null): Preference strength, defaulting to `1.00`.
+* `source` (VARCHAR(50), Not Null): Origin of the preference, defaulting to `USER`.
+* `created_at` (TIMESTAMP, Not Null): Assignment timestamp.
+
+### 11. `event_interests`
+Join table tagging events with relevant interests.
+* `event_id` (BIGINT, Primary Key, Foreign Key -> `events.id`): Event reference.
+* `interest_id` (BIGINT, Primary Key, Foreign Key -> `interests.id`): Interest reference.
+* `created_at` (TIMESTAMP, Not Null): Assignment timestamp.
 
 ---
 

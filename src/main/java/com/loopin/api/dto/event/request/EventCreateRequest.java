@@ -11,6 +11,9 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -56,4 +59,6 @@ public class EventCreateRequest {
     private String imageUrl;
 
     private EventStatus status;
+
+    private List<UUID> interestIds = new ArrayList<>();
 }

@@ -1,6 +1,8 @@
 package com.loopin.api.controller;
 
 import com.loopin.api.common.security.SecurityUtils;
+import com.loopin.api.dto.interest.InterestResponse;
+import com.loopin.api.dto.interest.UpdateUserInterestsRequest;
 import com.loopin.api.dto.userProfile.request.UpdateUserProfileRequest;
 import com.loopin.api.dto.userProfile.response.UserProfileResponse;
 import com.loopin.api.entity.User;
@@ -37,6 +39,22 @@ public class UserProfileController {
 
         UserProfileResponse response = profileService.updateProfile(currentUserId, request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/interests")
+    public ResponseEntity<List<InterestResponse>> getMyInterests() {
+        Long currentUserId = getCurrentUserId();
+
+        return ResponseEntity.ok(profileService.getInterests(currentUserId));
+    }
+
+    @PutMapping("/me/interests")
+    public ResponseEntity<List<InterestResponse>> updateMyInterests(
+            @Valid @RequestBody UpdateUserInterestsRequest request
+    ) {
+        Long currentUserId = getCurrentUserId();
+
+        return ResponseEntity.ok(profileService.updateInterests(currentUserId, request));
     }
 
     @GetMapping("/me/badges")

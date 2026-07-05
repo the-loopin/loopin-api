@@ -6,6 +6,7 @@ import com.loopin.api.dto.user.response.UserResponse;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.mapper.UserMapper;
+import com.loopin.api.repository.UserInterestRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserInterestRepository userInterestRepository;
     private final UserMapper userMapper;
 
     @Override
@@ -82,6 +84,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(UUID id) {
         User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
+        userInterestRepository.deleteByUser_Id(user.getId());
         user.markAsDeleted();
         userRepository.save(user);
     }
