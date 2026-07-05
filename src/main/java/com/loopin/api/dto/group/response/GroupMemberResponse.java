@@ -7,22 +7,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class GroupMemberResponse {
-    private Long id;
-    private Long groupId;
-    private Long userId;
+    private UUID id;
+    private UUID groupId;
+    private UUID userId;
     private LocalDateTime joinedAt;
 
     public static GroupMemberResponse from(GroupMember member) {
         return new GroupMemberResponse(
-                member.getId(),
-                member.getGroup().getId(),
-                member.getUser().getId(),
+                member.getPublicId(),
+                member.getGroup().getPublicId(),
+                member.getUser().getPublicId(),
                 member.getJoinedAt()
         );
     }

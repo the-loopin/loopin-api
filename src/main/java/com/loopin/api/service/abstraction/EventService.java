@@ -8,6 +8,7 @@ import com.loopin.api.common.enums.EventType;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public interface EventService {
 
@@ -21,11 +22,11 @@ public interface EventService {
             LocalDate endDate
     );
 
-    EventResponse getPublishedEventById(Long id);
+    EventResponse getPublishedEventById(UUID id);
 
     EventResponse createEvent(EventCreateRequest request, String currentUsername);
 
-    EventResponse updateEvent(Long id, EventUpdateRequest request, String currentUsername);
+    EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername);
 
-    void deleteEvent(Long id, String currentUsername);
+    void deleteEvent(UUID id, String currentUsername);
 }

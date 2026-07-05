@@ -5,10 +5,11 @@ import com.loopin.api.dto.group.request.GroupMemberRequest;
 import com.loopin.api.dto.group.response.GroupMemberResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface GroupMemberService {
-    GroupMemberResponse getByGroupIdAndUserId(Long groupId, Long userId);
-    List<GroupMemberResponse> getByGroupId(Long groupId);
-    void removeMember(Long groupId, Long userId, String currentUsername);
-    GroupMemberResponse addMember(Long groupId, GroupMemberRequest dto, String currentUsername);
+    GroupMemberResponse getByGroupIdAndUserId(UUID groupId, UUID userId);
+    List<GroupMemberResponse> getByGroupId(UUID groupId);
+    void removeMember(UUID groupId, UUID userId, String currentUsername);
+    GroupMemberResponse addMember(UUID groupId, GroupMemberRequest dto, String currentUsername);
 }

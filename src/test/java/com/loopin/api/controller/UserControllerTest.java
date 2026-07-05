@@ -118,7 +118,7 @@ class UserControllerTest {
         String token = jwtUtils.generateToken(admin.getEmail(), Role.ADMIN.name());
         User user = userRepository.save(new User("user@email.com", "User", null));
 
-        mockMvc.perform(get("/users/" + user.getId())
+        mockMvc.perform(get("/users/" + user.getPublicId())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("user@email.com")));
@@ -154,7 +154,7 @@ class UserControllerTest {
         User user = userRepository.save(new User("user@email.com", "User", null));
         UpdateUserRoleRequest request = new UpdateUserRoleRequest(Role.ADMIN);
 
-        mockMvc.perform(put("/users/" + user.getId() + "/role")
+        mockMvc.perform(put("/users/" + user.getPublicId() + "/role")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -171,7 +171,7 @@ class UserControllerTest {
         String token = jwtUtils.generateToken(admin.getEmail(), Role.ADMIN.name());
         User user = userRepository.save(new User("delete@email.com", "Delete Me", null));
 
-        mockMvc.perform(delete("/users/" + user.getId())
+        mockMvc.perform(delete("/users/" + user.getPublicId())
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isNoContent());
 

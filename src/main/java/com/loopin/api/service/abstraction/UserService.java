@@ -5,12 +5,13 @@ import com.loopin.api.dto.user.request.UserRegisterRequest;
 import com.loopin.api.dto.user.response.UserResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserService {
     UserResponse registerUser(UserRegisterRequest request);
     List<UserResponse> getAllUsers();
-    UserResponse getUserById(Long id);
+    UserResponse getUserById(UUID id);
     UserResponse getUserByEmail(String email);
-    UserResponse updateUserRole(Long id, Role role);
-    void deleteUser(Long id);
+    UserResponse updateUserRole(UUID id, Role role);
+    void deleteUser(UUID id);
 }

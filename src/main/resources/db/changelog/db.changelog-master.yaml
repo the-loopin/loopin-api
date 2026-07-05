@@ -3,3 +3,11 @@ databaseChangeLog:
       file: db/changelog/changes/001-initial-schema.yaml
   - include:
       file: db/changelog/changes/002-event-owners.yaml
+  - include:
+      file: db/changelog/changes/003-ai-embeddings.yaml
+  - include:
+      file: db/changelog/changes/004-user-reports.yaml
+  - include:
+      file: db/changelog/changes/005-job-locks-and-badge-uniqueness.yaml
+  - include:
+      file: db/changelog/changes/006-public-ids.yaml

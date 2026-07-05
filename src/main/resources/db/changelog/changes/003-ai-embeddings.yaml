@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-enable-pgvector
+      author: loopin
+      dbms: postgresql
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS vector;
+      rollback:
+        - sql:
+            sql: DROP EXTENSION IF EXISTS vector;
+
+  - changeSet:
+      id: 004-create-ai-embedding-tables
+      author: loopin
+      dbms: postgresql
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS event_embeddings (
+                event_id BIGINT PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
+                embedding vector(384) NOT NULL,
+                embedding_model VARCHAR(255) NOT NULL,
+                source_text_hash VARCHAR(64) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT now(),
+                updated_at TIMESTAMP NOT NULL DEFAULT now()
+              );
+
+              CREATE TABLE IF NOT EXISTS user_interest_embeddings (
+                user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                embedding vector(384) NOT NULL,
+                embedding_model VARCHAR(255) NOT NULL,
+                source_text_hash VARCHAR(64) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT now(),
+                updated_at TIMESTAMP NOT NULL DEFAULT now()
+              );
+
+              CREATE TABLE IF NOT EXISTS community_embeddings (
+                group_id BIGINT PRIMARY KEY REFERENCES event_groups(id) ON DELETE CASCADE,
+                embedding vector(384) NOT NULL,
+                embedding_model VARCHAR(255) NOT NULL,
+                source_text_hash VARCHAR(64) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT now(),
+                updated_at TIMESTAMP NOT NULL DEFAULT now()
+              );
+
+              CREATE INDEX IF NOT EXISTS event_embeddings_model_idx
+                ON event_embeddings (embedding_model);
+
+              CREATE INDEX IF NOT EXISTS user_interest_embeddings_model_idx
+                ON user_interest_embeddings (embedding_model);
+
+              CREATE INDEX IF NOT EXISTS community_embeddings_model_idx
+                ON community_embeddings (embedding_model);
+
+              CREATE INDEX IF NOT EXISTS event_embeddings_vector_cosine_idx
+                ON event_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+              CREATE INDEX IF NOT EXISTS user_interest_embeddings_vector_cosine_idx
+                ON user_interest_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+              CREATE INDEX IF NOT EXISTS community_embeddings_vector_cosine_idx
+                ON community_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+      rollback:
+        - sql:
+            sql: |
+              DROP TABLE IF EXISTS community_embeddings;
+              DROP TABLE IF EXISTS user_interest_embeddings;
+              DROP TABLE IF EXISTS event_embeddings;

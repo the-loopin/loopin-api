@@ -1,4 +1,4 @@
-# Loopin API - Documentation Hub
+﻿# Loopin API - Documentation Hub
 
 Loopin is a high-performance backend API built with Java 21 and Spring Boot, designed for discovering interest-based local events, joining event groups, and coordinating with like-minded people through real-time group chat communication.
 
@@ -21,7 +21,8 @@ This directory contains the developer documentation for the Loopin API.
   * [Security Model](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/SECURITY.md) - Security configuration, stateless authentication, role authorization, and moderation filter.
 
 * **Lifecycle & Operations**
-  * [Deployment Guide](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/DEPLOYMENT.md) - Dockerization instructions, CI/CD pipeline, and Cloud Run instructions.
+  * [Deployment Guide](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/DEPLOYMENT.md) - CI/CD pipeline and Cloud Run instructions.
+  * [Docker and Local Runtime](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/DOCKER.md) - Dockerfile, Compose, local commands, and runtime environment variables.
   * [Troubleshooting Reference](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/TROUBLESHOOTING.md) - Common run-time errors, Liquibase lock management, and connection issues.
   * [Project Roadmap](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ROADMAP.md) - Short-term and long-term features roadmap.
 
@@ -62,9 +63,9 @@ cp .env.example .env
 Open `.env` and fill in the required variables (database credentials, JWT secrets, etc.). Refer to [Environment Configuration](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ENVIRONMENT.md) for more details.
 
 ### 3. Spin up Infrastructure
-Launch the local PostgreSQL database using Docker Compose:
+Launch PostgreSQL, Redis, and the API using Docker Compose:
 ```bash
-docker-compose up -d postgres redis
+docker compose up --build -d
 ```
 
 ### 4. Run Schema Migrations
@@ -88,3 +89,5 @@ API endpoints can be tested using the **Bruno** API client. The test collections
 2. Import the collection folder into Bruno.
 3. Select the `Local` environment configuration.
 4. Execute queries.
+
+

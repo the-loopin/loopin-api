@@ -1,6 +1,6 @@
-# API Endpoint Reference
+﻿# API Endpoint Reference
 
-All API requests are prefixed with the base path `/api`. Secure endpoints require an `Authorization` header containing a valid JWT:
+All API requests are prefixed with the base path `/api`. Public resource IDs in paths and JSON payloads are UUID strings; internal database IDs are not exposed. Secure endpoints require an `Authorization` header containing a valid JWT:
 ```http
 Authorization: Bearer <your_jwt_token>
 ```
@@ -28,7 +28,7 @@ Authorization: Bearer <your_jwt_token>
     "tokenType": "Bearer",
     "expiresIn": 86400000,
     "user": {
-      "id": 1,
+      "id": "11111111-1111-4111-8111-111111111111",
       "email": "user@gmail.com",
       "name": "Jane Doe",
       "role": "USER"
@@ -53,7 +53,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (201 Created):**
   ```json
   {
-    "id": 2,
+    "id": "22222222-2222-4222-8222-222222222222",
     "name": "Alex Smith",
     "email": "alex@example.com",
     "role": "USER",
@@ -67,7 +67,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (200 OK):**
   ```json
   {
-    "id": 2,
+    "id": "22222222-2222-4222-8222-222222222222",
     "name": "Alex Smith",
     "email": "alex@example.com",
     "role": "USER",
@@ -85,7 +85,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (200 OK):**
   ```json
   {
-    "userId": 2,
+    "id": "22222222-2222-4222-8222-222222222222",
     "name": "Alex Smith",
     "city": "San Francisco",
     "bio": "Tech enthusiast and avid hiker."
@@ -106,7 +106,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (200 OK):**
   ```json
   {
-    "userId": 2,
+    "id": "22222222-2222-4222-8222-222222222222",
     "name": "Alex Smith Jr.",
     "city": "Oakland",
     "bio": "Event organizer & visual designer."
@@ -141,7 +141,7 @@ Authorization: Bearer <your_jwt_token>
   ```json
   [
     {
-      "id": 10,
+      "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       "title": "Outdoor Rock Concert",
       "description": "Come join us for live music under the stars.",
       "type": "PHYSICAL",
@@ -182,7 +182,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (201 Created):**
   ```json
   {
-    "id": 11,
+    "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     "title": "Board Games Night",
     ...
     "status": "PUBLISHED"
@@ -199,7 +199,7 @@ Authorization: Bearer <your_jwt_token>
 * **Request Body:**
   ```json
   {
-    "eventId": 10,
+    "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     "title": "East Bay Concert Buddies",
     "groupSize": "MEDIUM",
     "maxMembers": 8,
@@ -209,9 +209,9 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (201 Created):**
   ```json
   {
-    "id": 5,
-    "eventId": 10,
-    "adminId": 2,
+    "id": "55555555-5555-4555-8555-555555555555",
+    "eventId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "adminId": "22222222-2222-4222-8222-222222222222",
     "title": "East Bay Concert Buddies",
     "groupSize": "MEDIUM",
     "maxMembers": 8,
@@ -232,7 +232,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (200 OK):**
   ```json
   {
-    "id": 5,
+    "id": "55555555-5555-4555-8555-555555555555",
     "status": "FULL",
     ...
   }
@@ -254,9 +254,9 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (201 Created):**
   ```json
   {
-    "id": 14,
-    "groupId": 5,
-    "userId": 3,
+    "id": "14141414-1414-4141-8141-141414141414",
+    "groupId": "55555555-5555-4555-8555-555555555555",
+    "userId": "33333333-3333-4333-8333-333333333333",
     "status": "PENDING",
     "message": "Hey! I would love to tag along. I am buying my ticket tonight.",
     "createdAt": "2026-07-04T23:35:00"
@@ -269,7 +269,7 @@ Authorization: Bearer <your_jwt_token>
 * **Success Response (200 OK):**
   ```json
   {
-    "id": 14,
+    "id": "14141414-1414-4141-8141-141414141414",
     "status": "APPROVED",
     ...
   }
@@ -292,3 +292,4 @@ Authorization: Bearer <your_jwt_token>
     "activeGroups": 18
   }
   ```
+

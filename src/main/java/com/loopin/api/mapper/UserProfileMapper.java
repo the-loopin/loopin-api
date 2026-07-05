@@ -14,7 +14,7 @@ public class UserProfileMapper {
         }
 
         UserProfileResponse response = new UserProfileResponse();
-        response.setId(profile.getId());
+        response.setId(profile.getPublicId());
         response.setName(profile.getName());
         response.setCity(profile.getCity());
         response.setBio(profile.getBio());

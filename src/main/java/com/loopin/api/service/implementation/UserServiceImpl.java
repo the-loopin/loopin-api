@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -52,8 +53,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserById(Long id) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
+    public UserResponse getUserById(UUID id) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         return userMapper.toResponse(user);
     }
@@ -68,8 +69,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateUserRole(Long id, Role role) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
+    public UserResponse updateUserRole(UUID id, Role role) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         user.setRole(role);
         User updatedUser = userRepository.save(user);
@@ -78,8 +79,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteUser(Long id) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
+    public void deleteUser(UUID id) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         user.markAsDeleted();
         userRepository.save(user);

@@ -14,6 +14,7 @@ import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.recommendation.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
+    private final EventEmbeddingService eventEmbeddingService;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,11 +67,11 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
-    public EventResponse getPublishedEventById(Long id) {
+    public EventResponse getPublishedEventById(UUID id) {
         Event event = eventRepository.findOne(
                 Specification.where(notDeleted())
                         .and(hasStatus(EventStatus.PUBLISHED))
-                        .and(hasId(id))
+                        .and(hasPublicId(id))
         ).orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
 
         return eventMapper.toResponse(event);
@@ -85,13 +88,14 @@ public class EventServiceImpl implements EventService {
         Event event = eventMapper.toEntity(request);
         event.setOwner(currentUser);
         Event savedEvent = eventRepository.save(event);
+        eventEmbeddingService.indexEvent(savedEvent);
 
         return eventMapper.toResponse(savedEvent);
     }
 
     @Override
     @Transactional
-    public EventResponse updateEvent(Long id, EventUpdateRequest request, String currentUsername) {
+    public EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
         validateDateRange(request.getStartDateTime(), request.getEndDateTime());
         validatePrice(request.getIsFree(), request.getPrice());
@@ -101,12 +105,13 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEntity(event, request);
 
         Event savedEvent = eventRepository.save(event);
+        eventEmbeddingService.indexEvent(savedEvent);
         return eventMapper.toResponse(savedEvent);
     }
 
     @Override
     @Transactional
-    public void deleteEvent(Long id, String currentUsername) {
+    public void deleteEvent(UUID id, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
@@ -139,9 +144,9 @@ public class EventServiceImpl implements EventService {
                 "Only the event owner or an admin can modify this event");
     }
 
-    private Event findActiveEventById(Long id) {
+    private Event findActiveEventById(UUID id) {
         return eventRepository.findOne(
-                Specification.where(notDeleted()).and(hasId(id))
+                Specification.where(notDeleted()).and(hasPublicId(id))
         ).orElseThrow(() -> new NoSuchElementException("Event not found with id: " + id));
     }
 
@@ -202,8 +207,8 @@ public class EventServiceImpl implements EventService {
                 criteriaBuilder.equal(root.get("startDateTime"), startDateTime);
     }
 
-    private Specification<Event> hasId(Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+    private Specification<Event> hasPublicId(UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("publicId"), id);
     }
 
     private Specification<Event> notDeleted() {
@@ -278,3 +283,5 @@ public class EventServiceImpl implements EventService {
                 criteriaBuilder.lessThan(root.get("startDateTime"), endDate.plusDays(1).atStartOfDay());
     }
 }
+
+
