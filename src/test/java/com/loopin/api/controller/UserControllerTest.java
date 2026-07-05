@@ -49,7 +49,7 @@ class UserControllerTest {
 
     @Test
     void registerUser_Success() throws Exception {
-        UserRegisterRequest request = new UserRegisterRequest("test@email.com", "Test User", "google-123");
+        UserRegisterRequest request = new UserRegisterRequest("test@email.com", "Test User");
 
         mockMvc.perform(post("/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -57,7 +57,6 @@ class UserControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email", is("test@email.com")))
                 .andExpect(jsonPath("$.name", is("Test User")))
-                .andExpect(jsonPath("$.googleId", is("google-123")))
                 .andExpect(jsonPath("$.role", is("USER")));
 
         assertTrue(userRepository.findByEmail("test@email.com").isPresent());
@@ -66,14 +65,14 @@ class UserControllerTest {
     @Test
     void registerUser_DuplicateEmail_ThrowsConflict() throws Exception {
         // Register first user
-        UserRegisterRequest request1 = new UserRegisterRequest("duplicate@email.com", "User 1", null);
+        UserRegisterRequest request1 = new UserRegisterRequest("duplicate@email.com", "User 1");
         mockMvc.perform(post("/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request1)))
                 .andExpect(status().isCreated());
 
         // Register second user with same email
-        UserRegisterRequest request2 = new UserRegisterRequest("duplicate@email.com", "User 2", null);
+        UserRegisterRequest request2 = new UserRegisterRequest("duplicate@email.com", "User 2");
         mockMvc.perform(post("/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request2)))
