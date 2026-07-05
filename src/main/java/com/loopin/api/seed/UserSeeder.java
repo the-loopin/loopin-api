@@ -27,9 +27,17 @@ public class UserSeeder {
         admin.setRole(Role.ADMIN);
         users.add(admin);
 
-        // 5 Regular Users
-        for (int i = 1; i <= 5; i++) {
-            User user = new User("user" + i + "@loopin.com", "User " + i, "google-user-id-" + i);
+        // 5 Realistic Regular Users
+        String[][] mockUserData = {
+            {"john.doe@gmail.com", "John Doe", "google-user-john-123"},
+            {"jane.smith@gmail.com", "Jane Smith", "google-user-jane-123"},
+            {"alice.johnson@gmail.com", "Alice Johnson", "google-user-alice-123"},
+            {"bob.miller@gmail.com", "Bob Miller", "google-user-bob-123"},
+            {"charlie.brown@gmail.com", "Charlie Brown", "google-user-charlie-123"}
+        };
+
+        for (String[] userData : mockUserData) {
+            User user = new User(userData[0], userData[1], userData[2]);
             user.setRole(Role.USER);
             users.add(user);
         }
