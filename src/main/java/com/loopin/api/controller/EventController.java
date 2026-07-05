@@ -8,9 +8,10 @@ import com.loopin.api.common.enums.EventType;
 import com.loopin.api.service.abstraction.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,22 +61,36 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventCreateRequest request) {
-        EventResponse createdEvent = eventService.createEvent(request);
+    public ResponseEntity<EventResponse> createEvent(
+            @Valid @RequestBody EventCreateRequest request,
+            Authentication authentication
+    ) {
+        EventResponse createdEvent = eventService.createEvent(request, resolveUsername(authentication));
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> updateEvent(
             @PathVariable Long id,
-            @Valid @RequestBody EventUpdateRequest request
+            @Valid @RequestBody EventUpdateRequest request,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(eventService.updateEvent(id, request));
+        return ResponseEntity.ok(eventService.updateEvent(id, request, resolveUsername(authentication)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
+    public ResponseEntity<Void> deleteEvent(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        eventService.deleteEvent(id, resolveUsername(authentication));
         return ResponseEntity.noContent().build();
+    }
+
+    private String resolveUsername(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        return authentication.getName();
     }
 }
