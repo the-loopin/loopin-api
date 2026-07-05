@@ -22,7 +22,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import org.springframework.beans.factory.annotation.Value;
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -53,6 +52,7 @@ public class SecurityConfig {
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/auth/**", "/api/auth/**").permitAll()
+                .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/register", "/api/users/register").permitAll()
                 .requestMatchers("/users/me", "/api/users/me").authenticated()
                 .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
