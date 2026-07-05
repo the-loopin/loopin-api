@@ -1,0 +1,83 @@
+package com.loopin.api.service.implementation;
+
+import com.loopin.api.common.enums.ReportStatus;
+import com.loopin.api.common.enums.ReportTargetType;
+import com.loopin.api.common.exception.ResourceNotFoundException;
+import com.loopin.api.dto.report.request.CreateReportRequest;
+import com.loopin.api.dto.report.response.ReportResponse;
+import com.loopin.api.entity.EventGroup;
+import com.loopin.api.entity.GroupMessage;
+import com.loopin.api.entity.User;
+import com.loopin.api.entity.UserReport;
+import com.loopin.api.mapper.UserReportMapper;
+import com.loopin.api.repository.EventGroupRepository;
+import com.loopin.api.repository.GroupMessageRepository;
+import com.loopin.api.repository.UserReportRepository;
+import com.loopin.api.repository.UserRepository;
+import com.loopin.api.service.abstraction.UserReportService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class UserReportServiceImpl implements UserReportService {
+
+    private final UserReportRepository reportRepository;
+    private final UserRepository userRepository;
+    private final EventGroupRepository eventGroupRepository;
+    private final GroupMessageRepository groupMessageRepository;
+    private final UserReportMapper reportMapper;
+
+    @Override
+    @Transactional
+    public ReportResponse create(Long reporterId, CreateReportRequest request) {
+        User reporter = userRepository.findByIdAndDeletedAtIsNull(reporterId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + reporterId));
+
+        UserReport report = new UserReport();
+        report.setReporter(reporter);
+        report.setTargetType(request.getTargetType());
+        report.setReason(request.getReason());
+        report.setDetails(request.getDetails());
+        report.setStatus(ReportStatus.PENDING);
+
+        assignTarget(report, request);
+
+        return reportMapper.toResponse(reportRepository.save(report));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReportResponse> getReports(ReportStatus status, Pageable pageable) {
+        Page<UserReport> reports = status == null
+                ? reportRepository.findAll(pageable)
+                : reportRepository.findByStatus(status, pageable);
+        return reports.map(reportMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public ReportResponse updateStatus(Long reportId, ReportStatus status) {
+        UserReport report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
+
+        report.setStatus(status);
+        return reportMapper.toResponse(reportRepository.save(report));
+    }
+
+    private void assignTarget(UserReport report, CreateReportRequest request) {
+        if (request.getTargetType() == ReportTargetType.GROUP) {
+            EventGroup group = eventGroupRepository.findById(request.getTargetId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + request.getTargetId()));
+            report.setGroup(group);
+            return;
+        }
+
+        GroupMessage message = groupMessageRepository.findById(request.getTargetId())
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + request.getTargetId()));
+        report.setMessage(message);
+    }
+}
