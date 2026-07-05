@@ -53,7 +53,7 @@ public class UserReportServiceImpl implements UserReportService {
     @Transactional(readOnly = true)
     public Page<ReportResponse> getReports(ReportStatus status, Pageable pageable) {
         Page<UserReport> reports = status == null
-                ? reportRepository.findAll(pageable)
+                ? reportRepository.findAllBy(pageable)
                 : reportRepository.findByStatus(status, pageable);
         return reports.map(reportMapper::toResponse);
     }
