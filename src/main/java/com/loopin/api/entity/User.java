@@ -37,6 +37,9 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserBadge> badges;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserInterest> interests;
+
     public User(String email, String name, String googleId) {
         this.email = email;
         this.name = name;
