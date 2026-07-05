@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -60,8 +62,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public UserResponse updateUserRole(Long targetUserId, Role role, String currentAdminIdentifier) {
-        User targetUser = userRepository.findByIdAndDeletedAtIsNull(targetUserId)
+    public UserResponse updateUserRole(UUID targetUserId, Role role, String currentAdminIdentifier) {
+        User targetUser = userRepository.findByPublicIdAndDeletedAtIsNull(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + targetUserId));
 
         if (isSameUser(targetUser, currentAdminIdentifier)) {
@@ -85,8 +87,8 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void deleteUser(Long targetUserId, String currentAdminIdentifier) {
-        User targetUser = userRepository.findByIdAndDeletedAtIsNull(targetUserId)
+    public void deleteUser(UUID targetUserId, String currentAdminIdentifier) {
+        User targetUser = userRepository.findByPublicIdAndDeletedAtIsNull(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + targetUserId));
 
         if (isSameUser(targetUser, currentAdminIdentifier)) {
@@ -120,11 +122,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void deleteEvent(Long eventId, String currentAdminIdentifier) {
-        Event event = eventRepository.findOne((root, query, cb) -> cb.and(
-                cb.isNull(root.get("deletedAt")),
-                cb.equal(root.get("id"), eventId)
-        )).orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
+    public void deleteEvent(UUID eventId, String currentAdminIdentifier) {
+        Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
 
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
@@ -136,7 +136,7 @@ public class AdminServiceImpl implements AdminService {
         if (adminIdentifier == null || adminIdentifier.isBlank()) {
             return false;
         }
-        if (user.getId() != null && user.getId().toString().equals(adminIdentifier)) {
+        if (user.getPublicId() != null && user.getPublicId().toString().equals(adminIdentifier)) {
             return true;
         }
         return user.getEmail() != null && user.getEmail().equalsIgnoreCase(adminIdentifier);

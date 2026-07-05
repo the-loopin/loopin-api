@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserReportServiceImpl implements UserReportService {
@@ -60,8 +62,8 @@ public class UserReportServiceImpl implements UserReportService {
 
     @Override
     @Transactional
-    public ReportResponse updateStatus(Long reportId, ReportStatus status) {
-        UserReport report = reportRepository.findById(reportId)
+    public ReportResponse updateStatus(UUID reportId, ReportStatus status) {
+        UserReport report = reportRepository.findByPublicId(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
 
         report.setStatus(status);
@@ -70,13 +72,13 @@ public class UserReportServiceImpl implements UserReportService {
 
     private void assignTarget(UserReport report, CreateReportRequest request) {
         if (request.getTargetType() == ReportTargetType.GROUP) {
-            EventGroup group = eventGroupRepository.findById(request.getTargetId())
+            EventGroup group = eventGroupRepository.findByPublicId(request.getTargetId())
                     .orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + request.getTargetId()));
             report.setGroup(group);
             return;
         }
 
-        GroupMessage message = groupMessageRepository.findById(request.getTargetId())
+        GroupMessage message = groupMessageRepository.findByPublicId(request.getTargetId())
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + request.getTargetId()));
         report.setMessage(message);
     }

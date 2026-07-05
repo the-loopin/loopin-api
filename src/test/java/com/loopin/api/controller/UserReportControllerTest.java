@@ -114,15 +114,15 @@ class UserReportControllerTest {
                         .content("""
                                 {
                                   "targetType": "GROUP",
-                                  "targetId": %d,
+                                  "targetId": "%s",
                                   "reason": "Spam",
                                   "details": "This group is advertising unrelated links."
                                 }
-                                """.formatted(group.getId())))
+                                """.formatted(group.getPublicId())))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.reporterId", is(regularUser.getId().intValue())))
+                .andExpect(jsonPath("$.reporterId", is(regularUser.getPublicId().toString())))
                 .andExpect(jsonPath("$.targetType", is("GROUP")))
-                .andExpect(jsonPath("$.targetId", is(group.getId().intValue())))
+                .andExpect(jsonPath("$.targetId", is(group.getPublicId().toString())))
                 .andExpect(jsonPath("$.status", is("PENDING")));
 
         UserReport report = reportRepository.findAll().getFirst();
@@ -139,10 +139,10 @@ class UserReportControllerTest {
                         .content("""
                                 {
                                   "targetType": "GROUP",
-                                  "targetId": %d,
+                                  "targetId": "%s",
                                   "reason": "Spam"
                                 }
-                                """.formatted(group.getId())))
+                                """.formatted(group.getPublicId())))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -154,7 +154,7 @@ class UserReportControllerTest {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
-                .andExpect(jsonPath("$.content[0].id", is(report.getId().intValue())))
+                .andExpect(jsonPath("$.content[0].id", is(report.getPublicId().toString())))
                 .andExpect(jsonPath("$.content[0].status", is("PENDING")));
 
         mockMvc.perform(get("/admin/reports")
@@ -166,7 +166,7 @@ class UserReportControllerTest {
     void updateReport_AdminCanUpdateStatus() throws Exception {
         UserReport report = pendingGroupReport();
 
-        mockMvc.perform(patch("/admin/reports/" + report.getId())
+        mockMvc.perform(patch("/admin/reports/" + report.getPublicId())
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"RESOLVED\"}"))

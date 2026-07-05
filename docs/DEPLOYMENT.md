@@ -1,103 +1,59 @@
-# Deployment Guide
+﻿# Deployment Guide
 
-The Loopin API is designed to run in containerized environments. This guide explains how to package, deploy, and verify the application in staging and production environments.
+The Loopin API is packaged as a Docker image and is ready for Cloud Run deployment. CI validates the Java build and Docker image on pull requests and pushes.
 
----
+## Local Container Build
 
-##  Deployment Pipeline Diagram
-
-The diagram below details the continuous integration and deployment pipeline:
-
-```mermaid
-flowchart TD
-    A[Push to GitHub] --> B[GitHub Actions CI]
-    B --> C[Run Tests & Lints]
-    C --> D[Build Docker Image]
-    D --> E[Push Image to Registry]
-    E --> F[Deploy to Cloud Run / Container VPS]
-    F --> G[Run Liquibase Migrations]
-    G --> H[API Health Check]
-    H --> I[Service Live & Traffic Routed]
-```
-
----
-
-## Docker Containerization
-
-The Loopin API uses a multi-stage Docker build to keep images small and secure.
-
-### Multi-Stage Dockerfile (Recommended)
-```dockerfile
-# Stage 1: Build
-FROM maven:3.9-eclipse-temurin-21 AS build
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# Stage 2: Runtime
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-COPY --from=build /app/target/loopin-api-*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-Dspring.profiles.active=production", "-jar", "app.jar"]
-```
-
-### Build & Run Locally with Docker
-1. **Build image:**
-   ```bash
-   docker build -t loopin-api:latest .
-   ```
-2. **Start system using Docker Compose:**
-   ```bash
-   docker-compose up -d
-   ```
-   *This spins up PostgreSQL, Redis, and the API container.*
-
----
-
-##  Deploying to Cloud Providers
-
-### 1. Google Cloud Run (Recommended serverless deployment)
-Google Cloud Run is well-suited for containerized Spring Boot applications:
-1. Build the container using Google Cloud Build:
-   ```bash
-   gcloud builds submit --tag gcr.io/your-project-id/loopin-api
-   ```
-2. Deploy to Cloud Run:
-   ```bash
-   gcloud run deploy loopin-api \
-       --image gcr.io/your-project-id/loopin-api \
-       --platform managed \
-       --region us-central1 \
-       --allow-unauthenticated \
-       --set-env-vars DATABASE_URL="jdbc:postgresql://<db-ip>:5432/loopin",JWT_SECRET="<secret>"
-   ```
-
-### 2. Standard Virtual Private Server (VPS)
-For traditional deployments (AWS EC2, DigitalOcean Droplet, Linode):
-1. Install Docker and Docker Compose on the host.
-2. Transfer your code and `.env` file to the server.
-3. Launch container stacks:
-   ```bash
-   docker compose -f docker-compose.prod.yml up -d
-   ```
-
----
-
-## Database Migrations during Deployment
-* **Startup Auto-Migration:** By default, `spring.liquibase.enabled=true` ensures migrations execute on application boot, applying schema updates.
-* **Pre-deployment Migration:** In high-availability setups where multiple API instances start simultaneously, migrations can be run as a separate pipeline task prior to routing traffic to new container versions:
-  ```bash
-  mvn liquibase:update -Dliquibase.url="jdbc:postgresql://<db-ip>:5432/loopin" ...
-  ```
-
----
-
-## Post-Deployment Verification
-Verify application health via the health endpoint:
 ```bash
-curl -f http://<app-domain>/api/actuator/health
+docker build -t loopin-api:local .
+docker compose up --build -d
+docker compose logs -f api
+docker compose down
 ```
-A successful response should return `{"status":"UP"}`.
+
+See `docs/DOCKER.md` for the full local workflow and environment variable list.
+
+## GitHub Actions
+
+`CI` runs on pull requests and pushes. It checks out the repository, sets up Java 21, caches Maven dependencies, runs `mvn -B test`, and builds the Docker image.
+
+`Deploy to Cloud Run` is a manual workflow. Configure these GitHub repository variables:
+
+- `GCP_PROJECT_ID`
+- `ARTIFACT_REGISTRY_REPOSITORY`
+
+Configure these GitHub repository secrets for Workload Identity Federation:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`
+- `GCP_SERVICE_ACCOUNT`
+
+The workflow expects the runtime configuration values to exist in Google Secret Manager and maps them to Cloud Run environment variables:
+
+- `DATABASE_URL`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
+- `JWT_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `CORS_ALLOWED_ORIGINS`
+- `SPRING_DATA_REDIS_HOST`
+- `SPRING_DATA_REDIS_PORT`
+
+## Cloud Run Notes
+
+Use a managed PostgreSQL database reachable from Cloud Run, commonly Cloud SQL for PostgreSQL. If using Cloud SQL private IP or Memorystore Redis, configure a Serverless VPC Access connector on the Cloud Run service.
+
+The container listens on `SERVER_PORT=8080`. Liquibase runs on startup when `LIQUIBASE_ENABLED=true`, so deploy only one migration-capable revision at a time or run migrations separately for high-availability production releases.
+
+Example manual deployment after an image has been pushed:
+
+```bash
+gcloud run deploy loopin-api \
+  --image us-central1-docker.pkg.dev/PROJECT_ID/loopin/loopin-api:IMAGE_TAG \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --set-env-vars SPRING_PROFILES_ACTIVE=production,SERVER_PORT=8080,LIQUIBASE_ENABLED=true,RATE_LIMIT_STORAGE=redis \
+  --set-secrets DATABASE_URL=DATABASE_URL:latest,DATABASE_USERNAME=DATABASE_USERNAME:latest,DATABASE_PASSWORD=DATABASE_PASSWORD:latest,JWT_SECRET=JWT_SECRET:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,CORS_ALLOWED_ORIGINS=CORS_ALLOWED_ORIGINS:latest,SPRING_DATA_REDIS_HOST=SPRING_DATA_REDIS_HOST:latest,SPRING_DATA_REDIS_PORT=SPRING_DATA_REDIS_PORT:latest
+```
+
+Do not commit secrets. Use Secret Manager, GitHub Actions secrets, or your deployment platform secret store.

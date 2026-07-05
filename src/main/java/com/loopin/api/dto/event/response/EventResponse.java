@@ -9,13 +9,14 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 public class EventResponse {
 
-    private Long id;
+    private UUID id;
     private String title;
     private String description;
     private EventType type;

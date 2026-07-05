@@ -80,7 +80,7 @@ class EventControllerTest {
     void updateEvent_NonOwnerIsForbidden() throws Exception {
         Event event = eventRepository.save(event("Owned Event", owner));
 
-        mockMvc.perform(put("/events/" + event.getId())
+        mockMvc.perform(put("/events/" + event.getPublicId())
                         .header("Authorization", "Bearer " + otherUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Hijacked Event")))
@@ -91,7 +91,7 @@ class EventControllerTest {
     void updateEvent_AdminCanUpdateAnyEvent() throws Exception {
         Event event = eventRepository.save(event("Owned Event", owner));
 
-        mockMvc.perform(put("/events/" + event.getId())
+        mockMvc.perform(put("/events/" + event.getPublicId())
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Admin Updated Event")))

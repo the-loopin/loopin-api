@@ -32,9 +32,9 @@ public class GroupMapper {
     public GroupResponse toGroupResponse(EventGroup group) {
         int memberCount = groupMemberRepository.countByGroupId(group.getId());
         return new GroupResponse(
-                group.getId(),
-                group.getEvent() != null ? group.getEvent().getId() : null,
-                group.getAdmin().getId(),
+                group.getPublicId(),
+                group.getEvent() != null ? group.getEvent().getPublicId() : null,
+                group.getAdmin().getPublicId(),
                 group.getAdmin().getEmail(),
                 group.getTitle(),
                 group.getGroupSize(),

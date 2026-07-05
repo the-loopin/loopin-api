@@ -6,11 +6,13 @@ import com.loopin.api.dto.report.response.ReportResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface UserReportService {
 
     ReportResponse create(Long reporterId, CreateReportRequest request);
 
     Page<ReportResponse> getReports(ReportStatus status, Pageable pageable);
 
-    ReportResponse updateStatus(Long reportId, ReportStatus status);
+    ReportResponse updateStatus(UUID reportId, ReportStatus status);
 }

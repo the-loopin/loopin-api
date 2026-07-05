@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,10 +16,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReportResponse {
 
-    private Long id;
-    private Long reporterId;
+    private UUID id;
+    private UUID reporterId;
     private ReportTargetType targetType;
-    private Long targetId;
+    private UUID targetId;
     private String reason;
     private String details;
     private ReportStatus status;

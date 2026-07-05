@@ -16,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -38,7 +40,7 @@ public class AdminController {
 
     @PutMapping("/users/{id}/role")
     public ResponseEntity<UserResponse> updateUserRole(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody UpdateUserRoleRequest request,
             Authentication authentication
     ) {
@@ -49,7 +51,7 @@ public class AdminController {
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             Authentication authentication
     ) {
         String adminIdentifier = resolveAdminIdentifier(authentication);
@@ -67,7 +69,7 @@ public class AdminController {
 
     @DeleteMapping("/events/{id}")
     public ResponseEntity<Void> deleteEvent(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             Authentication authentication
     ) {
         String adminIdentifier = resolveAdminIdentifier(authentication);

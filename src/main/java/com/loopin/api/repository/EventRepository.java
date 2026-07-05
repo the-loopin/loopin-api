@@ -10,12 +10,16 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
 
     long countByStatus(EventStatus status);
 
     Page<Event> findByStatus(EventStatus status, Pageable pageable);
+
+    Optional<Event> findByPublicIdAndDeletedAtIsNull(UUID publicId);
 
     List<Event> findByStatusAndEndDateTimeBeforeAndDeletedAtIsNull(EventStatus status, LocalDateTime now);
 

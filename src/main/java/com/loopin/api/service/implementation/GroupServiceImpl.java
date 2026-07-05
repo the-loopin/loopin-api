@@ -22,6 +22,8 @@ import com.loopin.api.service.abstraction.GroupService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class GroupServiceImpl implements GroupService {
 
@@ -49,7 +51,7 @@ public class GroupServiceImpl implements GroupService {
         User currentUser = userRepository.findByEmail(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
 
-        Event event = eventRepository.findById(request.getEventId())
+        Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(request.getEventId())
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + request.getEventId()));
 
         EventGroup group = groupMapper.toEntity(request,currentUser,event);
@@ -68,7 +70,7 @@ public class GroupServiceImpl implements GroupService {
         return response;
     }
 
-    public GroupResponse getGroup(Long groupId) {
+    public GroupResponse getGroup(UUID groupId) {
         EventGroup group = findGroupOrThrow(groupId);
         GroupResponse response=groupMapper.toGroupResponse(group);
         return response;
@@ -76,7 +78,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupResponse updateGroup(Long groupId, UpdateGroupRequest request, String currentUsername) {
+    public GroupResponse updateGroup(UUID groupId, UpdateGroupRequest request, String currentUsername) {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAcceptsMembershipChanges(group);
 
@@ -84,7 +86,7 @@ public class GroupServiceImpl implements GroupService {
             throw new InvalidGroupStateException("Only the group admin can update this group");
         }
 
-        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
+        int currentMemberCount = groupMemberRepository.countByGroupId(group.getId());
 
         if (request.getTitle() != null) {
             group.setTitle(request.getTitle());
@@ -113,18 +115,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void addMember(Long groupId, Long userId, String currentUsername) {
+    public void addMember(UUID groupId, UUID userId, String currentUsername) {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAdmin(group, currentUsername);
         applyCapacityFromGroupSize(group);
-        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
+        int currentMemberCount = groupMemberRepository.countByGroupId(group.getId());
         refreshGroupCapacityStatus(group, currentMemberCount);
         validateGroupAcceptsNewMembers(group);
 
-        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        if (groupMemberRepository.existsByGroupIdAndUserId(groupId, userId)) {
+        if (groupMemberRepository.existsByGroupIdAndUserId(group.getId(), user.getId())) {
             throw new InvalidGroupStateException("User is already a member of this group");
         }
 
@@ -142,15 +144,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void removeMember(Long groupId, Long userId, String currentUsername) {
+    public void removeMember(UUID groupId, UUID userId, String currentUsername) {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAdmin(group, currentUsername);
         validateGroupAcceptsMembershipChanges(group);
 
-        GroupMember member = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        GroupMember member = groupMemberRepository.findByGroupIdAndUserId(group.getId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Membership not found"));
 
-        int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
+        int currentMemberCount = groupMemberRepository.countByGroupId(group.getId());
         groupMemberRepository.delete(member);
         refreshGroupCapacityStatus(group, currentMemberCount - 1);
     }
@@ -158,7 +163,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponse updateGroupStatus(
-            Long groupId,
+            UUID groupId,
             UpdateGroupStatusRequest request,
             String currentUsername) {
 
@@ -224,8 +229,8 @@ public class GroupServiceImpl implements GroupService {
         }
     }
 
-    private EventGroup findGroupOrThrow(Long groupId) {
-        return eventGroupRepository.findById(groupId)
+    private EventGroup findGroupOrThrow(UUID groupId) {
+        return eventGroupRepository.findByPublicId(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
     }
 

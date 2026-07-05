@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     @Transactional
-    public GroupJoinRequestResponse create(Long groupId, Long currentUserId, CreateGroupJoinRequestRequest requestDto) {
+    public GroupJoinRequestResponse create(UUID groupId, Long currentUserId, CreateGroupJoinRequestRequest requestDto) {
         EventGroup group = findGroupById(groupId);
         User user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
@@ -59,7 +60,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public GroupJoinRequestResponse getById(Long groupId, Long requestId, Long currentUserId) {
+    public GroupJoinRequestResponse getById(UUID groupId, UUID requestId, Long currentUserId) {
         GroupJoinRequest request = findEntityByIdAndGroupId(requestId, groupId);
         validateGroupAdminOrRequester(request, currentUserId);
         return GroupJoinRequestResponse.from(request);
@@ -67,11 +68,11 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GroupJoinRequestResponse> getByGroupId(Long groupId, Long currentUserId) {
+    public List<GroupJoinRequestResponse> getByGroupId(UUID groupId, Long currentUserId) {
         EventGroup group = findGroupById(groupId);
         validateGroupAdmin(group, currentUserId);
 
-        return joinRequestRepository.findByGroupId(groupId).stream()
+        return joinRequestRepository.findByGroupId(group.getId()).stream()
                 .map(GroupJoinRequestResponse::from)
                 .toList();
     }
@@ -86,7 +87,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     @Transactional
-    public GroupJoinRequestResponse approve(Long groupId, Long requestId, Long currentUserId) {
+    public GroupJoinRequestResponse approve(UUID groupId, UUID requestId, Long currentUserId) {
         GroupJoinRequest request = findEntityByIdAndGroupId(requestId, groupId);
         EventGroup group = request.getGroup();
         validateGroupAdmin(group, currentUserId);
@@ -124,7 +125,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     @Transactional
-    public GroupJoinRequestResponse reject(Long groupId, Long requestId, Long currentUserId) {
+    public GroupJoinRequestResponse reject(UUID groupId, UUID requestId, Long currentUserId) {
         GroupJoinRequest request = findEntityByIdAndGroupId(requestId, groupId);
         validateGroupAdmin(request.getGroup(), currentUserId);
 
@@ -138,19 +139,20 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
 
     @Override
     @Transactional
-    public void delete(Long groupId, Long requestId, Long currentUserId) {
+    public void delete(UUID groupId, UUID requestId, Long currentUserId) {
         GroupJoinRequest request = findEntityByIdAndGroupId(requestId, groupId);
         validateGroupAdminOrRequester(request, currentUserId);
         joinRequestRepository.delete(request);
     }
 
-    private EventGroup findGroupById(Long groupId) {
-        return eventGroupRepository.findById(groupId)
+    private EventGroup findGroupById(UUID groupId) {
+        return eventGroupRepository.findByPublicId(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + groupId));
     }
 
-    private GroupJoinRequest findEntityByIdAndGroupId(Long requestId, Long groupId) {
-        return joinRequestRepository.findByIdAndGroupId(requestId, groupId)
+    private GroupJoinRequest findEntityByIdAndGroupId(UUID requestId, UUID groupId) {
+        EventGroup group = findGroupById(groupId);
+        return joinRequestRepository.findByPublicIdAndGroupId(requestId, group.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Group join request not found with id: " + requestId));
     }
 
