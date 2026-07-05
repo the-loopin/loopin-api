@@ -39,6 +39,7 @@ class DatabaseMigrationTest {
                         "group_members",
                         "group_join_requests",
                         "group_messages",
+                        "user_reports",
                         "databasechangelog"
                 );
     }
