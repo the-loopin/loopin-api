@@ -23,9 +23,9 @@ public interface EventService {
 
     EventResponse getPublishedEventById(Long id);
 
-    EventResponse createEvent(EventCreateRequest request);
+    EventResponse createEvent(EventCreateRequest request, String currentUsername);
 
-    EventResponse updateEvent(Long id, EventUpdateRequest request);
+    EventResponse updateEvent(Long id, EventUpdateRequest request, String currentUsername);
 
-    void deleteEvent(Long id);
+    void deleteEvent(Long id, String currentUsername);
 }
