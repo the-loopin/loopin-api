@@ -14,6 +14,7 @@ import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.recommendation.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,6 +34,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
+    private final EventEmbeddingService eventEmbeddingService;
 
     @Override
     @Transactional(readOnly = true)
@@ -85,6 +87,7 @@ public class EventServiceImpl implements EventService {
         Event event = eventMapper.toEntity(request);
         event.setOwner(currentUser);
         Event savedEvent = eventRepository.save(event);
+        eventEmbeddingService.indexEvent(savedEvent);
 
         return eventMapper.toResponse(savedEvent);
     }
@@ -101,6 +104,7 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEntity(event, request);
 
         Event savedEvent = eventRepository.save(event);
+        eventEmbeddingService.indexEvent(savedEvent);
         return eventMapper.toResponse(savedEvent);
     }
 
@@ -278,3 +282,5 @@ public class EventServiceImpl implements EventService {
                 criteriaBuilder.lessThan(root.get("startDateTime"), endDate.plusDays(1).atStartOfDay());
     }
 }
+
+
