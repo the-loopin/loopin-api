@@ -82,6 +82,8 @@ google:
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
 loopin:
+  seed:
+    enabled: ${SEED_DATA_ENABLED:false}
   ai:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
     timeout: ${LOOPIN_AI_TIMEOUT:2s}
