@@ -2,6 +2,8 @@ package com.loopin.api.common.ratelimit;
 
 import com.loopin.api.auth.dto.GoogleLoginRequest;
 import com.loopin.api.auth.enums.Role;
+import com.loopin.api.auth.service.GoogleTokenClaims;
+import com.loopin.api.auth.service.GoogleTokenVerifier;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.repository.UserRepository;
@@ -9,7 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +22,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,8 +50,25 @@ class RateLimitFilterTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private GoogleTokenVerifier googleTokenVerifier;
+
+    @TestConfiguration
+    static class TestConfig {
+
+        @Bean
+        @Primary
+        GoogleTokenVerifier googleTokenVerifier() {
+            return mock(GoogleTokenVerifier.class);
+        }
+    }
+
     @BeforeEach
     void setUp() {
+        reset(googleTokenVerifier);
+        when(googleTokenVerifier.verify("existing-token"))
+                .thenReturn(new GoogleTokenClaims("google-id-123", "user@email.com", "John Doe"));
+
         userRepository.deleteAll();
 
         User user = new User("user@email.com", "John Doe", "google-id-123");
@@ -59,7 +84,7 @@ class RateLimitFilterTest {
 
     @Test
     void requestsWithinConfiguredLimitKeepExistingBehavior() throws Exception {
-        GoogleLoginRequest request = new GoogleLoginRequest("google-id-123", "user@email.com", "John Doe");
+        GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
         mockMvc.perform(post("/auth/google")
                         .with(servletRequest -> {
@@ -74,7 +99,7 @@ class RateLimitFilterTest {
 
     @Test
     void requestsExceedingConfiguredLimitReturnTooManyRequests() throws Exception {
-        GoogleLoginRequest request = new GoogleLoginRequest("google-id-123", "user@email.com", "John Doe");
+        GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
         mockMvc.perform(post("/auth/google")
                         .with(servletRequest -> {
@@ -100,7 +125,7 @@ class RateLimitFilterTest {
 
     @Test
     void untrustedForwardedForHeaderDoesNotBypassLimit() throws Exception {
-        GoogleLoginRequest request = new GoogleLoginRequest("google-id-123", "user@email.com", "John Doe");
+        GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
         mockMvc.perform(post("/auth/google")
                         .with(servletRequest -> {

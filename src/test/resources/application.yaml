@@ -17,6 +17,9 @@ jwt:
   secret: aVerySecretKeyThatIsAtLeast32BytesLongForHS256SignatureVerification!
   expiration: 86400000
 
+google:
+  client-id: test-google-client-id
+
 cors:
   allowed-origins: "*"
 

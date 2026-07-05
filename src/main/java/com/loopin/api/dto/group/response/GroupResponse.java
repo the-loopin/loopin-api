@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class GroupResponse {
 
     private Long id;
-    private Long eventId;          // null for independent groups
+    private Long eventId;
     private Long adminId;
     private String adminUsername;
     private String title;

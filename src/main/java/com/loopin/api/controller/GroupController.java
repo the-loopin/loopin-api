@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/groups")
@@ -24,9 +25,8 @@ public class GroupController {
     @PostMapping
     public ResponseEntity<GroupResponse> createGroup(
             @Valid @RequestBody CreateGroupRequest request,
-            @RequestHeader(value = "X-User-Email", required = false) String emailHeader,
             Authentication authentication) {
-        String currentUsername = resolveUsername(authentication, emailHeader);
+        String currentUsername = resolveUsername(authentication);
         GroupResponse response = groupService.createGroup(request, currentUsername);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -40,10 +40,9 @@ public class GroupController {
     public ResponseEntity<GroupResponse> updateGroup(
             @PathVariable Long groupId,
             @Valid @RequestBody UpdateGroupRequest request,
-            @RequestHeader(value = "X-User-Email", required = false) String emailHeader,
             Authentication authentication) {
 
-        String currentUsername = resolveUsername(authentication, emailHeader);
+        String currentUsername = resolveUsername(authentication);
         GroupResponse response = groupService.updateGroup(
                 groupId,
                 request,
@@ -57,10 +56,9 @@ public class GroupController {
     public ResponseEntity<GroupResponse> updateGroupStatus(
             @PathVariable Long groupId,
             @Valid @RequestBody UpdateGroupStatusRequest request,
-            @RequestHeader(value = "X-User-Email", required = false) String emailHeader,
             Authentication authentication) {
 
-        String currentUsername = resolveUsername(authentication, emailHeader);
+        String currentUsername = resolveUsername(authentication);
         GroupResponse response = groupService.updateGroupStatus(
                 groupId,
                 request,
@@ -69,10 +67,10 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
-    private String resolveUsername(Authentication authentication, String emailHeader) {
+    private String resolveUsername(Authentication authentication) {
         if (authentication != null && authentication.getName() != null) {
             return authentication.getName();
         }
-        return (emailHeader != null && !emailHeader.isBlank()) ? emailHeader : "admin@email.com";
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
 }

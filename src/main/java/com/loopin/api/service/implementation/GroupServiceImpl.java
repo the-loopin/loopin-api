@@ -49,12 +49,8 @@ public class GroupServiceImpl implements GroupService {
         User currentUser = userRepository.findByEmail(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
 
-        // Event is optional: null eventId => independent group
-        Event event = null;
-        if (request.getEventId() != null) {
-            event = eventRepository.findById(request.getEventId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + request.getEventId()));
-        }
+        Event event = eventRepository.findById(request.getEventId())
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + request.getEventId()));
 
         EventGroup group = groupMapper.toEntity(request,currentUser,event);
         applyCapacityFromGroupSize(group);
@@ -117,8 +113,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void addMember(Long groupId, Long userId) {
+    public void addMember(Long groupId, Long userId, String currentUsername) {
         EventGroup group = findGroupOrThrow(groupId);
+        validateGroupAdmin(group, currentUsername);
         applyCapacityFromGroupSize(group);
         int currentMemberCount = groupMemberRepository.countByGroupId(groupId);
         refreshGroupCapacityStatus(group, currentMemberCount);
@@ -145,8 +142,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public void removeMember(Long groupId, Long userId) {
+    public void removeMember(Long groupId, Long userId, String currentUsername) {
         EventGroup group = findGroupOrThrow(groupId);
+        validateGroupAdmin(group, currentUsername);
         validateGroupAcceptsMembershipChanges(group);
 
         GroupMember member = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
@@ -212,6 +210,17 @@ public class GroupServiceImpl implements GroupService {
         if (group.getStatus() == GroupStatus.ARCHIVED || group.getStatus() == GroupStatus.CANCELLED) {
             throw new InvalidGroupStateException(
                     "Group is " + group.getStatus() + " and no longer accepts membership updates");
+        }
+    }
+
+    private void validateGroupAdmin(EventGroup group, String currentUsername) {
+        if (currentUsername == null
+                || currentUsername.isBlank()
+                || group.getAdmin() == null
+                || !group.getAdmin().getEmail().equals(currentUsername)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Only the group admin can manage group members");
         }
     }
 

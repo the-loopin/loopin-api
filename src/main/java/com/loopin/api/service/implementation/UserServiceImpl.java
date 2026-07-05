@@ -30,13 +30,7 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateResourceException("Email is already registered.");
         }
 
-        if (request.getGoogleId() != null && !request.getGoogleId().isBlank()) {
-            if (userRepository.existsByGoogleId(request.getGoogleId())) {
-                throw new DuplicateResourceException("Google ID is already registered.");
-            }
-        }
-
-        User user = new User(request.getEmail(), request.getName(), request.getGoogleId());
+        User user = new User(request.getEmail(), request.getName(), null);
 
         UserProfile profile = new UserProfile();
         profile.setUser(user);
