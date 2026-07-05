@@ -50,9 +50,9 @@ class GroupMemberServiceImplTest {
         when(groupMemberRepository.findByGroupIdAndUserId(1L, 2L))
                 .thenReturn(Optional.of(membership));
 
-        GroupMemberResponse response = groupMemberService.addMember(1L, request);
+        GroupMemberResponse response = groupMemberService.addMember(1L, request, "admin@email.com");
 
-        verify(groupService).addMember(1L, 2L);
+        verify(groupService).addMember(1L, 2L, "admin@email.com");
         assertEquals(10L, response.getId());
         assertEquals(1L, response.getGroupId());
         assertEquals(2L, response.getUserId());
@@ -60,9 +60,9 @@ class GroupMemberServiceImplTest {
 
     @Test
     void removeMember_DelegatesToGroupService() {
-        groupMemberService.removeMember(1L, 2L);
+        groupMemberService.removeMember(1L, 2L, "admin@email.com");
 
-        verify(groupService).removeMember(1L, 2L);
+        verify(groupService).removeMember(1L, 2L, "admin@email.com");
     }
 
     @Test
