@@ -1,0 +1,69 @@
+﻿name: Deploy to Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: Cloud Run region
+        required: true
+        default: us-central1
+      service:
+        description: Cloud Run service name
+        required: true
+        default: loopin-api
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  ARTIFACT_REGISTRY_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'loopin' }}
+  IMAGE_NAME: loopin-api
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ inputs.region }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${{ inputs.region }}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/${IMAGE_NAME}:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ inputs.service }}
+          region: ${{ inputs.region }}
+          image: ${{ env.IMAGE }}
+          env_vars: |
+            SPRING_PROFILES_ACTIVE=production
+            SERVER_PORT=8080
+            LIQUIBASE_ENABLED=true
+            RATE_LIMIT_STORAGE=redis
+          secrets: |
+            DATABASE_URL=DATABASE_URL:latest
+            DATABASE_USERNAME=DATABASE_USERNAME:latest
+            DATABASE_PASSWORD=DATABASE_PASSWORD:latest
+            JWT_SECRET=JWT_SECRET:latest
+            GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest
+            CORS_ALLOWED_ORIGINS=CORS_ALLOWED_ORIGINS:latest
+            SPRING_DATA_REDIS_HOST=SPRING_DATA_REDIS_HOST:latest
+            SPRING_DATA_REDIS_PORT=SPRING_DATA_REDIS_PORT:latest
