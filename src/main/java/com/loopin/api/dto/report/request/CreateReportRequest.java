@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class CreateReportRequest {
@@ -15,7 +17,7 @@ public class CreateReportRequest {
     private ReportTargetType targetType;
 
     @NotNull(message = "Target id is required")
-    private Long targetId;
+    private UUID targetId;
 
     @NotBlank(message = "Reason is required")
     @Size(max = 500, message = "Reason must not exceed 500 characters")
