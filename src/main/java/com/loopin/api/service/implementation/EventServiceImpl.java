@@ -5,6 +5,8 @@ import com.loopin.api.dto.event.request.EventCreateRequest;
 import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventInterest;
+import com.loopin.api.entity.Interest;
 import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
@@ -12,7 +14,9 @@ import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.mapper.EventMapper;
+import com.loopin.api.repository.EventInterestRepository;
 import com.loopin.api.repository.EventRepository;
+import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.recommendation.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
@@ -24,9 +28,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +44,8 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
+    private final InterestRepository interestRepository;
+    private final EventInterestRepository eventInterestRepository;
     private final EventEmbeddingService eventEmbeddingService;
 
     @Override
@@ -87,7 +98,8 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventMapper.toEntity(request);
         event.setOwner(currentUser);
-        Event savedEvent = eventRepository.save(event);
+        Event savedEvent = eventRepository.saveAndFlush(event);
+        replaceEventInterests(savedEvent, request.getInterestIds());
         eventEmbeddingService.indexEvent(savedEvent);
 
         return eventMapper.toResponse(savedEvent);
@@ -103,6 +115,7 @@ public class EventServiceImpl implements EventService {
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
         eventMapper.updateEntity(event, request);
+        replaceEventInterests(event, request.getInterestIds());
 
         Event savedEvent = eventRepository.save(event);
         eventEmbeddingService.indexEvent(savedEvent);
@@ -115,8 +128,48 @@ public class EventServiceImpl implements EventService {
         User currentUser = findCurrentUser(currentUsername);
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
+        eventInterestRepository.deleteByEvent_Id(event.getId());
         event.markAsDeleted();
         eventRepository.save(event);
+    }
+
+    private void replaceEventInterests(Event event, List<UUID> interestIds) {
+        List<UUID> requestedInterestIds = interestIds == null ? List.of() : interestIds;
+        Set<UUID> uniqueInterestIds = new LinkedHashSet<>(requestedInterestIds);
+
+        if (uniqueInterestIds.size() != requestedInterestIds.size()) {
+            throw new IllegalArgumentException("Duplicate interests are not allowed.");
+        }
+
+        Map<UUID, Interest> interestsByPublicId = findInterestsByPublicId(uniqueInterestIds);
+
+        if (event.getId() != null) {
+            eventInterestRepository.deleteByEvent_Id(event.getId());
+            eventInterestRepository.flush();
+        }
+
+        List<EventInterest> eventInterests = requestedInterestIds.stream()
+                .map(interestId -> new EventInterest(event, interestsByPublicId.get(interestId)))
+                .toList();
+
+        List<EventInterest> savedEventInterests = eventInterestRepository.saveAll(eventInterests);
+        event.setInterests(new LinkedHashSet<>(savedEventInterests));
+    }
+
+    private Map<UUID, Interest> findInterestsByPublicId(Set<UUID> publicIds) {
+        if (publicIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<UUID, Interest> interestsByPublicId = interestRepository.findByPublicIdInAndDeletedAtIsNull(publicIds)
+                .stream()
+                .collect(Collectors.toMap(Interest::getPublicId, Function.identity()));
+
+        if (interestsByPublicId.size() != publicIds.size()) {
+            throw new NoSuchElementException("One or more interests were not found.");
+        }
+
+        return interestsByPublicId;
     }
 
     private User findCurrentUser(String currentUsername) {

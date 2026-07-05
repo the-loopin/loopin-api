@@ -1,8 +1,10 @@
 package com.loopin.api.recommendation;
 
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventInterest;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,9 +20,24 @@ public class EventEmbeddingTextBuilder {
                         event.getCity(),
                         event.getAddress(),
                         event.getOrganizerName(),
+                        interestText(event),
                         Boolean.TRUE.equals(event.getIsFree()) ? "free event" : "paid event"
                 )
                 .filter(value -> value != null && !value.isBlank())
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String interestText(Event event) {
+        if (event.getInterests() == null || event.getInterests().isEmpty()) {
+            return null;
+        }
+
+        return event.getInterests()
+                .stream()
+                .map(EventInterest::getInterest)
+                .filter(interest -> interest != null && interest.getName() != null)
+                .sorted(Comparator.comparing(interest -> interest.getName().toLowerCase()))
+                .map(interest -> "interest: " + interest.getName())
                 .collect(Collectors.joining("\n"));
     }
 }
