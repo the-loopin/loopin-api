@@ -31,21 +31,42 @@ public class EventGroupSeeder {
 
         List<EventGroup> groups = new ArrayList<>();
 
+        String[] groupTitles = {
+            "Kubernetes & DevOps Talk",
+            "Pitch & Funding Circle",
+            "HR Future & Remote Work",
+            "AI in Classroom Chat",
+            "Shusha Explorers Club",
+            "Runners & Pacers Support",
+            "Tabletop & Strategy Talk",
+            "Language Practice & Cafe Chat"
+        };
+
+        String[] groupNotes = {
+            "Discussing Kubernetes setups, CI/CD pipelines, and cloud provider experiences. Let's sync up near the registration desk!",
+            "Connect with other startup founders and local investors after the pitch. Share your feedback on the pitches.",
+            "Let's share our remote work experiences, employee engagement strategies, and tools for hybrid team alignment.",
+            "For educators and developers working on or interested in using LLMs / generative AI for educational platforms.",
+            "Coordination group for everyone joining the tour. Let's organize rides, shares, and track photo albums here!",
+            "Discussing pacing, training plans, and race day logistics for the charity marathon. All paces are welcome!",
+            "Coordinating what board games to bring and play during the mixer. Let us know what you want to play!",
+            "A casual table for practicing English, German, Russian, and Azerbaijani. Let's grab some coffee and chat."
+        };
+
         for (int i = 0; i < 8; i++) {
             EventGroup group = new EventGroup();
             group.setEvent(events.get(i)); // 1 group per event to reach 8 groups
             group.setAdmin(admins.get(i % admins.size())); // Set group admin
 
-            // Keep groupSize and maxMembers consistent with each other,
-            // instead of letting maxMembers drift to arbitrary values.
+            // Keep groupSize and maxMembers consistent with each other
             boolean isFixedFour = i % 2 == 0;
             GroupSizeType sizeType = isFixedFour ? GroupSizeType.FOUR : GroupSizeType.FOUR_PLUS;
             group.setGroupSize(sizeType);
-            group.setMaxMembers(isFixedFour ? 4 : 4 + (i + 1)); // FOUR_PLUS groups vary but never below 4
+            group.setMaxMembers(isFixedFour ? 4 : 8 + i); 
 
-            group.setTitle("Networking Synergy Squad " + (i + 1));
+            group.setTitle(groupTitles[i]);
             group.setStatus(GroupStatus.OPEN);
-            group.setGroupNote("Let's sync up, grab coffee, and share our insights regarding this event!");
+            group.setGroupNote(groupNotes[i]);
 
             groups.add(group);
         }
