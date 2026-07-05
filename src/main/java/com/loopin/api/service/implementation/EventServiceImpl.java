@@ -1,15 +1,19 @@
 package com.loopin.api.service.implementation;
 
+import com.loopin.api.auth.enums.Role;
 import com.loopin.api.dto.event.request.EventCreateRequest;
 import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.exception.DuplicateResourceException;
+import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.repository.EventRepository;
+import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -28,6 +32,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -71,12 +76,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResponse createEvent(EventCreateRequest request) {
+    public EventResponse createEvent(EventCreateRequest request, String currentUsername) {
+        User currentUser = findCurrentUser(currentUsername);
         validateDateRange(request.getStartDateTime(), request.getEndDateTime());
         validatePrice(request.getIsFree(), request.getPrice());
         validateEventDoesNotAlreadyExist(request);
 
         Event event = eventMapper.toEntity(request);
+        event.setOwner(currentUser);
         Event savedEvent = eventRepository.save(event);
 
         return eventMapper.toResponse(savedEvent);
@@ -84,11 +91,13 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResponse updateEvent(Long id, EventUpdateRequest request) {
+    public EventResponse updateEvent(Long id, EventUpdateRequest request, String currentUsername) {
+        User currentUser = findCurrentUser(currentUsername);
         validateDateRange(request.getStartDateTime(), request.getEndDateTime());
         validatePrice(request.getIsFree(), request.getPrice());
 
         Event event = findActiveEventById(id);
+        validateOwnerOrAdmin(event, currentUser);
         eventMapper.updateEntity(event, request);
 
         Event savedEvent = eventRepository.save(event);
@@ -97,10 +106,37 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public void deleteEvent(Long id) {
+    public void deleteEvent(Long id, String currentUsername) {
+        User currentUser = findCurrentUser(currentUsername);
         Event event = findActiveEventById(id);
+        validateOwnerOrAdmin(event, currentUser);
         event.markAsDeleted();
         eventRepository.save(event);
+    }
+
+    private User findCurrentUser(String currentUsername) {
+        if (currentUsername == null || currentUsername.isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED,
+                    "Authentication is required");
+        }
+
+        return userRepository.findByEmailAndDeletedAtIsNull(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
+    }
+
+    private void validateOwnerOrAdmin(Event event, User currentUser) {
+        if (currentUser.getRole() == Role.ADMIN) {
+            return;
+        }
+
+        if (event.getOwner() != null && event.getOwner().getId().equals(currentUser.getId())) {
+            return;
+        }
+
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "Only the event owner or an admin can modify this event");
     }
 
     private Event findActiveEventById(Long id) {
