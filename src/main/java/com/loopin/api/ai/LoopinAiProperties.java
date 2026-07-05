@@ -10,7 +10,8 @@ import java.time.Duration;
 public class LoopinAiProperties {
 
     private String baseUrl = "http://localhost:8000";
-    private Duration timeout = Duration.ofSeconds(10);
+    private Duration timeout = Duration.ofSeconds(2);
+    private String embeddingModel = "intfloat/multilingual-e5-small";
 
     public String getBaseUrl() {
         return baseUrl;
@@ -26,5 +27,13 @@ public class LoopinAiProperties {
 
     public void setTimeout(Duration timeout) {
         this.timeout = timeout;
+    }
+
+    public String getEmbeddingModel() {
+        return embeddingModel;
+    }
+
+    public void setEmbeddingModel(String embeddingModel) {
+        this.embeddingModel = embeddingModel;
     }
 }
