@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,6 +32,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class GroupServiceImplTest {
+
+    private static final UUID GROUP_PUBLIC_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID EVENT_PUBLIC_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    private static final UUID MEMBER_PUBLIC_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
 
     private EventGroupRepository eventGroupRepository;
     private GroupMemberRepository groupMemberRepository;
@@ -58,7 +63,7 @@ class GroupServiceImplTest {
     void createGroup_DerivesMaxMembersFromGroupSize() {
         User admin = user(1L, "admin@email.com");
         CreateGroupRequest request = new CreateGroupRequest();
-        request.setEventId(1L);
+        request.setEventId(EVENT_PUBLIC_ID);
         request.setTitle("Dinner");
         request.setGroupSize(GroupSizeType.FOUR_PLUS);
         request.setMaxMembers(2);
@@ -67,7 +72,7 @@ class GroupServiceImplTest {
         EventGroup group = group(admin, GroupSizeType.FOUR_PLUS, GroupStatus.OPEN);
 
         when(userRepository.findByEmail("admin@email.com")).thenReturn(Optional.of(admin));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(eventRepository.findByPublicIdAndDeletedAtIsNull(EVENT_PUBLIC_ID)).thenReturn(Optional.of(event));
         when(groupMapper.toEntity(request, admin, event)).thenReturn(group);
         when(eventGroupRepository.save(any(EventGroup.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(groupMapper.toGroupResponse(group)).thenReturn(mock(GroupResponse.class));
@@ -83,12 +88,12 @@ class GroupServiceImplTest {
         EventGroup group = group(user(1L, "admin@email.com"), GroupSizeType.TWO, GroupStatus.OPEN);
         User newMember = user(2L, "member@email.com");
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(1);
-        when(userRepository.findByIdAndDeletedAtIsNull(2L)).thenReturn(Optional.of(newMember));
+        when(userRepository.findByPublicIdAndDeletedAtIsNull(MEMBER_PUBLIC_ID)).thenReturn(Optional.of(newMember));
         when(groupMemberRepository.existsByGroupIdAndUserId(1L, 2L)).thenReturn(false);
 
-        groupService.addMember(1L, 2L, "admin@email.com");
+        groupService.addMember(GROUP_PUBLIC_ID, MEMBER_PUBLIC_ID, "admin@email.com");
 
         assertEquals(GroupStatus.FULL, group.getStatus());
         verify(groupMemberRepository).save(any(GroupMember.class));
@@ -99,10 +104,10 @@ class GroupServiceImplTest {
     void addMember_RejectsFullGroup() {
         EventGroup group = group(user(1L, "admin@email.com"), GroupSizeType.TWO, GroupStatus.FULL);
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(2);
 
-        assertThrows(InvalidGroupStateException.class, () -> groupService.addMember(1L, 2L, "admin@email.com"));
+        assertThrows(InvalidGroupStateException.class, () -> groupService.addMember(GROUP_PUBLIC_ID, MEMBER_PUBLIC_ID, "admin@email.com"));
 
         verify(groupMemberRepository, never()).save(any(GroupMember.class));
     }
@@ -111,10 +116,10 @@ class GroupServiceImplTest {
     void addMember_MarksOpenGroupFullAndRejectsWhenAlreadyAtCapacity() {
         EventGroup group = group(user(1L, "admin@email.com"), GroupSizeType.TWO, GroupStatus.OPEN);
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(2);
 
-        assertThrows(InvalidGroupStateException.class, () -> groupService.addMember(1L, 2L, "admin@email.com"));
+        assertThrows(InvalidGroupStateException.class, () -> groupService.addMember(GROUP_PUBLIC_ID, MEMBER_PUBLIC_ID, "admin@email.com"));
 
         assertEquals(GroupStatus.FULL, group.getStatus());
         verify(groupMemberRepository, never()).save(any(GroupMember.class));
@@ -126,12 +131,12 @@ class GroupServiceImplTest {
         EventGroup group = group(user(1L, "admin@email.com"), GroupSizeType.THREE, GroupStatus.OPEN);
         User newMember = user(2L, "member@email.com");
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(1);
-        when(userRepository.findByIdAndDeletedAtIsNull(2L)).thenReturn(Optional.of(newMember));
+        when(userRepository.findByPublicIdAndDeletedAtIsNull(MEMBER_PUBLIC_ID)).thenReturn(Optional.of(newMember));
         when(groupMemberRepository.existsByGroupIdAndUserId(1L, 2L)).thenReturn(false);
 
-        groupService.addMember(1L, 2L, "admin@email.com");
+        groupService.addMember(GROUP_PUBLIC_ID, MEMBER_PUBLIC_ID, "admin@email.com");
 
         ArgumentCaptor<GroupMember> memberCaptor = ArgumentCaptor.forClass(GroupMember.class);
         verify(groupMemberRepository).save(memberCaptor.capture());
@@ -147,12 +152,12 @@ class GroupServiceImplTest {
         UpdateGroupRequest request = new UpdateGroupRequest();
         request.setGroupSize(GroupSizeType.THREE);
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(3);
         when(eventGroupRepository.save(group)).thenReturn(group);
         when(groupMapper.toGroupResponse(group)).thenReturn(mock(GroupResponse.class));
 
-        groupService.updateGroup(1L, request, "admin@email.com");
+        groupService.updateGroup(GROUP_PUBLIC_ID, request, "admin@email.com");
 
         assertEquals(GroupSizeType.THREE, group.getGroupSize());
         assertEquals(3, group.getMaxMembers());
@@ -167,12 +172,12 @@ class GroupServiceImplTest {
         UpdateGroupRequest request = new UpdateGroupRequest();
         request.setGroupSize(GroupSizeType.FOUR);
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(5);
 
         assertThrows(
                 InvalidGroupStateException.class,
-                () -> groupService.updateGroup(1L, request, "admin@email.com"));
+                () -> groupService.updateGroup(GROUP_PUBLIC_ID, request, "admin@email.com"));
 
         verify(eventGroupRepository, never()).save(group);
     }
@@ -185,11 +190,12 @@ class GroupServiceImplTest {
         member.setGroup(group);
         member.setUser(memberUser);
 
-        when(eventGroupRepository.findById(1L)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_PUBLIC_ID)).thenReturn(Optional.of(group));
+        when(userRepository.findByPublicIdAndDeletedAtIsNull(MEMBER_PUBLIC_ID)).thenReturn(Optional.of(memberUser));
         when(groupMemberRepository.findByGroupIdAndUserId(1L, 2L)).thenReturn(Optional.of(member));
         when(groupMemberRepository.countByGroupId(1L)).thenReturn(2);
 
-        groupService.removeMember(1L, 2L, "admin@email.com");
+        groupService.removeMember(GROUP_PUBLIC_ID, MEMBER_PUBLIC_ID, "admin@email.com");
 
         assertEquals(GroupStatus.OPEN, group.getStatus());
         verify(groupMemberRepository).delete(member);
@@ -199,6 +205,7 @@ class GroupServiceImplTest {
     private EventGroup group(User admin, GroupSizeType groupSize, GroupStatus status) {
         EventGroup group = new EventGroup();
         group.setId(1L);
+        group.setPublicId(GROUP_PUBLIC_ID);
         group.setAdmin(admin);
         group.setTitle("Test Group");
         group.setGroupSize(groupSize);
@@ -210,6 +217,9 @@ class GroupServiceImplTest {
     private User user(Long id, String email) {
         User user = new User(email, "Test User", null);
         user.setId(id);
+        if (id == 2L) {
+            user.setPublicId(MEMBER_PUBLIC_ID);
+        }
         return user;
     }
 }
