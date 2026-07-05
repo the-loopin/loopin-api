@@ -84,4 +84,5 @@ cors:
 loopin:
   ai:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
-    timeout: ${LOOPIN_AI_TIMEOUT:10s}
+    timeout: ${LOOPIN_AI_TIMEOUT:2s}
+    embedding-model: ${LOOPIN_AI_EMBEDDING_MODEL:intfloat/multilingual-e5-small}
