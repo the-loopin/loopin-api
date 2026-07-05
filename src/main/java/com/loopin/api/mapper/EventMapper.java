@@ -5,10 +5,18 @@ import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
 import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.entity.EventInterest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Component
+@RequiredArgsConstructor
 public class EventMapper {
+
+    private final InterestMapper interestMapper;
 
     public Event toEntity(EventCreateRequest request) {
         Event event = new Event();
@@ -62,8 +70,22 @@ public class EventMapper {
                 event.getOrganizerName(),
                 event.getImageUrl(),
                 event.getStatus(),
+                mapInterests(event),
                 event.getCreatedAt(),
                 event.getUpdatedAt()
         );
+    }
+
+    private List<com.loopin.api.dto.interest.InterestResponse> mapInterests(Event event) {
+        if (event.getInterests() == null) {
+            return List.of();
+        }
+
+        return event.getInterests()
+                .stream()
+                .map(EventInterest::getInterest)
+                .sorted(Comparator.comparing(interest -> interest.getName().toLowerCase()))
+                .map(interestMapper::toResponse)
+                .toList();
     }
 }

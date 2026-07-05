@@ -6,8 +6,11 @@ import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.security.JwtUtils;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.Interest;
 import com.loopin.api.entity.User;
+import com.loopin.api.repository.EventInterestRepository;
 import com.loopin.api.repository.EventRepository;
+import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +44,12 @@ class EventControllerTest {
     private EventRepository eventRepository;
 
     @Autowired
+    private InterestRepository interestRepository;
+
+    @Autowired
+    private EventInterestRepository eventInterestRepository;
+
+    @Autowired
     private JwtUtils jwtUtils;
 
     private User owner;
@@ -52,7 +61,9 @@ class EventControllerTest {
 
     @BeforeEach
     void setUp() {
+        eventInterestRepository.deleteAll();
         eventRepository.deleteAll();
+        interestRepository.deleteAll();
         userRepository.deleteAll();
 
         owner = saveUser("owner@email.com", "Owner", Role.USER);
@@ -74,6 +85,21 @@ class EventControllerTest {
 
         Event event = eventRepository.findAll().get(0);
         assertEquals(owner.getId(), event.getOwner().getId());
+    }
+
+    @Test
+    void createEvent_AssignsInterests() throws Exception {
+        Interest tech = interestRepository.save(interest("Tech", "tech", "Professional"));
+        Interest music = interestRepository.save(interest("Music", "music", "Culture"));
+
+        mockMvc.perform(post("/events")
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventPayload("Event With Interests", tech, music)))
+                .andExpect(status().isCreated());
+
+        Event event = eventRepository.findAll().get(0);
+        assertEquals(2, eventInterestRepository.findByEvent_Id(event.getId()).size());
     }
 
     @Test
@@ -142,5 +168,37 @@ class EventControllerTest {
                   "status": "PUBLISHED"
                 }
                 """.formatted(title);
+    }
+
+    private String eventPayload(String title, Interest... interests) {
+        String interestIds = java.util.Arrays.stream(interests)
+                .map(interest -> "\"" + interest.getPublicId() + "\"")
+                .collect(java.util.stream.Collectors.joining(", "));
+
+        return """
+                {
+                  "title": "%s",
+                  "description": "Description",
+                  "type": "EVENT",
+                  "category": "TECH",
+                  "city": "Baku",
+                  "address": "Nizami street",
+                  "startDateTime": "2030-01-01T10:00:00",
+                  "endDateTime": "2030-01-01T12:00:00",
+                  "isFree": false,
+                  "price": 10.00,
+                  "organizerName": "Loopin",
+                  "status": "PUBLISHED",
+                  "interestIds": [%s]
+                }
+                """.formatted(title, interestIds);
+    }
+
+    private Interest interest(String name, String slug, String category) {
+        Interest interest = new Interest();
+        interest.setName(name);
+        interest.setSlug(slug);
+        interest.setCategory(category);
+        return interest;
     }
 }
