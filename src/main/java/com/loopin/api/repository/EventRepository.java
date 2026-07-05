@@ -6,10 +6,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
 
     long countByStatus(EventStatus status);
 
     Page<Event> findByStatus(EventStatus status, Pageable pageable);
+
+    List<Event> findByStatusAndEndDateTimeBeforeAndDeletedAtIsNull(EventStatus status, LocalDateTime now);
+
+    @Query("""
+            select event.id
+            from Event event
+            where event.status = :status
+              and event.endDateTime < :now
+              and event.deletedAt is null
+            """)
+    List<Long> findIdsByStatusAndEndDateTimeBeforeAndDeletedAtIsNull(EventStatus status, LocalDateTime now);
 }
