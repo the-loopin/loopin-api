@@ -1,0 +1,8 @@
+﻿services:
+  api:
+    environment:
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
+      JPA_FORMAT_SQL: ${JPA_FORMAT_SQL:-false}
+      LOOPIN_AI_BASE_URL: ${LOOPIN_AI_BASE_URL:-http://host.docker.internal:8000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
