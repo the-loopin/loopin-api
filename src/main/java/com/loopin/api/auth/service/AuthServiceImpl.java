@@ -19,14 +19,16 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
+    private final GoogleTokenVerifier googleTokenVerifier;
 
     @Override
     @Transactional
     public AuthResponse authenticateGoogleUser(GoogleLoginRequest request) {
+        GoogleTokenClaims claims = googleTokenVerifier.verify(request.getIdToken());
         User user;
         
         // 1. Try to find user by googleId
-        Optional<User> userByGoogleId = userRepository.findByGoogleId(request.getGoogleId());
+        Optional<User> userByGoogleId = userRepository.findByGoogleId(claims.googleId());
         
         if (userByGoogleId.isPresent()) {
             user = userByGoogleId.get();
@@ -39,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
             }
         } else {
             // 2. Try to find user by email
-            Optional<User> userByEmail = userRepository.findByEmail(request.getEmail());
+            Optional<User> userByEmail = userRepository.findByEmail(claims.email());
             
             if (userByEmail.isPresent()) {
                 user = userByEmail.get();
@@ -51,17 +53,17 @@ public class AuthServiceImpl implements AuthService {
                 }
                 // Link the googleId if it wasn't linked yet
                 if (user.getGoogleId() == null || user.getGoogleId().isBlank()) {
-                    user.setGoogleId(request.getGoogleId());
+                    user.setGoogleId(claims.googleId());
                 }
                 userRepository.save(user);
             } else {
                 // 3. Register a new user
-                user = new User(request.getEmail(), request.getName(), request.getGoogleId());
+                user = new User(claims.email(), claims.name(), claims.googleId());
                 user.setRole(Role.USER); // Default role
                 
                 UserProfile profile = new UserProfile();
                 profile.setUser(user);
-                profile.setName(request.getName());
+                profile.setName(claims.name());
                 user.setProfile(profile);
                 
                 user = userRepository.save(user);
