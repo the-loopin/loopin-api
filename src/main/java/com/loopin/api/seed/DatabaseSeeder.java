@@ -45,6 +45,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         groupJoinRequestSeeder.seedRequests(savedGroups, savedUsers);
         log.info("Successfully checked/seeded 10 group join requests.");
 
-        log.info("✅ Database seeding complete!");
+        log.info("Database seeding complete!");
     }
 }
