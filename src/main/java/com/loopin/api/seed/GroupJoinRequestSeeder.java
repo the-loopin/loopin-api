@@ -25,6 +25,19 @@ public class GroupJoinRequestSeeder {
         List<GroupJoinRequest> requests = new ArrayList<>();
         RequestStatus[] statuses = {RequestStatus.PENDING, RequestStatus.ACCEPTED, RequestStatus.REJECTED};
 
+        String[] requestMessages = {
+            "Hi, I've been working with Kubernetes for a year and would love to join your group to discuss best practices.",
+            "Hey! I'm a software developer looking to join a startup team. I'd love to chat with you guys at the Pitch Night.",
+            "Hello! As an HR manager, I'm really interested in your remote work discussion. Let's connect!",
+            "Hey there! I am developing a teaching assistant tool using GPT-4 and would love to exchange ideas in your AI group.",
+            "Hi, I'm traveling to Shusha from Baku and would love to join your group to share a ride and coordinate.",
+            "Hey guys, I'm aiming for a 50-minute 10K. Let's run together during the charity marathon!",
+            "Hi! I'm bringing Settlers of Catan to the mixer. Would love to join your table and play a game.",
+            "Hello, I want to practice my German and would love to join the language coffee exchange group.",
+            "Hey, I am very interested in this DevOps summit group, looking to learn more about Docker scaling.",
+            "Hi! I am working on a new fintech project and would love to brainstorm with you guys during the Pitch Night."
+        };
+
         // Seed exactly 10 requests using various groups and users
         for (int i = 0; i < 10; i++) {
             GroupJoinRequest request = new GroupJoinRequest();
@@ -35,7 +48,7 @@ public class GroupJoinRequestSeeder {
             request.setGroup(group);
             request.setUser(candidate);
             request.setStatus(statuses[i % statuses.length]);
-            request.setMessage("Hey! I am really interested in joining this group. Request sequence #" + (i + 1));
+            request.setMessage(requestMessages[i]);
 
             requests.add(request);
         }
