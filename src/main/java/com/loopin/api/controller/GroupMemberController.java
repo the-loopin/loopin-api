@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/groups/{groupId}/members")
@@ -22,7 +23,7 @@ public class GroupMemberController {
 
     @PostMapping
     public ResponseEntity<GroupMemberResponse> addMember(
-            @PathVariable Long groupId,
+            @PathVariable UUID groupId,
             @Valid @RequestBody GroupMemberRequest dto,
             Authentication authentication
     ) {
@@ -32,21 +33,21 @@ public class GroupMemberController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<GroupMemberResponse> getByUserId(
-            @PathVariable Long groupId,
-            @PathVariable Long userId
+            @PathVariable UUID groupId,
+            @PathVariable UUID userId
     ) {
         return ResponseEntity.ok(groupMemberService.getByGroupIdAndUserId(groupId, userId));
     }
 
     @GetMapping
-    public ResponseEntity<List<GroupMemberResponse>> getAll(@PathVariable Long groupId) {
+    public ResponseEntity<List<GroupMemberResponse>> getAll(@PathVariable UUID groupId) {
         return ResponseEntity.ok(groupMemberService.getByGroupId(groupId));
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> removeMember(
-            @PathVariable Long groupId,
-            @PathVariable Long userId,
+            @PathVariable UUID groupId,
+            @PathVariable UUID userId,
             Authentication authentication
     ) {
         groupMemberService.removeMember(groupId, userId, resolveUsername(authentication));

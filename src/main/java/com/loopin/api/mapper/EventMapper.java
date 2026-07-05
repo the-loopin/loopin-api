@@ -48,7 +48,7 @@ public class EventMapper {
 
     public EventResponse toResponse(Event event) {
         return new EventResponse(
-                event.getId(),
+                event.getPublicId(),
                 event.getTitle(),
                 event.getDescription(),
                 event.getType(),

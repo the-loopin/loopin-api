@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping
@@ -23,7 +24,7 @@ public class GroupJoinRequestController {
 
     @PostMapping("/groups/{groupId}/join-requests")
     public ResponseEntity<GroupJoinRequestResponse> create(
-            @PathVariable Long groupId,
+            @PathVariable UUID groupId,
             @Valid @RequestBody CreateGroupJoinRequestRequest request
     ) {
         Long currentUserId = getCurrentUserId();
@@ -33,8 +34,8 @@ public class GroupJoinRequestController {
 
     @GetMapping("/groups/{groupId}/join-requests/{requestId}")
     public ResponseEntity<GroupJoinRequestResponse> getById(
-            @PathVariable Long groupId,
-            @PathVariable Long requestId
+            @PathVariable UUID groupId,
+            @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
         return ResponseEntity.ok(joinRequestService.getById(groupId, requestId, currentUserId));
@@ -42,7 +43,7 @@ public class GroupJoinRequestController {
 
 
     @GetMapping("/groups/{groupId}/join-requests")
-    public ResponseEntity<List<GroupJoinRequestResponse>> getByGroupId(@PathVariable Long groupId) {
+    public ResponseEntity<List<GroupJoinRequestResponse>> getByGroupId(@PathVariable UUID groupId) {
         Long currentUserId = getCurrentUserId();
         return ResponseEntity.ok(joinRequestService.getByGroupId(groupId, currentUserId));
     }
@@ -55,8 +56,8 @@ public class GroupJoinRequestController {
 
     @PatchMapping("/groups/{groupId}/join-requests/{requestId}/approve")
     public ResponseEntity<GroupJoinRequestResponse> approve(
-            @PathVariable Long groupId,
-            @PathVariable Long requestId
+            @PathVariable UUID groupId,
+            @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
         return ResponseEntity.ok(joinRequestService.approve(groupId, requestId, currentUserId));
@@ -64,8 +65,8 @@ public class GroupJoinRequestController {
 
     @PatchMapping("/groups/{groupId}/join-requests/{requestId}/reject")
     public ResponseEntity<GroupJoinRequestResponse> reject(
-            @PathVariable Long groupId,
-            @PathVariable Long requestId
+            @PathVariable UUID groupId,
+            @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
         return ResponseEntity.ok(joinRequestService.reject(groupId, requestId, currentUserId));
@@ -73,8 +74,8 @@ public class GroupJoinRequestController {
 
     @DeleteMapping("/groups/{groupId}/join-requests/{requestId}")
     public ResponseEntity<Void> delete(
-            @PathVariable Long groupId,
-            @PathVariable Long requestId
+            @PathVariable UUID groupId,
+            @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
         joinRequestService.delete(groupId, requestId, currentUserId);

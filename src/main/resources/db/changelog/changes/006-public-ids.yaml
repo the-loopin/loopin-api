@@ -1,0 +1,146 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-add-public-ids-postgresql
+      author: loopin
+      dbms: postgresql
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS pgcrypto
+        - addColumn:
+            tableName: users
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: events
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: user_profiles
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: event_groups
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: group_members
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: group_join_requests
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: group_messages
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: user_badges
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: user_reports
+            columns:
+              - column: { name: public_id, type: UUID }
+        - sql:
+            splitStatements: true
+            sql: |
+              UPDATE users SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE events SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE user_profiles SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE event_groups SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE group_members SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE group_join_requests SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE group_messages SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE user_badges SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+              UPDATE user_reports SET public_id = gen_random_uuid() WHERE public_id IS NULL;
+        - addNotNullConstraint: { tableName: users, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: events, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: user_profiles, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: event_groups, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: group_members, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: group_join_requests, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: group_messages, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: user_badges, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: user_reports, columnName: public_id, columnDataType: UUID }
+        - addUniqueConstraint: { tableName: users, columnNames: public_id, constraintName: uk_users_public_id }
+        - addUniqueConstraint: { tableName: events, columnNames: public_id, constraintName: uk_events_public_id }
+        - addUniqueConstraint: { tableName: user_profiles, columnNames: public_id, constraintName: uk_user_profiles_public_id }
+        - addUniqueConstraint: { tableName: event_groups, columnNames: public_id, constraintName: uk_event_groups_public_id }
+        - addUniqueConstraint: { tableName: group_members, columnNames: public_id, constraintName: uk_group_members_public_id }
+        - addUniqueConstraint: { tableName: group_join_requests, columnNames: public_id, constraintName: uk_group_join_requests_public_id }
+        - addUniqueConstraint: { tableName: group_messages, columnNames: public_id, constraintName: uk_group_messages_public_id }
+        - addUniqueConstraint: { tableName: user_badges, columnNames: public_id, constraintName: uk_user_badges_public_id }
+        - addUniqueConstraint: { tableName: user_reports, columnNames: public_id, constraintName: uk_user_reports_public_id }
+
+  - changeSet:
+      id: 006-add-public-ids-h2
+      author: loopin
+      dbms: h2
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: events
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: user_profiles
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: event_groups
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: group_members
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: group_join_requests
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: group_messages
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: user_badges
+            columns:
+              - column: { name: public_id, type: UUID }
+        - addColumn:
+            tableName: user_reports
+            columns:
+              - column: { name: public_id, type: UUID }
+        - sql:
+            splitStatements: true
+            sql: |
+              UPDATE users SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE events SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE user_profiles SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE event_groups SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE group_members SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE group_join_requests SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE group_messages SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE user_badges SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+              UPDATE user_reports SET public_id = RANDOM_UUID() WHERE public_id IS NULL;
+        - addNotNullConstraint: { tableName: users, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: events, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: user_profiles, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: event_groups, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: group_members, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: group_join_requests, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: group_messages, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: user_badges, columnName: public_id, columnDataType: UUID }
+        - addNotNullConstraint: { tableName: user_reports, columnName: public_id, columnDataType: UUID }
+        - addUniqueConstraint: { tableName: users, columnNames: public_id, constraintName: uk_users_public_id }
+        - addUniqueConstraint: { tableName: events, columnNames: public_id, constraintName: uk_events_public_id }
+        - addUniqueConstraint: { tableName: user_profiles, columnNames: public_id, constraintName: uk_user_profiles_public_id }
+        - addUniqueConstraint: { tableName: event_groups, columnNames: public_id, constraintName: uk_event_groups_public_id }
+        - addUniqueConstraint: { tableName: group_members, columnNames: public_id, constraintName: uk_group_members_public_id }
+        - addUniqueConstraint: { tableName: group_join_requests, columnNames: public_id, constraintName: uk_group_join_requests_public_id }
+        - addUniqueConstraint: { tableName: group_messages, columnNames: public_id, constraintName: uk_group_messages_public_id }
+        - addUniqueConstraint: { tableName: user_badges, columnNames: public_id, constraintName: uk_user_badges_public_id }
+        - addUniqueConstraint: { tableName: user_reports, columnNames: public_id, constraintName: uk_user_reports_public_id }

@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/groups")
 public class GroupController {
@@ -32,13 +34,13 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}")
-    public ResponseEntity<GroupResponse> getGroup(@PathVariable Long groupId) {
+    public ResponseEntity<GroupResponse> getGroup(@PathVariable UUID groupId) {
         return ResponseEntity.ok(groupService.getGroup(groupId));
     }
 
     @PutMapping("/{groupId}")
     public ResponseEntity<GroupResponse> updateGroup(
-            @PathVariable Long groupId,
+            @PathVariable UUID groupId,
             @Valid @RequestBody UpdateGroupRequest request,
             Authentication authentication) {
 
@@ -54,7 +56,7 @@ public class GroupController {
 
     @PatchMapping("/{groupId}/status")
     public ResponseEntity<GroupResponse> updateGroupStatus(
-            @PathVariable Long groupId,
+            @PathVariable UUID groupId,
             @Valid @RequestBody UpdateGroupStatusRequest request,
             Authentication authentication) {
 

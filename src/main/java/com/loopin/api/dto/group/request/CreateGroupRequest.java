@@ -8,12 +8,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class CreateGroupRequest {
 
     @NotNull(message = "Event ID is required")
-    private Long eventId;
+    private UUID eventId;
 
     @NotBlank
     private String title;
