@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/events")
@@ -56,7 +57,7 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventResponse> getPublishedEventById(@PathVariable Long id) {
+    public ResponseEntity<EventResponse> getPublishedEventById(@PathVariable UUID id) {
         return ResponseEntity.ok(eventService.getPublishedEventById(id));
     }
 
@@ -71,7 +72,7 @@ public class EventController {
 
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> updateEvent(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody EventUpdateRequest request,
             Authentication authentication
     ) {
@@ -80,7 +81,7 @@ public class EventController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             Authentication authentication
     ) {
         eventService.deleteEvent(id, resolveUsername(authentication));
