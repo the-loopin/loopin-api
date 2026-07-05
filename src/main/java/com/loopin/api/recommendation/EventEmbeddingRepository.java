@@ -1,5 +1,6 @@
 package com.loopin.api.recommendation;
 
+import com.loopin.api.ai.LoopinAiProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -9,9 +10,11 @@ import java.util.List;
 public class EventEmbeddingRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final LoopinAiProperties loopinAiProperties;
 
-    public EventEmbeddingRepository(JdbcTemplate jdbcTemplate) {
+    public EventEmbeddingRepository(JdbcTemplate jdbcTemplate, LoopinAiProperties loopinAiProperties) {
         this.jdbcTemplate = jdbcTemplate;
+        this.loopinAiProperties = loopinAiProperties;
     }
 
     public void upsert(Long eventId, List<Double> embedding, String embeddingModel, String sourceTextHash) {
@@ -34,15 +37,25 @@ public class EventEmbeddingRepository {
     }
 
     public List<EventCandidate> findSimilarEvents(List<Double> queryEmbedding, int limit) {
+        return findSimilarEvents(queryEmbedding, loopinAiProperties.getEmbeddingModel(), limit);
+    }
+
+    public List<EventCandidate> findSimilarEvents(List<Double> queryEmbedding, String embeddingModel, int limit) {
         return jdbcTemplate.query(
                 """
-                        SELECT event_id, 1 - (embedding <=> ?::vector) AS retrieval_score
-                        FROM event_embeddings
-                        ORDER BY embedding <=> ?::vector
+                        SELECT ee.event_id, 1 - (ee.embedding <=> ?::vector) AS retrieval_score
+                        FROM event_embeddings ee
+                        JOIN events e ON e.id = ee.event_id
+                        WHERE ee.embedding_model = ?
+                          AND e.deleted_at IS NULL
+                          AND e.status = 'PUBLISHED'
+                          AND e.end_date_time >= now()
+                        ORDER BY ee.embedding <=> ?::vector
                         LIMIT ?
                         """,
                 (rs, rowNum) -> new EventCandidate(rs.getLong("event_id"), rs.getDouble("retrieval_score")),
                 toPgVector(queryEmbedding),
+                embeddingModel,
                 toPgVector(queryEmbedding),
                 limit
         );
