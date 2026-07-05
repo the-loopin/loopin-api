@@ -27,7 +27,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        log.info("🚀 Starting database seeding process...");
+        log.info("Starting database seeding process...");
 
         // 1. Seed Users (1 Admin, 5 Regular Users)
         List<User> savedUsers = userSeeder.seedUsers();
@@ -45,6 +45,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         groupJoinRequestSeeder.seedRequests(savedGroups, savedUsers);
         log.info("Successfully checked/seeded 10 group join requests.");
 
-        log.info("✅ Database seeding complete!");
+        log.info("Database seeding complete!");
     }
 }
