@@ -61,6 +61,15 @@ public class EventController {
         return ResponseEntity.ok(eventService.getPublishedEventById(id));
     }
 
+    @GetMapping("/recommended")
+    public ResponseEntity<List<EventResponse>> getRecommendedEvents(
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication
+    ) {
+        List<EventResponse> events = eventService.getRecommendedEvents(resolveUsername(authentication), limit);
+        return ResponseEntity.ok(events);
+    }
+
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(
             @Valid @RequestBody EventCreateRequest request,

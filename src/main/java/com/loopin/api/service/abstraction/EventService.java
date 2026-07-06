@@ -29,4 +29,6 @@ public interface EventService {
     EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername);
 
     void deleteEvent(UUID id, String currentUsername);
+
+    List<EventResponse> getRecommendedEvents(String currentUsername, int limit);
 }
