@@ -8,9 +8,8 @@ import com.loopin.api.service.implementation.GroupServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import com.loopin.api.common.security.SecurityUtils;
 
 import java.util.UUID;
 
@@ -26,9 +25,8 @@ public class GroupController {
 
     @PostMapping
     public ResponseEntity<GroupResponse> createGroup(
-            @Valid @RequestBody CreateGroupRequest request,
-            Authentication authentication) {
-        String currentUsername = resolveUsername(authentication);
+            @Valid @RequestBody CreateGroupRequest request) {
+        String currentUsername = SecurityUtils.getRequiredCurrentUserEmail();
         GroupResponse response = groupService.createGroup(request, currentUsername);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -41,10 +39,9 @@ public class GroupController {
     @PutMapping("/{groupId}")
     public ResponseEntity<GroupResponse> updateGroup(
             @PathVariable UUID groupId,
-            @Valid @RequestBody UpdateGroupRequest request,
-            Authentication authentication) {
+            @Valid @RequestBody UpdateGroupRequest request) {
 
-        String currentUsername = resolveUsername(authentication);
+        String currentUsername = SecurityUtils.getRequiredCurrentUserEmail();
         GroupResponse response = groupService.updateGroup(
                 groupId,
                 request,
@@ -57,22 +54,14 @@ public class GroupController {
     @PatchMapping("/{groupId}/status")
     public ResponseEntity<GroupResponse> updateGroupStatus(
             @PathVariable UUID groupId,
-            @Valid @RequestBody UpdateGroupStatusRequest request,
-            Authentication authentication) {
+            @Valid @RequestBody UpdateGroupStatusRequest request) {
 
-        String currentUsername = resolveUsername(authentication);
+        String currentUsername = SecurityUtils.getRequiredCurrentUserEmail();
         GroupResponse response = groupService.updateGroupStatus(
                 groupId,
                 request,
                 currentUsername);
 
         return ResponseEntity.ok(response);
-    }
-
-    private String resolveUsername(Authentication authentication) {
-        if (authentication != null && authentication.getName() != null) {
-            return authentication.getName();
-        }
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
     }
 }
