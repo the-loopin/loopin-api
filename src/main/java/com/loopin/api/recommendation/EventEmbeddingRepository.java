@@ -61,6 +61,33 @@ public class EventEmbeddingRepository {
         );
     }
 
+    public List<EventCandidate> findSimilarEventsForUser(Long userId, int limit) {
+        return findSimilarEventsForUser(userId, loopinAiProperties.getEmbeddingModel(), limit);
+    }
+
+    public List<EventCandidate> findSimilarEventsForUser(Long userId, String embeddingModel, int limit) {
+        return jdbcTemplate.query(
+                """
+                        SELECT ee.event_id, 1 - (ee.embedding <=> uie.embedding) AS retrieval_score
+                        FROM event_embeddings ee
+                        JOIN events e ON e.id = ee.event_id
+                        JOIN user_interest_embeddings uie ON uie.user_id = ?
+                        WHERE ee.embedding_model = ?
+                          AND uie.embedding_model = ?
+                          AND e.deleted_at IS NULL
+                          AND e.status = 'PUBLISHED'
+                          AND e.end_date_time >= now()
+                        ORDER BY ee.embedding <=> uie.embedding
+                        LIMIT ?
+                        """,
+                (rs, rowNum) -> new EventCandidate(rs.getLong("event_id"), rs.getDouble("retrieval_score")),
+                userId,
+                embeddingModel,
+                embeddingModel,
+                limit
+        );
+    }
+
     private String toPgVector(List<Double> embedding) {
         return embedding.toString();
     }
