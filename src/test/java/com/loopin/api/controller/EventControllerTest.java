@@ -223,4 +223,20 @@ class EventControllerTest {
         interest.setCategory(category);
         return interest;
     }
+
+    @Test
+    void getPublishedEvents_ReturnsPaginatedEvents() throws Exception {
+        eventRepository.save(event("Published Event 1", owner));
+        eventRepository.save(event("Published Event 2", owner));
+
+        mockMvc.perform(get("/events")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].title", is("Published Event 1")))
+                .andExpect(jsonPath("$.content[1].title", is("Published Event 2")))
+                .andExpect(jsonPath("$.totalElements", is(2)))
+                .andExpect(jsonPath("$.totalPages", is(1)));
+    }
 }
