@@ -25,9 +25,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -192,6 +196,24 @@ class EventControllerTest {
                   "interestIds": [%s]
                 }
                 """.formatted(title, interestIds);
+    }
+
+    @Test
+    void getRecommendedEvents_ReturnsPublishedEventsAsFallback() throws Exception {
+        Event event = eventRepository.save(event("Published Event", owner));
+
+        mockMvc.perform(post("/events")
+                        .header("Authorization", "Bearer " + otherUserToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventPayload("Another Event")))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/events/recommended")
+                        .header("Authorization", "Bearer " + otherUserToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].title", is("Another Event")))
+                .andExpect(jsonPath("$[1].title", is("Published Event")));
     }
 
     private Interest interest(String name, String slug, String category) {
