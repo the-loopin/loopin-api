@@ -14,11 +14,14 @@ import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.mapper.EventMapper;
+import com.loopin.api.recommendation.event.EventCandidate;
+import com.loopin.api.recommendation.event.EventEmbeddingRepository;
+import com.loopin.api.recommendation.user.UserEmbeddingRepository;
 import com.loopin.api.repository.EventInterestRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.UserRepository;
-import com.loopin.api.recommendation.EventEmbeddingService;
+import com.loopin.api.recommendation.event.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -49,8 +52,8 @@ public class EventServiceImpl implements EventService {
     private final InterestRepository interestRepository;
     private final EventInterestRepository eventInterestRepository;
     private final EventEmbeddingService eventEmbeddingService;
-    private final com.loopin.api.recommendation.UserEmbeddingRepository userEmbeddingRepository;
-    private final com.loopin.api.recommendation.EventEmbeddingRepository eventEmbeddingRepository;
+    private final UserEmbeddingRepository userEmbeddingRepository;
+    private final EventEmbeddingRepository eventEmbeddingRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -98,12 +101,12 @@ public class EventServiceImpl implements EventService {
         User currentUser = findCurrentUser(currentUsername);
 
         if (userEmbeddingRepository.existsByUserId(currentUser.getId())) {
-            List<com.loopin.api.recommendation.EventCandidate> candidates =
+            List<EventCandidate> candidates =
                     eventEmbeddingRepository.findSimilarEventsForUser(currentUser.getId(), limit);
 
             if (!candidates.isEmpty()) {
                 List<Long> eventIds = candidates.stream()
-                        .map(com.loopin.api.recommendation.EventCandidate::eventId)
+                        .map(EventCandidate::eventId)
                         .toList();
 
                 List<Event> events = eventRepository.findAllById(eventIds);
