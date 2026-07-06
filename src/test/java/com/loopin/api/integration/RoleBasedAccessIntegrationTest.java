@@ -170,7 +170,7 @@ class RoleBasedAccessIntegrationTest {
 
     @Test
     void adminCanAccessAdminEndpoints_ReturnsSuccess() throws Exception {
-        UUID dummyId = testUser.getId(); // Use a real ID for operations that might fetch it
+        UUID dummyId = testUser.getPublicId(); // Use a real ID for operations that might fetch it
         
         UpdateUserRoleRequest roleRequest = new UpdateUserRoleRequest();
         roleRequest.setRole(Role.USER);
