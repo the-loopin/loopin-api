@@ -21,6 +21,8 @@ import com.loopin.api.repository.UserRepository;
 import com.loopin.api.recommendation.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +49,8 @@ public class EventServiceImpl implements EventService {
     private final InterestRepository interestRepository;
     private final EventInterestRepository eventInterestRepository;
     private final EventEmbeddingService eventEmbeddingService;
+    private final com.loopin.api.recommendation.UserEmbeddingRepository userEmbeddingRepository;
+    private final com.loopin.api.recommendation.EventEmbeddingRepository eventEmbeddingRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -86,6 +90,49 @@ public class EventServiceImpl implements EventService {
         ).orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
 
         return eventMapper.toResponse(event);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventResponse> getRecommendedEvents(String currentUsername, int limit) {
+        User currentUser = findCurrentUser(currentUsername);
+
+        if (userEmbeddingRepository.existsByUserId(currentUser.getId())) {
+            List<com.loopin.api.recommendation.EventCandidate> candidates =
+                    eventEmbeddingRepository.findSimilarEventsForUser(currentUser.getId(), limit);
+
+            if (!candidates.isEmpty()) {
+                List<Long> eventIds = candidates.stream()
+                        .map(com.loopin.api.recommendation.EventCandidate::eventId)
+                        .toList();
+
+                List<Event> events = eventRepository.findAllById(eventIds);
+
+                Map<Long, Event> eventMap = events.stream()
+                        .collect(Collectors.toMap(Event::getId, Function.identity()));
+
+                return candidates.stream()
+                        .map(candidate -> eventMap.get(candidate.eventId()))
+                        .filter(java.util.Objects::nonNull)
+                        .map(eventMapper::toResponse)
+                        .toList();
+            }
+        }
+
+        // Fallback: Fetch recently published events that are not deleted and haven't ended yet
+        Specification<Event> specification = Specification
+                .where(notDeleted())
+                .and(hasStatus(EventStatus.PUBLISHED))
+                .and((root, query, criteriaBuilder) ->
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("endDateTime"), LocalDateTime.now()));
+
+        return eventRepository.findAll(
+                specification,
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
+        )
+                .stream()
+                .map(eventMapper::toResponse)
+                .toList();
     }
 
     @Override
