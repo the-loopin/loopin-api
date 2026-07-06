@@ -13,6 +13,8 @@ import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
+import com.loopin.api.common.exception.UnauthorizedException;
+import com.loopin.api.common.exception.ForbiddenAccessException;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.recommendation.event.EventCandidate;
 import com.loopin.api.recommendation.event.EventEmbeddingRepository;
@@ -24,6 +26,12 @@ import com.loopin.api.repository.UserRepository;
 import com.loopin.api.recommendation.event.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,6 +50,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -56,16 +65,21 @@ public class EventServiceImpl implements EventService {
     private final EventEmbeddingRepository eventEmbeddingRepository;
 
     @Override
+    @Cacheable(value = "publishedEvents", key = "{#type, #category, #city, #isFree, #search, #startDate, #endDate, #pageable}")
     @Transactional(readOnly = true)
-    public List<EventResponse> getPublishedEvents(
+    public Page<EventResponse> getPublishedEvents(
             EventType type,
             EventCategory category,
             String city,
             Boolean isFree,
             String search,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            Pageable pageable
     ) {
+        log.info("Fetching published events with filters - type: {}, category: {}, city: {}, isFree: {}, search: {}",
+                type, category, city, isFree, search);
+
         Specification<Event> specification = Specification
                 .where(notDeleted())
                 .and(hasStatus(EventStatus.PUBLISHED))
@@ -77,13 +91,12 @@ public class EventServiceImpl implements EventService {
                 .and(startsOnOrAfter(startDate))
                 .and(startsOnOrBefore(endDate));
 
-        return eventRepository.findAll(specification)
-                .stream()
-                .map(eventMapper::toResponse)
-                .toList();
+        return eventRepository.findAll(specification, pageable)
+                .map(eventMapper::toResponse);
     }
 
     @Override
+    @Cacheable(value = "eventById", key = "#id")
     @Transactional(readOnly = true)
     public EventResponse getPublishedEventById(UUID id) {
         Event event = eventRepository.findOne(
@@ -98,6 +111,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional(readOnly = true)
     public List<EventResponse> getRecommendedEvents(String currentUsername, int limit) {
+        log.info("Fetching recommended events for user: {}, limit: {}", currentUsername, limit);
         User currentUser = findCurrentUser(currentUsername);
 
         if (userEmbeddingRepository.existsByUserId(currentUser.getId())) {
@@ -109,7 +123,7 @@ public class EventServiceImpl implements EventService {
                         .map(EventCandidate::eventId)
                         .toList();
 
-                List<Event> events = eventRepository.findAllById(eventIds);
+                List<Event> events = eventRepository.findAllByIdWithInterests(eventIds);
 
                 Map<Long, Event> eventMap = events.stream()
                         .collect(Collectors.toMap(Event::getId, Function.identity()));
@@ -122,6 +136,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
+        log.debug("No user embedding found for user: {}, falling back to recent events", currentUsername);
         // Fallback: Fetch recently published events that are not deleted and haven't ended yet
         Specification<Event> specification = Specification
                 .where(notDeleted())
@@ -139,6 +154,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @CacheEvict(value = "publishedEvents", allEntries = true)
     @Transactional
     public EventResponse createEvent(EventCreateRequest request, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
@@ -156,6 +172,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = "eventById", key = "#id")
+    })
     @Transactional
     public EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
@@ -173,6 +193,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = "eventById", key = "#id")
+    })
     @Transactional
     public void deleteEvent(UUID id, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
@@ -224,9 +248,7 @@ public class EventServiceImpl implements EventService {
 
     private User findCurrentUser(String currentUsername) {
         if (currentUsername == null || currentUsername.isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED,
-                    "Authentication is required");
+            throw new UnauthorizedException("Authentication is required");
         }
 
         return userRepository.findByEmailAndDeletedAtIsNull(currentUsername)
@@ -242,9 +264,7 @@ public class EventServiceImpl implements EventService {
             return;
         }
 
-        throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.FORBIDDEN,
-                "Only the event owner or an admin can modify this event");
+        throw new ForbiddenAccessException("Only the event owner or an admin can modify this event");
     }
 
     private Event findActiveEventById(UUID id) {
