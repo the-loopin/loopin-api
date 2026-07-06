@@ -1,4 +1,4 @@
-package com.loopin.api.recommendation;
+package com.loopin.api.recommendation.user;
 
 public record UserEmbeddingRequestedEvent(
         Long userId,

@@ -1,4 +1,4 @@
-package com.loopin.api.recommendation;
+package com.loopin.api.recommendation.user;
 
 import com.loopin.api.ai.LoopinAiProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,8 +40,8 @@ public class UserEmbeddingRepository {
         Boolean exists = jdbcTemplate.queryForObject(
                 """
                         SELECT EXISTS (
-                            SELECT 1 
-                            FROM user_interest_embeddings 
+                            SELECT 1
+                            FROM user_interest_embeddings
                             WHERE user_id = ? AND embedding_model = ?
                         )
                         """,

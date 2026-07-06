@@ -3,6 +3,7 @@ package com.loopin.api.recommendation;
 import com.loopin.api.ai.LoopinAiClient;
 import com.loopin.api.ai.dto.EmbeddingResponse;
 import com.loopin.api.entity.Interest;
+import com.loopin.api.recommendation.user.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;

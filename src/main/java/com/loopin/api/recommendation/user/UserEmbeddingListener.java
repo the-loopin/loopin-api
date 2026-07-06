@@ -1,4 +1,4 @@
-package com.loopin.api.recommendation;
+package com.loopin.api.recommendation.user;
 
 import com.loopin.api.ai.LoopinAiClient;
 import com.loopin.api.ai.dto.EmbeddingResponse;

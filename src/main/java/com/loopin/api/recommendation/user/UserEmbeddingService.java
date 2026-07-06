@@ -1,4 +1,4 @@
-package com.loopin.api.recommendation;
+package com.loopin.api.recommendation.user;
 
 import com.loopin.api.entity.Interest;
 import lombok.RequiredArgsConstructor;
