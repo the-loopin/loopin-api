@@ -37,6 +37,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     private final UserInterestRepository userInterestRepository;
     private final UserProfileMapper profileMapper;
     private final InterestMapper interestMapper;
+    private final com.loopin.api.recommendation.UserEmbeddingService userEmbeddingService;
 
     @Override
     @Transactional(readOnly = true)
@@ -95,6 +96,11 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .toList();
 
         userInterestRepository.saveAll(userInterests);
+
+        List<Interest> interests = userInterests.stream()
+                .map(UserInterest::getInterest)
+                .toList();
+        userEmbeddingService.indexUser(user.getId(), interests);
 
         return userInterestRepository.findByUser_Id(user.getId())
                 .stream()
