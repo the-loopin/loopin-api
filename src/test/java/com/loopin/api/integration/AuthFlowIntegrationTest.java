@@ -7,19 +7,14 @@ import com.loopin.api.auth.service.GoogleTokenVerifier;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -37,10 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class AuthFlowIntegrationTest {
+class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -53,15 +45,6 @@ class AuthFlowIntegrationTest {
 
     @Autowired
     private GoogleTokenVerifier googleTokenVerifier;
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        @Primary
-        GoogleTokenVerifier googleTokenVerifier() {
-            return mock(GoogleTokenVerifier.class);
-        }
-    }
 
     @BeforeEach
     void setUp() {
