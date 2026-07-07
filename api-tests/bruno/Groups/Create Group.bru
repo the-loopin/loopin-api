@@ -1,0 +1,29 @@
+meta {
+  name: Create Group
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/groups
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "eventId": "{{event_id}}",
+    "title": "Founder Coffee Table",
+    "groupSize": "FOUR_PLUS",
+    "maxMembers": 8,
+    "groupNote": "Meet near the main entrance five minutes early."
+  }
+}

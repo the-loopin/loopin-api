@@ -1,0 +1,40 @@
+meta {
+  name: Update Event
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{base_url}}/events/{{event_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Founder Coffee Chat",
+    "description": "Updated agenda with short founder introductions.",
+    "type": "EVENT",
+    "category": "STARTUP",
+    "city": "Baku",
+    "address": "Nizami Street 10",
+    "startDateTime": "2026-08-15T10:00:00",
+    "endDateTime": "2026-08-15T12:30:00",
+    "isFree": true,
+    "price": 0,
+    "organizerName": "Loopin Community",
+    "imageUrl": "https://example.test/images/founder-coffee.jpg",
+    "status": "PUBLISHED",
+    "interestIds": [
+      "{{interest_id}}"
+    ]
+  }
+}

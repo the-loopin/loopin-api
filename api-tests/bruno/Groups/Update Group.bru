@@ -1,0 +1,28 @@
+meta {
+  name: Update Group
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{base_url}}/groups/{{group_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Founder Coffee Table",
+    "groupSize": "FOUR_PLUS",
+    "maxMembers": 10,
+    "groupNote": "Bring one question for the group."
+  }
+}

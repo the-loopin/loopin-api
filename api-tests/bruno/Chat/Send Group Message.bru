@@ -1,0 +1,25 @@
+meta {
+  name: Send Group Message
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/groups/{{chat_group_id}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "messageText": "Looking forward to meeting everyone."
+  }
+}

@@ -170,8 +170,8 @@ Details events discovered and linked by coordinates.
 * `id` (BIGINT, Primary Key): Auto-incremented event ID.
 * `title` (VARCHAR(120), Not Null): The title of the event.
 * `description` (VARCHAR(2000), Not Null): Narrative description of the event.
-* `type` (VARCHAR(30), Not Null): Format of the event (e.g., `ONLINE`, `PHYSICAL`).
-* `category` (VARCHAR(30), Not Null): Theme (e.g., `MUSIC`, `SPORTS`, `TECH`).
+* `type` (VARCHAR(30), Not Null): Event format (e.g., `EVENT`, `ACTIVITY`).
+* `category` (VARCHAR(30), Not Null): Theme (e.g., `TECH`, `STARTUP`, `SOCIAL`).
 * `city` (VARCHAR(100), Not Null): Target city for location filters.
 * `address` (VARCHAR(255)): Street address (physical location).
 * `start_date_time` / `end_date_time` (TIMESTAMP, Not Null): Schedule constraints.
@@ -195,7 +195,7 @@ Represents group bubbles created to attend events together.
 * `title` (VARCHAR): Group title.
 * `group_size` (VARCHAR): General classification size text.
 * `max_members` (INT, Not Null): Capacity ceiling constraint.
-* `status` (VARCHAR): Status of group (e.g. `ACTIVE`, `FULL`, `ARCHIVED`).
+* `status` (VARCHAR): Status of group (e.g. `OPEN`, `FULL`, `ARCHIVED`, `CANCELLED`).
 * `group_note` (VARCHAR): Notes/rules set by the admin.
 
 ### 5. `group_members`

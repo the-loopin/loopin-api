@@ -18,6 +18,7 @@ This directory contains the developer documentation for the Loopin API.
   * [Database Design & Schema](DATABASE.md) - Entity Relationship (ER) diagram, table descriptions, indices, and constraints.
   * [Environment Configuration](ENVIRONMENT.md) - Environment variables checklist for local, staging, and production environments.
   * [API Endpoint Reference](API_OVERVIEW.md) - Comprehensive API specifications, request payloads, and response structures.
+  * [API Testing With Bruno](API_TESTING.md) - Git-friendly Bruno collection setup for local and staging backend validation.
   * [Security Model](SECURITY.md) - Security configuration, stateless authentication, role authorization, and moderation filter.
 
 * **Lifecycle & Operations**
@@ -31,6 +32,12 @@ This directory contains the developer documentation for the Loopin API.
   * [ADR 0002: Use Spring Boot 4.x](ADR/0002-use-spring-boot.md)
   * [ADR 0003: Use PostgreSQL + Liquibase](ADR/0003-use-postgresql-liquibase.md)
   * [ADR 0004: Use JWT Stateless Auth](ADR/0004-use-jwt-auth.md)
+  * [ADR 0005: Use Layered Service Architecture](ADR/0005-use-layered-service-architecture.md)
+  * [ADR 0006: Use Public UUID Identifiers](ADR/0006-use-public-uuid-identifiers.md)
+  * [ADR 0007: Use Bucket4j Rate Limiting](ADR/0007-use-bucket4j-rate-limiting.md)
+  * [ADR 0008: Use REST Plus STOMP WebSocket Chat](ADR/0008-use-rest-plus-stomp-chat.md)
+  * [ADR 0009: Use Environment-Driven Container Deployment](ADR/0009-use-environment-driven-container-deployment.md)
+  * [ADR 0010: Use Async AI Recommendation Boundary](ADR/0010-use-async-ai-recommendation-boundary.md)
 
 ---
 
@@ -85,10 +92,11 @@ The application will start, by default listening on `http://localhost:8080/api`.
 ---
 
 ##  API Testing
-API endpoints can be tested using the **Bruno** API client. The test collections are located in `/api-tests/bruno`.
+API endpoints can be tested using the **Bruno** API client. The collection is located in `/api-tests/bruno`, with local and staging example environments. See [API Testing With Bruno](API_TESTING.md) for setup, authentication workflow, and safe Git hygiene.
 1. Download and install [Bruno](https://www.usebruno.com/).
 2. Import the collection folder into Bruno.
 3. Select the `Local` environment configuration.
-4. Execute queries.
+4. Add local-only values for `auth_token`, `google_id_token`, and resource IDs.
+5. Execute requests.
 
 
