@@ -2,11 +2,13 @@ package com.loopin.api.service.implementation;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.admin.response.DashboardStatsResponse;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.dto.user.response.UserResponse;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.User;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.mapper.UserMapper;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -126,10 +129,19 @@ public class AdminServiceImpl implements AdminService {
         Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
 
+        archiveGroupsForEvent(event.getId());
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
 
         log.info("Admin {} performed deletion on event {}", currentAdminIdentifier, eventId);
+    }
+
+    private void archiveGroupsForEvent(Long eventId) {
+        List<EventGroup> groups = eventGroupRepository.findByEventIdAndStatusNot(eventId, GroupStatus.ARCHIVED);
+        groups.forEach(group -> {
+            group.setStatus(GroupStatus.ARCHIVED);
+            eventGroupRepository.save(group);
+        });
     }
 
     private boolean isSameUser(User user, String adminIdentifier) {
