@@ -3,19 +3,22 @@ package com.loopin.api.dto.event.response;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
+import com.loopin.api.dto.interest.InterestResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 public class EventResponse {
 
-    private Long id;
+    private UUID id;
     private String title;
     private String description;
     private EventType type;
@@ -29,6 +32,7 @@ public class EventResponse {
     private String organizerName;
     private String imageUrl;
     private EventStatus status;
+    private List<InterestResponse> interests;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

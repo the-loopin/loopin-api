@@ -1,4 +1,4 @@
-# Environment Configuration
+﻿# Environment Configuration
 
 The Loopin API reads runtime parameters from system environment variables. This document catalogs all configuration options.
 
@@ -59,3 +59,20 @@ Spring Boot profiles customize environment defaults. Configure this via `-Dsprin
 * **Purpose:** Production release environments.
 * **Configuration:** Strict values. `JWT_SECRET` must be set via secure environment injection (e.g. Google Secret Manager, AWS Secrets Manager). `CORS_ALLOWED_ORIGINS` must restrict request origins.
 * **Behavior:** Rate limiting enforced via `redis` using standard key prefix. SQL logging is disabled (`false`) for optimal performance.
+---
+
+## Docker and Redis Runtime Notes
+
+Additional variables used by Docker Compose and Redis-backed rate limiting:
+
+| Variable Name | Purpose / Description | Default Value | Profiles / Notes |
+| :--- | :--- | :--- | :--- |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID accepted by the API. | **Required (No Default)** | Store as a secret outside local development |
+| `API_PORT` | Host port mapped to the API container. | `8080` | Docker Compose only |
+| `POSTGRES_DB` | PostgreSQL database created by the Compose image. | `loopin` | Docker Compose only |
+| `POSTGRES_PORT` | Host port mapped to PostgreSQL. | `5432` | Docker Compose only |
+| `REDIS_PORT` | Host port mapped to Redis. | `6379` | Docker Compose only |
+| `SPRING_DATA_REDIS_HOST` | Redis hostname used when `RATE_LIMIT_STORAGE=redis`. | `localhost` | Compose sets this to `redis` for the API container |
+| `SPRING_DATA_REDIS_PORT` | Redis port used when `RATE_LIMIT_STORAGE=redis`. | `6379` | Compose maps this to the Redis service |
+
+`RATE_LIMIT_STORAGE=redis` requires a reachable Redis instance. In Docker Compose, the API uses `SPRING_DATA_REDIS_HOST=redis`; when running the JVM directly on the host, use `localhost` unless Redis runs elsewhere.

@@ -1,5 +1,7 @@
 package com.loopin.api.service.abstraction;
 
+import com.loopin.api.dto.interest.InterestResponse;
+import com.loopin.api.dto.interest.UpdateUserInterestsRequest;
 import com.loopin.api.dto.userProfile.response.UserProfileResponse;
 import com.loopin.api.dto.userProfile.request.UpdateUserProfileRequest;
 
@@ -10,6 +12,10 @@ public interface UserProfileService {
     UserProfileResponse getProfile(Long userId);
 
     UserProfileResponse updateProfile(Long userId, UpdateUserProfileRequest request);
+
+    List<InterestResponse> updateInterests(Long userId, UpdateUserInterestsRequest request);
+
+    List<InterestResponse> getInterests(Long userId);
 
     List<String> getUserBadges(Long userId);
 }

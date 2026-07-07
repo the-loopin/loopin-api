@@ -1,0 +1,40 @@
+meta {
+  name: Create Event
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/events
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Founder Coffee Chat",
+    "description": "Small-group coffee meetup for early-stage founders.",
+    "type": "EVENT",
+    "category": "STARTUP",
+    "city": "Baku",
+    "address": "Nizami Street 10",
+    "startDateTime": "2026-08-15T10:00:00",
+    "endDateTime": "2026-08-15T12:00:00",
+    "isFree": true,
+    "price": 0,
+    "organizerName": "Loopin Community",
+    "imageUrl": "https://example.test/images/founder-coffee.jpg",
+    "status": "PUBLISHED",
+    "interestIds": [
+      "{{interest_id}}"
+    ]
+  }
+}

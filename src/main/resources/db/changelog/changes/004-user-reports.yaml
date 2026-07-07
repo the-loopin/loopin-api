@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-user-reports
+      author: loopin
+      changes:
+        - createTable:
+            tableName: user_reports
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_user_reports, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: reporter_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: target_type, type: VARCHAR(30), constraints: { nullable: false } }
+              - column: { name: group_id, type: BIGINT }
+              - column: { name: message_id, type: BIGINT }
+              - column: { name: reason, type: VARCHAR(500), constraints: { nullable: false } }
+              - column: { name: details, type: VARCHAR(2000) }
+              - column: { name: status, type: VARCHAR(30), constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: user_reports
+            baseColumnNames: reporter_id
+            constraintName: fk_user_reports_reporter_id
+            referencedTableName: users
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: user_reports
+            baseColumnNames: group_id
+            constraintName: fk_user_reports_group_id
+            referencedTableName: event_groups
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: user_reports
+            baseColumnNames: message_id
+            constraintName: fk_user_reports_message_id
+            referencedTableName: group_messages
+            referencedColumnNames: id
+        - createIndex:
+            tableName: user_reports
+            indexName: idx_user_reports_status
+            columns:
+              - column:
+                  name: status
+      rollback:
+        - dropTable:
+            tableName: user_reports

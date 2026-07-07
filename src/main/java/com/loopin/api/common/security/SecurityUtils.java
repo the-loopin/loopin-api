@@ -1,6 +1,7 @@
 package com.loopin.api.common.security;
 
 import com.loopin.api.entity.User;
+import com.loopin.api.common.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +12,18 @@ public final class SecurityUtils {
 
     private SecurityUtils() {
         // Private constructor to prevent instantiation of utility class
+    }
+
+    /**
+     * Retrieve the email (username) of the currently authenticated user,
+     * or throw UnauthorizedException if not authenticated.
+     *
+     * @return the email of the authenticated user
+     * @throws UnauthorizedException if the user is not authenticated
+     */
+    public static String getRequiredCurrentUserEmail() {
+        return getCurrentUserEmail()
+                .orElseThrow(() -> new UnauthorizedException("Authentication is required"));
     }
 
     /**

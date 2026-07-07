@@ -1,294 +1,554 @@
 # API Endpoint Reference
 
-All API requests are prefixed with the base path `/api`. Secure endpoints require an `Authorization` header containing a valid JWT:
+Loopin serves HTTP endpoints under the `/api` context path. Examples in this document omit the host and show paths relative to `/api`.
+
+Use JSON for request and response bodies unless noted otherwise:
+
 ```http
-Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
 ```
 
----
+Protected endpoints require a bearer token:
+
+```http
+Authorization: Bearer <token>
+```
+
+The examples use placeholder IDs and tokens only. Do not commit real JWTs, Google ID tokens, production hostnames, or credentials.
+
+## Common Conventions
+
+| Item | Convention |
+| --- | --- |
+| Public resource IDs | UUID strings exposed in API paths and DTOs. |
+| Pagination | Spring pageable parameters such as `page`, `size`, and `sort`. |
+| Date-time values | ISO-8601 local date-time strings, for example `2026-08-15T10:00:00`. |
+| Auth failures | Missing or invalid bearer tokens return `401 Unauthorized`. |
+| Authorization failures | Authenticated users without access return `403 Forbidden`. |
 
 ## Authentication
 
-### 1. Google Social Auth
-* **Endpoint:** `POST /auth/google`
-* **Headers:** `Content-Type: application/json`
-* **Request Body:**
-  ```json
-  {
-    "googleId": "103859205847392019485",
-    "email": "user@gmail.com",
-    "name": "Jane Doe",
-    "imageUrl": "https://lh3.googleusercontent.com/a/photo.jpg"
-  }
-  ```
-* **Success Response (200 OK):**
-  ```json
-  {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsIn...",
-    "tokenType": "Bearer",
-    "expiresIn": 86400000,
-    "user": {
-      "id": 1,
-      "email": "user@gmail.com",
-      "name": "Jane Doe",
-      "role": "USER"
-    }
-  }
-  ```
+### Google Login
 
----
+`POST /auth/google`
 
-##  Users & Registration
+Validates a Google ID token and returns a Loopin JWT.
 
-### 1. Register Local User
-* **Endpoint:** `POST /users/register`
-* **Request Body:**
-  ```json
-  {
-    "name": "Alex Smith",
-    "email": "alex@example.com",
-    "password": "SecurePassword123!"
-  }
-  ```
-* **Success Response (201 Created):**
-  ```json
-  {
-    "id": 2,
-    "name": "Alex Smith",
-    "email": "alex@example.com",
-    "role": "USER",
-    "isActive": true
-  }
-  ```
+Request:
 
-### 2. Get My User Info
-* **Endpoint:** `GET /users/me`
-* **Headers:** `Authorization: Bearer <token>`
-* **Success Response (200 OK):**
-  ```json
-  {
-    "id": 2,
-    "name": "Alex Smith",
-    "email": "alex@example.com",
-    "role": "USER",
-    "isActive": true
-  }
-  ```
+```json
+{
+  "idToken": "<google-id-token>"
+}
+```
 
----
+Response `200 OK`:
 
-##  User Profiles & Badges
+```json
+{
+  "token": "<jwt>",
+  "email": "alex@example.test",
+  "name": "Alex Smith",
+  "role": "USER"
+}
+```
 
-### 1. Get My Profile Details
-* **Endpoint:** `GET /me`
-* **Headers:** `Authorization: Bearer <token>`
-* **Success Response (200 OK):**
-  ```json
-  {
-    "userId": 2,
-    "name": "Alex Smith",
-    "city": "San Francisco",
-    "bio": "Tech enthusiast and avid hiker."
-  }
-  ```
+## Users
 
-### 2. Update My Profile
-* **Endpoint:** `PUT /me`
-* **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
-* **Request Body:**
-  ```json
-  {
-    "name": "Alex Smith Jr.",
-    "city": "Oakland",
-    "bio": "Event organizer & visual designer."
-  }
-  ```
-* **Success Response (200 OK):**
-  ```json
-  {
-    "userId": 2,
-    "name": "Alex Smith Jr.",
-    "city": "Oakland",
-    "bio": "Event organizer & visual designer."
-  }
-  ```
+### Register User
 
-### 3. Get My Earned Badges
-* **Endpoint:** `GET /me/badges`
-* **Headers:** `Authorization: Bearer <token>`
-* **Success Response (200 OK):**
-  ```json
-  [
-    "EARLY_ADOPTER",
-    "GROUP_LEADER"
-  ]
-  ```
+`POST /users/register`
 
----
+Creates a local user record. This endpoint is public.
 
-##  Events Discovery
+Request:
 
-### 1. List Published Events
-* **Endpoint:** `GET /events`
-* **Query Parameters (Optional):**
-  * `type`: Filter by format (`PHYSICAL`, `ONLINE`)
-  * `category`: Filter by theme (`TECH`, `MUSIC`, `SPORTS`, `ART`, `FOOD`)
-  * `city`: e.g. `San Francisco`
-  * `isFree`: `true` or `false`
-  * `search`: Matches title/description keywords
-  * `startDate` / `endDate`: Filter by ISO date e.g. `2026-07-04`
-* **Success Response (200 OK):**
-  ```json
-  [
+```json
+{
+  "email": "alex@example.test",
+  "name": "Alex Smith"
+}
+```
+
+Response `201 Created`:
+
+```json
+{
+  "id": "11111111-1111-4111-8111-111111111111",
+  "email": "alex@example.test",
+  "name": "Alex Smith",
+  "role": "USER"
+}
+```
+
+### Get Current User
+
+`GET /users/me`
+
+Requires authentication.
+
+Response `200 OK`:
+
+```json
+{
+  "id": "11111111-1111-4111-8111-111111111111",
+  "email": "alex@example.test",
+  "name": "Alex Smith",
+  "role": "USER"
+}
+```
+
+### Admin User Operations
+
+The following endpoints require an administrator role:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/users` | List users. |
+| `GET` | `/users/{id}` | Read one user. |
+| `PUT` | `/users/{id}/role` | Update user role. |
+| `DELETE` | `/users/{id}` | Delete user. |
+
+## User Profile
+
+### Get My Profile
+
+`GET /me`
+
+Response `200 OK`:
+
+```json
+{
+  "id": "11111111-1111-4111-8111-111111111111",
+  "name": "Alex Smith",
+  "city": "Baku",
+  "bio": "Enjoys startup events and small-group meetups.",
+  "interests": []
+}
+```
+
+### Update My Profile
+
+`PUT /me`
+
+Request:
+
+```json
+{
+  "name": "Alex Smith",
+  "city": "Baku",
+  "bio": "Enjoys startup events and small-group meetups."
+}
+```
+
+Response `200 OK` returns the updated profile.
+
+### My Interests And Badges
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/me/interests` | List current user's interests. |
+| `PUT` | `/me/interests` | Replace current user's interests. |
+| `GET` | `/me/badges` | List current user's earned badges. |
+
+Update interests request:
+
+```json
+{
+  "interests": [
     {
-      "id": 10,
-      "title": "Outdoor Rock Concert",
-      "description": "Come join us for live music under the stars.",
-      "type": "PHYSICAL",
-      "category": "MUSIC",
-      "city": "Oakland",
-      "address": "123 Concert Way",
-      "startDateTime": "2026-08-15T19:00:00",
-      "endDateTime": "2026-08-15T23:00:00",
-      "isFree": false,
-      "price": 25.00,
-      "organizerName": "Oakland Sounds",
-      "imageUrl": "https://picsum.photos/600",
-      "status": "PUBLISHED"
+      "interestId": "44444444-4444-4444-8444-444444444444",
+      "weight": 1.0,
+      "source": "USER"
     }
   ]
-  ```
+}
+```
 
-### 2. Create Event
-* **Endpoint:** `POST /events`
-* **Headers:** `Authorization: Bearer <token>`
-* **Request Body:**
-  ```json
+## Interests
+
+### List Interests
+
+`GET /interests`
+
+Requires authentication.
+
+Response `200 OK`:
+
+```json
+[
   {
-    "title": "Board Games Night",
-    "description": "Weekly board games gathering at the local cafe.",
-    "type": "PHYSICAL",
-    "category": "SPORTS",
-    "city": "Oakland",
-    "address": "456 Tabletop Rd",
-    "startDateTime": "2026-07-20T18:00:00",
-    "endDateTime": "2026-07-20T22:00:00",
-    "isFree": true,
-    "price": 0.00,
-    "organizerName": "Oakland Gamers Club",
-    "imageUrl": "https://picsum.photos/400"
+    "id": "44444444-4444-4444-8444-444444444444",
+    "name": "Technology",
+    "slug": "technology",
+    "category": "Professional"
   }
-  ```
-* **Success Response (201 Created):**
-  ```json
+]
+```
+
+## Events
+
+Event enum values:
+
+| Field | Values |
+| --- | --- |
+| `type` | `EVENT`, `ACTIVITY` |
+| `category` | `TECH`, `STARTUP`, `HR`, `EDUCATION`, `TRAVEL`, `SPORT`, `SOCIAL`, `LANGUAGE`, `CREATIVE`, `OTHER` |
+| `status` | `DRAFT`, `PUBLISHED`, `COMPLETED`, `CANCELLED` |
+
+### List Published Events
+
+`GET /events`
+
+This endpoint is public.
+
+Optional query parameters:
+
+| Parameter | Description |
+| --- | --- |
+| `type` | Filter by `EVENT` or `ACTIVITY`. |
+| `category` | Filter by event category. |
+| `city` | Filter by city. |
+| `isFree` | Filter by free or paid events. |
+| `search` | Search title or description. |
+| `startDate` | ISO date lower bound, for example `2026-08-01`. |
+| `endDate` | ISO date upper bound, for example `2026-08-31`. |
+| `page`, `size`, `sort` | Spring pageable controls. |
+
+Response `200 OK` is a Spring page containing event items.
+
+### Get Published Event
+
+`GET /events/{id}`
+
+This endpoint is public.
+
+### Get Recommended Events
+
+`GET /events/recommended?limit=10`
+
+Requires authentication.
+
+### Create Event
+
+`POST /events`
+
+Requires authentication.
+
+Request:
+
+```json
+{
+  "title": "Founder Coffee Chat",
+  "description": "Small-group coffee meetup for early-stage founders.",
+  "type": "EVENT",
+  "category": "STARTUP",
+  "city": "Baku",
+  "address": "Nizami Street 10",
+  "startDateTime": "2026-08-15T10:00:00",
+  "endDateTime": "2026-08-15T12:00:00",
+  "isFree": true,
+  "price": 0,
+  "organizerName": "Loopin Community",
+  "imageUrl": "https://example.test/images/founder-coffee.jpg",
+  "status": "PUBLISHED",
+  "interestIds": [
+    "44444444-4444-4444-8444-444444444444"
+  ]
+}
+```
+
+Response `201 Created`:
+
+```json
+{
+  "id": "55555555-5555-4555-8555-555555555555",
+  "title": "Founder Coffee Chat",
+  "description": "Small-group coffee meetup for early-stage founders.",
+  "type": "EVENT",
+  "category": "STARTUP",
+  "city": "Baku",
+  "address": "Nizami Street 10",
+  "startDateTime": "2026-08-15T10:00:00",
+  "endDateTime": "2026-08-15T12:00:00",
+  "isFree": true,
+  "price": 0,
+  "organizerName": "Loopin Community",
+  "imageUrl": "https://example.test/images/founder-coffee.jpg",
+  "status": "PUBLISHED",
+  "interests": [],
+  "createdAt": "2026-07-07T12:00:00",
+  "updatedAt": "2026-07-07T12:00:00"
+}
+```
+
+### Update Event
+
+`PUT /events/{id}`
+
+Requires authentication and ownership.
+
+### Delete Event
+
+`DELETE /events/{id}`
+
+Requires authentication and ownership. Returns `204 No Content`.
+
+## Groups
+
+Group enum values:
+
+| Field | Values |
+| --- | --- |
+| `groupSize` | `TWO`, `THREE`, `FOUR`, `FOUR_PLUS` |
+| `status` | `OPEN`, `FULL`, `ARCHIVED`, `CANCELLED` |
+
+### Create Group
+
+`POST /groups`
+
+Requires authentication.
+
+Request:
+
+```json
+{
+  "eventId": "55555555-5555-4555-8555-555555555555",
+  "title": "Founder Coffee Table",
+  "groupSize": "FOUR_PLUS",
+  "maxMembers": 8,
+  "groupNote": "Meet near the main entrance five minutes early."
+}
+```
+
+Response `201 Created`:
+
+```json
+{
+  "id": "22222222-2222-4222-8222-222222222222",
+  "eventId": "55555555-5555-4555-8555-555555555555",
+  "adminId": "11111111-1111-4111-8111-111111111111",
+  "adminUsername": "Alex Smith",
+  "title": "Founder Coffee Table",
+  "groupSize": "FOUR_PLUS",
+  "maxMembers": 8,
+  "status": "OPEN",
+  "groupNote": "Meet near the main entrance five minutes early.",
+  "memberCount": 1,
+  "createdAt": "2026-07-07T12:00:00"
+}
+```
+
+### Read And Update Groups
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/groups/{groupId}` | Public | Read one group. |
+| `PUT` | `/groups/{groupId}` | Required | Update title, size, max members, and note. |
+| `PATCH` | `/groups/{groupId}/status` | Required | Update group status. |
+
+Update group request:
+
+```json
+{
+  "title": "Founder Coffee Table",
+  "groupSize": "FOUR_PLUS",
+  "maxMembers": 10,
+  "groupNote": "Bring one question for the group."
+}
+```
+
+Update group status request:
+
+```json
+{
+  "status": "FULL"
+}
+```
+
+## Group Members
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/groups/{groupId}/members` | Add a member. |
+| `GET` | `/groups/{groupId}/members` | List group members. |
+| `GET` | `/groups/{groupId}/members/{userId}` | Read a group member by user ID. |
+| `DELETE` | `/groups/{groupId}/members/{userId}` | Remove a member. |
+
+Writes require authentication and appropriate group permissions.
+
+## Group Join Requests
+
+Join request status values are `PENDING`, `APPROVED`, and `REJECTED`.
+
+### Submit Join Request
+
+`POST /groups/{groupId}/join-requests`
+
+Requires authentication.
+
+Request:
+
+```json
+{
+  "message": "I would like to join and can arrive on time."
+}
+```
+
+Response `201 Created`:
+
+```json
+{
+  "id": "33333333-3333-4333-8333-333333333333",
+  "groupId": "22222222-2222-4222-8222-222222222222",
+  "userId": "11111111-1111-4111-8111-111111111111",
+  "status": "PENDING",
+  "message": "I would like to join and can arrive on time.",
+  "createdAt": "2026-07-07T12:05:00"
+}
+```
+
+### Manage Join Requests
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/groups/{groupId}/join-requests` | List requests for a group. |
+| `GET` | `/groups/{groupId}/join-requests/{requestId}` | Read one request. |
+| `GET` | `/me/group-join-requests` | List current user's requests. |
+| `PATCH` | `/groups/{groupId}/join-requests/{requestId}/approve` | Approve a request. |
+| `PATCH` | `/groups/{groupId}/join-requests/{requestId}/reject` | Reject a request. |
+| `DELETE` | `/groups/{groupId}/join-requests/{requestId}` | Delete a request. |
+
+All join request endpoints require authentication. Approval and rejection require group admin permissions.
+
+## Chat
+
+Loopin supports persisted group chat messages through REST and real-time delivery through WebSocket. See [Real-Time Chat](REALTIME_CHAT.md) for the WebSocket protocol.
+
+The REST chat controller currently uses the internal numeric group ID in the path.
+
+### List Group Messages
+
+`GET /groups/{groupId}/messages`
+
+Requires authentication and group membership.
+
+Response `200 OK`:
+
+```json
+[
   {
-    "id": 11,
-    "title": "Board Games Night",
-    ...
-    "status": "PUBLISHED"
+    "id": 1,
+    "groupId": 1,
+    "senderId": 1,
+    "senderName": "Alex Smith",
+    "messageText": "Looking forward to meeting everyone.",
+    "createdAt": "2026-07-07T12:10:00"
   }
-  ```
+]
+```
 
----
+### Send Group Message
 
-##  Event Groups
+`POST /groups/{groupId}/messages`
 
-### 1. Create Event Group
-* **Endpoint:** `POST /groups`
-* **Headers:** `Authorization: Bearer <token>`
-* **Request Body:**
-  ```json
-  {
-    "eventId": 10,
-    "title": "East Bay Concert Buddies",
-    "groupSize": "MEDIUM",
-    "maxMembers": 8,
-    "groupNote": "Be friendly and bring positive vibes!"
-  }
-  ```
-* **Success Response (201 Created):**
-  ```json
-  {
-    "id": 5,
-    "eventId": 10,
-    "adminId": 2,
-    "title": "East Bay Concert Buddies",
-    "groupSize": "MEDIUM",
-    "maxMembers": 8,
-    "status": "ACTIVE",
-    "groupNote": "Be friendly and bring positive vibes!"
-  }
-  ```
+Requires authentication and group membership.
 
-### 2. Update Group Status
-* **Endpoint:** `PATCH /groups/{groupId}/status`
-* **Headers:** `Authorization: Bearer <token>`
-* **Request Body:**
-  ```json
-  {
-    "status": "FULL"
-  }
-  ```
-* **Success Response (200 OK):**
-  ```json
-  {
-    "id": 5,
-    "status": "FULL",
-    ...
-  }
-  ```
+Request:
 
----
+```json
+{
+  "messageText": "Looking forward to meeting everyone."
+}
+```
 
-##  Group Join Requests
+Response `201 Created` returns the persisted message.
 
-### 1. Submit Join Request
-* **Endpoint:** `POST /groups/{groupId}/join-requests`
-* **Headers:** `Authorization: Bearer <token>`
-* **Request Body:**
-  ```json
-  {
-    "message": "Hey! I would love to tag along. I am buying my ticket tonight."
-  }
-  ```
-* **Success Response (201 Created):**
-  ```json
-  {
-    "id": 14,
-    "groupId": 5,
-    "userId": 3,
-    "status": "PENDING",
-    "message": "Hey! I would love to tag along. I am buying my ticket tonight.",
-    "createdAt": "2026-07-04T23:35:00"
-  }
-  ```
+## Reports And Moderation
 
-### 2. Approve Request (Group Admin Only)
-* **Endpoint:** `PATCH /groups/{groupId}/join-requests/{requestId}/approve`
-* **Headers:** `Authorization: Bearer <token>`
-* **Success Response (200 OK):**
-  ```json
-  {
-    "id": 14,
-    "status": "APPROVED",
-    ...
-  }
-  ```
+Report target values are `GROUP` and `MESSAGE`. Report status values are `PENDING`, `REVIEWED`, `RESOLVED`, and `DISMISSED`.
 
----
+### Create Report
 
-##  Administrative Controls (Admin Role Only)
+`POST /reports`
 
-### 1. Get Dashboard Statistics
-* **Endpoint:** `GET /admin/dashboard/stats`
-* **Headers:** `Authorization: Bearer <admin_token>`
-* **Success Response (200 OK):**
-  ```json
-  {
-    "totalUsers": 125,
-    "activeUsers": 120,
-    "totalEvents": 48,
-    "publishedEvents": 42,
-    "activeGroups": 18
-  }
-  ```
+Requires authentication.
+
+Request:
+
+```json
+{
+  "targetType": "GROUP",
+  "targetId": "22222222-2222-4222-8222-222222222222",
+  "reason": "Unsafe coordination",
+  "details": "The group note asks users to move the conversation to an unsafe channel."
+}
+```
+
+Response `201 Created`:
+
+```json
+{
+  "id": "66666666-6666-4666-8666-666666666666",
+  "reporterId": "11111111-1111-4111-8111-111111111111",
+  "targetType": "GROUP",
+  "targetId": "22222222-2222-4222-8222-222222222222",
+  "reason": "Unsafe coordination",
+  "details": "The group note asks users to move the conversation to an unsafe channel.",
+  "status": "PENDING",
+  "createdAt": "2026-07-07T12:15:00",
+  "updatedAt": "2026-07-07T12:15:00"
+}
+```
+
+### Review Reports
+
+`GET /admin/reports?status=PENDING&page=0&size=10`
+
+Requires the `ADMIN` role and returns a Spring page of reports.
+
+### Update Report Status
+
+`PATCH /admin/reports/{id}`
+
+Requires the `ADMIN` role.
+
+Request:
+
+```json
+{
+  "status": "REVIEWED"
+}
+```
+
+## Admin
+
+### Dashboard Statistics
+
+`GET /admin/dashboard/stats`
+
+Requires the `ADMIN` role.
+
+Response `200 OK`:
+
+```json
+{
+  "totalUsers": 125,
+  "activeUsers": 120,
+  "totalEvents": 48,
+  "publishedEvents": 42,
+  "activeGroups": 18
+}
+```
+
+### Admin Users And Events
+
+All endpoints in this table require the `ADMIN` role.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/admin/users` | List users with pagination. |
+| `PUT` | `/admin/users/{id}/role` | Update a user role. |
+| `DELETE` | `/admin/users/{id}` | Delete a user. |
+| `GET` | `/admin/events` | List events, optionally filtered by `status`. |
+| `DELETE` | `/admin/events/{id}` | Delete an event. |

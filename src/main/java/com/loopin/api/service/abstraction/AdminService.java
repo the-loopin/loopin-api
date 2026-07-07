@@ -8,17 +8,19 @@ import com.loopin.api.dto.user.response.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface AdminService {
 
     DashboardStatsResponse getDashboardStats();
 
     Page<UserResponse> getUsers(Pageable pageable);
 
-    UserResponse updateUserRole(Long targetUserId, Role role, String currentAdminIdentifier);
+    UserResponse updateUserRole(UUID targetUserId, Role role, String currentAdminIdentifier);
 
-    void deleteUser(Long targetUserId, String currentAdminIdentifier);
+    void deleteUser(UUID targetUserId, String currentAdminIdentifier);
 
     Page<EventResponse> getEvents(EventStatus status, Pageable pageable);
 
-    void deleteEvent(Long eventId, String currentAdminIdentifier);
+    void deleteEvent(UUID eventId, String currentAdminIdentifier);
 }

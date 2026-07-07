@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface GroupJoinRequestRepository extends JpaRepository<GroupJoinRequest, Long> {
 
@@ -17,6 +18,8 @@ public interface GroupJoinRequestRepository extends JpaRepository<GroupJoinReque
     List<GroupJoinRequest> findByGroupIdAndStatus(Long groupId, RequestStatus status);
 
     Optional<GroupJoinRequest> findByIdAndGroupId(Long id, Long groupId);
+
+    Optional<GroupJoinRequest> findByPublicIdAndGroupId(UUID publicId, Long groupId);
 
     Optional<GroupJoinRequest> findByGroupIdAndUserId(Long groupId, Long userId);
 

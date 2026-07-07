@@ -6,7 +6,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "user_badges")
+@Table(
+        name = "user_badges",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_user_badges_user_badge_type",
+                columnNames = {"user_id", "badge_type"}))
 @Getter
 @Setter
 @NoArgsConstructor

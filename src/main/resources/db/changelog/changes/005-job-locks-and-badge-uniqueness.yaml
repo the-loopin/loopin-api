@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-create-job-locks
+      author: loopin
+      changes:
+        - createTable:
+            tableName: job_locks
+            columns:
+              - column:
+                  name: lock_name
+                  type: VARCHAR(120)
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_job_locks
+                    nullable: false
+              - column:
+                  name: locked_until
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: locked_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: job_locks
+            columns:
+              - column:
+                  name: lock_name
+                  value: event-completion
+              - column:
+                  name: locked_until
+                  valueDate: "1970-01-01T00:00:00"
+              - column:
+                  name: locked_at
+                  valueDate: "1970-01-01T00:00:00"
+      rollback:
+        - dropTable:
+            tableName: job_locks
+
+  - changeSet:
+      id: 014-add-user-badge-uniqueness
+      author: loopin
+      changes:
+        - addUniqueConstraint:
+            tableName: user_badges
+            columnNames: user_id, badge_type
+            constraintName: uk_user_badges_user_badge_type
+      rollback:
+        - dropUniqueConstraint:
+            tableName: user_badges
+            constraintName: uk_user_badges_user_badge_type

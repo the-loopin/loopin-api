@@ -1,21 +1,40 @@
 package com.loopin.api.service.implementation;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.dto.event.request.EventCreateRequest;
-import com.loopin.api.dto.event.request.EventUpdateRequest;
-import com.loopin.api.dto.event.response.EventResponse;
-import com.loopin.api.entity.Event;
-import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.exception.DuplicateResourceException;
+import com.loopin.api.common.exception.ForbiddenAccessException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
+import com.loopin.api.common.exception.UnauthorizedException;
+import com.loopin.api.dto.event.request.EventCreateRequest;
+import com.loopin.api.dto.event.request.EventUpdateRequest;
+import com.loopin.api.dto.event.response.EventResponse;
+import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventInterest;
+import com.loopin.api.entity.Interest;
+import com.loopin.api.entity.User;
 import com.loopin.api.mapper.EventMapper;
+import com.loopin.api.recommendation.event.EventCandidate;
+import com.loopin.api.recommendation.event.EventEmbeddingRepository;
+import com.loopin.api.recommendation.event.EventEmbeddingService;
+import com.loopin.api.recommendation.user.UserEmbeddingRepository;
+import com.loopin.api.repository.EventInterestRepository;
 import com.loopin.api.repository.EventRepository;
+import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.EventService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +42,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -34,18 +61,28 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
     private final GroupArchiveService groupArchiveService;
+    private final InterestRepository interestRepository;
+    private final EventInterestRepository eventInterestRepository;
+    private final EventEmbeddingService eventEmbeddingService;
+    private final UserEmbeddingRepository userEmbeddingRepository;
+    private final EventEmbeddingRepository eventEmbeddingRepository;
 
     @Override
+    @Cacheable(value = "publishedEvents", key = "{#type, #category, #city, #isFree, #search, #startDate, #endDate, #pageable}")
     @Transactional(readOnly = true)
-    public List<EventResponse> getPublishedEvents(
+    public Page<EventResponse> getPublishedEvents(
             EventType type,
             EventCategory category,
             String city,
             Boolean isFree,
             String search,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            Pageable pageable
     ) {
+        log.info("Fetching published events with filters - type: {}, category: {}, city: {}, isFree: {}, search: {}",
+                type, category, city, isFree, search);
+
         Specification<Event> specification = Specification
                 .where(notDeleted())
                 .and(hasStatus(EventStatus.PUBLISHED))
@@ -57,25 +94,72 @@ public class EventServiceImpl implements EventService {
                 .and(startsOnOrAfter(startDate))
                 .and(startsOnOrBefore(endDate));
 
-        return eventRepository.findAll(specification)
+        Page<Event> eventPage = eventRepository.findAll(specification, pageable);
+        List<EventResponse> responses = fetchPublishedEventsWithInterestsInOrder(eventPage.getContent())
+                .stream()
+                .map(eventMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(responses, pageable, eventPage.getTotalElements());
+    }
+
+    @Override
+    @Cacheable(value = "eventById", key = "#id")
+    @Transactional(readOnly = true)
+    public EventResponse getPublishedEventById(UUID id) {
+        Event event = eventRepository.findPublishedByPublicIdWithInterests(id)
+                .orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
+
+        return eventMapper.toResponse(event);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventResponse> getRecommendedEvents(String currentUsername, int limit) {
+        log.info("Fetching recommended events for user: {}, limit: {}", currentUsername, limit);
+        User currentUser = findCurrentUser(currentUsername);
+
+        if (userEmbeddingRepository.existsByUserId(currentUser.getId())) {
+            List<EventCandidate> candidates =
+                    eventEmbeddingRepository.findSimilarEventsForUser(currentUser.getId(), limit);
+
+            if (!candidates.isEmpty()) {
+                List<Long> eventIds = candidates.stream()
+                        .map(EventCandidate::eventId)
+                        .toList();
+
+                List<Event> events = eventRepository.findPublishedByIdInWithInterests(eventIds);
+                Map<Long, Event> eventsById = events.stream()
+                        .collect(Collectors.toMap(Event::getId, Function.identity()));
+
+                return eventIds.stream()
+                        .map(eventsById::get)
+                        .filter(Objects::nonNull)
+                        .map(eventMapper::toResponse)
+                        .toList();
+            }
+        }
+
+        log.debug("No user embedding found for user: {}, falling back to recent events", currentUsername);
+        Specification<Event> specification = Specification
+                .where(notDeleted())
+                .and(hasStatus(EventStatus.PUBLISHED))
+                .and((root, query, criteriaBuilder) ->
+                        criteriaBuilder.greaterThanOrEqualTo(root.get("endDateTime"), LocalDateTime.now()));
+
+        Page<Event> fallbackPage = eventRepository.findAll(
+                specification,
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
+
+        return fetchPublishedEventsWithInterestsInOrder(fallbackPage.getContent())
                 .stream()
                 .map(eventMapper::toResponse)
                 .toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public EventResponse getPublishedEventById(Long id) {
-        Event event = eventRepository.findOne(
-                Specification.where(notDeleted())
-                        .and(hasStatus(EventStatus.PUBLISHED))
-                        .and(hasId(id))
-        ).orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
-
-        return eventMapper.toResponse(event);
-    }
-
-    @Override
+    @CacheEvict(value = "publishedEvents", allEntries = true)
     @Transactional
     public EventResponse createEvent(EventCreateRequest request, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
@@ -85,14 +169,20 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventMapper.toEntity(request);
         event.setOwner(currentUser);
-        Event savedEvent = eventRepository.save(event);
+        Event savedEvent = eventRepository.saveAndFlush(event);
+        replaceEventInterests(savedEvent, request.getInterestIds());
+        eventEmbeddingService.indexEvent(savedEvent);
 
         return eventMapper.toResponse(savedEvent);
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = "eventById", key = "#id")
+    })
     @Transactional
-    public EventResponse updateEvent(Long id, EventUpdateRequest request, String currentUsername) {
+    public EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
         validateDateRange(request.getStartDateTime(), request.getEndDateTime());
         validatePrice(request.getIsFree(), request.getPrice());
@@ -100,27 +190,89 @@ public class EventServiceImpl implements EventService {
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
         eventMapper.updateEntity(event, request);
+        replaceEventInterests(event, request.getInterestIds());
 
         Event savedEvent = eventRepository.save(event);
+        eventEmbeddingService.indexEvent(savedEvent);
         return eventMapper.toResponse(savedEvent);
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = "eventById", key = "#id")
+    })
     @Transactional
-    public void deleteEvent(Long id, String currentUsername) {
+    public void deleteEvent(UUID id, String currentUsername) {
         User currentUser = findCurrentUser(currentUsername);
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
+        eventInterestRepository.deleteByEvent_Id(event.getId());
         groupArchiveService.archiveGroupsForEvent(event.getId());
         event.markAsDeleted();
         eventRepository.save(event);
     }
 
+    private void replaceEventInterests(Event event, List<UUID> interestIds) {
+        List<UUID> requestedInterestIds = interestIds == null ? List.of() : interestIds;
+        Set<UUID> uniqueInterestIds = new LinkedHashSet<>(requestedInterestIds);
+
+        if (uniqueInterestIds.size() != requestedInterestIds.size()) {
+            throw new IllegalArgumentException("Duplicate interests are not allowed.");
+        }
+
+        Map<UUID, Interest> interestsByPublicId = findInterestsByPublicId(uniqueInterestIds);
+
+        Set<EventInterest> newInterests = uniqueInterestIds.stream()
+                .map(interestId -> new EventInterest(event, interestsByPublicId.get(interestId)))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (event.getInterests() == null) {
+            event.setInterests(new LinkedHashSet<>());
+        }
+
+        event.getInterests().clear();
+        event.getInterests().addAll(newInterests);
+    }
+
+    private Map<UUID, Interest> findInterestsByPublicId(Set<UUID> publicIds) {
+        if (publicIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<UUID, Interest> interestsByPublicId = interestRepository.findByPublicIdInAndDeletedAtIsNull(publicIds)
+                .stream()
+                .collect(Collectors.toMap(Interest::getPublicId, Function.identity()));
+
+        if (interestsByPublicId.size() != publicIds.size()) {
+            throw new NoSuchElementException("One or more interests were not found.");
+        }
+
+        return interestsByPublicId;
+    }
+
+    private List<Event> fetchPublishedEventsWithInterestsInOrder(List<Event> events) {
+        if (events.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Event> eventsWithInterestsById = eventRepository.findPublishedByIdInWithInterests(eventIds)
+                .stream()
+                .collect(Collectors.toMap(Event::getId, Function.identity()));
+
+        return eventIds.stream()
+                .map(eventsWithInterestsById::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     private User findCurrentUser(String currentUsername) {
         if (currentUsername == null || currentUsername.isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED,
-                    "Authentication is required");
+            throw new UnauthorizedException("Authentication is required");
         }
 
         return userRepository.findByEmailAndDeletedAtIsNull(currentUsername)
@@ -136,18 +288,16 @@ public class EventServiceImpl implements EventService {
             return;
         }
 
-        throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.FORBIDDEN,
-                "Only the event owner or an admin can modify this event");
+        throw new ForbiddenAccessException("Only the event owner or an admin can modify this event");
     }
 
-    private Event findActiveEventById(Long id) {
+    private Event findActiveEventById(UUID id) {
         return eventRepository.findOne(
-                Specification.where(notDeleted()).and(hasId(id))
+                Specification.where(notDeleted()).and(hasPublicId(id))
         ).orElseThrow(() -> new NoSuchElementException("Event not found with id: " + id));
     }
 
-    private void validateDateRange(java.time.LocalDateTime startDateTime, java.time.LocalDateTime endDateTime) {
+    private void validateDateRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         if (!endDateTime.isAfter(startDateTime)) {
             throw new IllegalArgumentException("End date and time must be after start date and time");
         }
@@ -204,8 +354,8 @@ public class EventServiceImpl implements EventService {
                 criteriaBuilder.equal(root.get("startDateTime"), startDateTime);
     }
 
-    private Specification<Event> hasId(Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+    private Specification<Event> hasPublicId(UUID id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("publicId"), id);
     }
 
     private Specification<Event> notDeleted() {

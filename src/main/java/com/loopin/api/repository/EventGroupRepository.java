@@ -7,10 +7,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface EventGroupRepository extends JpaRepository<EventGroup, Long> {
 
     List<EventGroup> findByEventId(Long eventId);
 
     List<EventGroup> findByEventIdAndStatusIn(Long eventId, Collection<GroupStatus> statuses);
+
+    Optional<EventGroup> findByPublicId(UUID publicId);
+
+    boolean existsByPublicId(UUID publicId);
 }

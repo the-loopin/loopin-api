@@ -1,0 +1,46 @@
+package com.loopin.api.dto.user.request;
+
+import com.loopin.api.auth.enums.Role;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class UpdateUserRoleRequestTest {
+
+    private static Validator validator;
+
+    @BeforeAll
+    static void setUp() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
+    }
+
+    @Test
+    void role_Null_ViolatesNotNullConstraint() {
+        UpdateUserRoleRequest request = new UpdateUserRoleRequest();
+        request.setRole(null);
+
+        Set<ConstraintViolation<UpdateUserRoleRequest>> violations = validator.validate(request);
+
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("role")));
+    }
+
+    @Test
+    void validRequest_NoViolations() {
+        UpdateUserRoleRequest request = new UpdateUserRoleRequest();
+        request.setRole(Role.ADMIN);
+
+        Set<ConstraintViolation<UpdateUserRoleRequest>> violations = validator.validate(request);
+
+        assertTrue(violations.isEmpty());
+    }
+}

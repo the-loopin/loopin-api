@@ -1,0 +1,15 @@
+meta {
+  name: Delete Event
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{base_url}}/events/{{event_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}

@@ -1,0 +1,103 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-interests
+      author: loopin
+      changes:
+        - createTable:
+            tableName: interests
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_interests, nullable: false } }
+              - column: { name: public_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: name, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: slug, type: VARCHAR(140), constraints: { nullable: false } }
+              - column: { name: category, type: VARCHAR(80) }
+        - addUniqueConstraint:
+            tableName: interests
+            columnNames: public_id
+            constraintName: uk_interests_public_id
+        - addUniqueConstraint:
+            tableName: interests
+            columnNames: slug
+            constraintName: uk_interests_slug
+        - createIndex:
+            tableName: interests
+            indexName: idx_interests_category
+            columns:
+              - column:
+                  name: category
+      rollback:
+        - dropTable:
+            tableName: interests
+
+  - changeSet:
+      id: 007-create-user-interests
+      author: loopin
+      changes:
+        - createTable:
+            tableName: user_interests
+            columns:
+              - column: { name: user_id, type: BIGINT, constraints: { primaryKey: true, primaryKeyName: pk_user_interests, nullable: false } }
+              - column: { name: interest_id, type: BIGINT, constraints: { primaryKey: true, primaryKeyName: pk_user_interests, nullable: false } }
+              - column: { name: weight, type: "DECIMAL(5, 2)", defaultValueNumeric: 1.00, constraints: { nullable: false } }
+              - column: { name: source, type: VARCHAR(50), defaultValue: USER, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: user_interests
+            baseColumnNames: user_id
+            constraintName: fk_user_interests_user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: user_interests
+            baseColumnNames: interest_id
+            constraintName: fk_user_interests_interest_id
+            referencedTableName: interests
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: user_interests
+            indexName: idx_user_interests_interest_id
+            columns:
+              - column:
+                  name: interest_id
+      rollback:
+        - dropTable:
+            tableName: user_interests
+
+  - changeSet:
+      id: 007-create-event-interests
+      author: loopin
+      changes:
+        - createTable:
+            tableName: event_interests
+            columns:
+              - column: { name: event_id, type: BIGINT, constraints: { primaryKey: true, primaryKeyName: pk_event_interests, nullable: false } }
+              - column: { name: interest_id, type: BIGINT, constraints: { primaryKey: true, primaryKeyName: pk_event_interests, nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: event_interests
+            baseColumnNames: event_id
+            constraintName: fk_event_interests_event_id
+            referencedTableName: events
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: event_interests
+            baseColumnNames: interest_id
+            constraintName: fk_event_interests_interest_id
+            referencedTableName: interests
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: event_interests
+            indexName: idx_event_interests_interest_id
+            columns:
+              - column:
+                  name: interest_id
+      rollback:
+        - dropTable:
+            tableName: event_interests

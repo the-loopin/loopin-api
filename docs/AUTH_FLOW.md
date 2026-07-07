@@ -4,7 +4,7 @@ Loopin uses stateless token-based authentication. Users authenticate once and re
 
 ---
 
-## 🔄 Authentication Sequence Diagram
+## Authentication Sequence Diagram
 
 The diagram below illustrates the flow of authentication and resource access:
 
@@ -32,7 +32,7 @@ sequenceDiagram
 
 ---
 
-## 🔑 Authentication Mechanisms
+## Authentication Mechanisms
 
 Loopin supports two methods of authentication:
 
@@ -50,7 +50,7 @@ Loopin supports two methods of authentication:
 
 ---
 
-## 🛡️ JWT Request Interception Lifecycle
+##  JWT Request Interception Lifecycle
 
 For every HTTP request targeting a protected route, the request passes through the Spring Security Filter Chain:
 

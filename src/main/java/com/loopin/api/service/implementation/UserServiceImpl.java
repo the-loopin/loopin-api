@@ -6,6 +6,7 @@ import com.loopin.api.dto.user.response.UserResponse;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.mapper.UserMapper;
+import com.loopin.api.repository.UserInterestRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.UserService;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserInterestRepository userInterestRepository;
     private final UserMapper userMapper;
 
     @Override
@@ -52,8 +55,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserById(Long id) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
+    public UserResponse getUserById(UUID id) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         return userMapper.toResponse(user);
     }
@@ -68,8 +71,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateUserRole(Long id, Role role) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
+    public UserResponse updateUserRole(UUID id, Role role) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         user.setRole(role);
         User updatedUser = userRepository.save(user);
@@ -78,9 +81,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteUser(Long id) {
-        User user = userRepository.findByIdAndDeletedAtIsNull(id)
+    public void deleteUser(UUID id) {
+        User user = userRepository.findByPublicIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
+        userInterestRepository.deleteByUser_Id(user.getId());
         user.markAsDeleted();
         userRepository.save(user);
     }

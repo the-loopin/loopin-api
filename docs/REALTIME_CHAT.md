@@ -36,7 +36,7 @@ sequenceDiagram
 ### 1. Connection & Handshake
 * **Endpoint:** WebSocket requests target `/ws` (or `/chat`).
 * **Authentication:** Since standard WebSocket handshakes do not natively support customized authentication headers, the token is passed either:
-  1. As a query parameter in the handshake URL: `/ws?token=ey...`
+  1. As a query parameter in the handshake URL: `/ws?token=<token>`
   2. Inside the connection headers of the **STOMP** framework (e.g., `passcode` or custom `Authorization` field).
 * **Handshake Interceptor:** The backend extracts the token during the websocket handshake, validates it, and assigns the user identity to the connection session.
 
