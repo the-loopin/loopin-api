@@ -33,6 +33,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
+    private final GroupArchiveService groupArchiveService;
 
     @Override
     @Transactional(readOnly = true)
@@ -110,6 +111,7 @@ public class EventServiceImpl implements EventService {
         User currentUser = findCurrentUser(currentUsername);
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
+        groupArchiveService.archiveGroupsForEvent(event.getId());
         event.markAsDeleted();
         eventRepository.save(event);
     }
