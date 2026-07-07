@@ -133,7 +133,6 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
-        exception.printStackTrace();
         ErrorResponse response = buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Unexpected server error",
