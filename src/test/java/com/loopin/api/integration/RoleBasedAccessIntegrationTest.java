@@ -16,18 +16,13 @@ import com.loopin.api.dto.user.request.UpdateUserRoleRequest;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
@@ -40,10 +35,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class RoleBasedAccessIntegrationTest {
+class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,15 +53,6 @@ class RoleBasedAccessIntegrationTest {
     private String adminToken;
     private User testUser;
     private User adminUser;
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        @Primary
-        GoogleTokenVerifier googleTokenVerifier() {
-            return mock(GoogleTokenVerifier.class);
-        }
-    }
 
     @BeforeEach
     void setUp() throws Exception {
