@@ -1,0 +1,25 @@
+meta {
+  name: Create Join Request
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/groups/{{group_id}}/join-requests
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "message": "I would like to join and can arrive on time."
+  }
+}
