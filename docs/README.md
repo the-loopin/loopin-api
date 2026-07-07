@@ -9,28 +9,28 @@ This directory contains the developer documentation for the Loopin API.
 ##  Table of Contents
 
 * **System Design & Flowcharts**
-  * [System Architecture](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ARCHITECTURE.md) - Layered architecture, rate limiting, and component block diagrams.
-  * [Authentication Flow](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/AUTH_FLOW.md) - Sequence diagrams detailing JWT authentication & Google OAuth.
-  * [Real-Time Chat](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/REALTIME_CHAT.md) - WebSocket gateway protocol, message persistence, and broadcast sequence.
-  * [Product Logic & User Flows](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/PRODUCT_LOGIC.md) - Logical flowcharts illustrating event discovery, group join approval, and coordination.
+  * [System Architecture](ARCHITECTURE.md) - Layered architecture, rate limiting, and component block diagrams.
+  * [Authentication Flow](AUTH_FLOW.md) - Sequence diagrams detailing JWT authentication & Google OAuth.
+  * [Real-Time Chat](REALTIME_CHAT.md) - WebSocket gateway protocol, message persistence, and broadcast sequence.
+  * [Product Logic & User Flows](PRODUCT_LOGIC.md) - Logical flowcharts illustrating event discovery, group join approval, and coordination.
 
 * **Configuration & Reference**
-  * [Database Design & Schema](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/DATABASE.md) - Entity Relationship (ER) diagram, table descriptions, indices, and constraints.
-  * [Environment Configuration](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ENVIRONMENT.md) - Environment variables checklist for local, staging, and production environments.
-  * [API Endpoint Reference](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/API_OVERVIEW.md) - Comprehensive API specifications, request payloads, and response structures.
-  * [Security Model](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/SECURITY.md) - Security configuration, stateless authentication, role authorization, and moderation filter.
+  * [Database Design & Schema](DATABASE.md) - Entity Relationship (ER) diagram, table descriptions, indices, and constraints.
+  * [Environment Configuration](ENVIRONMENT.md) - Environment variables checklist for local, staging, and production environments.
+  * [API Endpoint Reference](API_OVERVIEW.md) - Comprehensive API specifications, request payloads, and response structures.
+  * [Security Model](SECURITY.md) - Security configuration, stateless authentication, role authorization, and moderation filter.
 
 * **Lifecycle & Operations**
-  * [Deployment Guide](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/DEPLOYMENT.md) - CI/CD pipeline and Cloud Run instructions.
-  * [Docker and Local Runtime](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/DOCKER.md) - Dockerfile, Compose, local commands, and runtime environment variables.
-  * [Troubleshooting Reference](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/TROUBLESHOOTING.md) - Common run-time errors, Liquibase lock management, and connection issues.
-  * [Project Roadmap](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ROADMAP.md) - Short-term and long-term features roadmap.
+  * [Deployment Guide](DEPLOYMENT.md) - CI/CD pipeline and Cloud Run instructions.
+  * [Docker and Local Runtime](DOCKER.md) - Dockerfile, Compose, local commands, and runtime environment variables.
+  * [Troubleshooting Reference](TROUBLESHOOTING.md) - Common run-time errors, Liquibase lock management, and connection issues.
+  * [Project Roadmap](ROADMAP.md) - Short-term and long-term features roadmap.
 
 * **Architectural Decisions (ADR)**
-  * [ADR 0001: Use Java 21](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ADR/0001-use-java-21.md)
-  * [ADR 0002: Use Spring Boot 4.x](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ADR/0002-use-spring-boot.md)
-  * [ADR 0003: Use PostgreSQL + Liquibase](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ADR/0003-use-postgresql-liquibase.md)
-  * [ADR 0004: Use JWT Stateless Auth](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ADR/0004-use-jwt-auth.md)
+  * [ADR 0001: Use Java 21](ADR/0001-use-java-21.md)
+  * [ADR 0002: Use Spring Boot 4.x](ADR/0002-use-spring-boot.md)
+  * [ADR 0003: Use PostgreSQL + Liquibase](ADR/0003-use-postgresql-liquibase.md)
+  * [ADR 0004: Use JWT Stateless Auth](ADR/0004-use-jwt-auth.md)
 
 ---
 
@@ -61,7 +61,7 @@ Clone the repository and copy the environment template to create your `.env` fil
 ```bash
 cp .env.example .env
 ```
-Open `.env` and fill in the required variables (database credentials, JWT secrets, etc.). Refer to [Environment Configuration](file:///c:/Users/Guven%20Servis/Desktop/finale/loopin-api/docs/ENVIRONMENT.md) for more details.
+Open `.env` and fill in the required variables (database credentials, JWT secrets, etc.). Refer to [Environment Configuration](ENVIRONMENT.md) for more details.
 
 ### 3. Spin up Infrastructure
 Launch PostgreSQL, Redis, and the API using Docker Compose:
