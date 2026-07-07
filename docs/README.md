@@ -32,6 +32,12 @@ This directory contains the developer documentation for the Loopin API.
   * [ADR 0002: Use Spring Boot 4.x](ADR/0002-use-spring-boot.md)
   * [ADR 0003: Use PostgreSQL + Liquibase](ADR/0003-use-postgresql-liquibase.md)
   * [ADR 0004: Use JWT Stateless Auth](ADR/0004-use-jwt-auth.md)
+  * [ADR 0005: Use Layered Service Architecture](ADR/0005-use-layered-service-architecture.md)
+  * [ADR 0006: Use Public UUID Identifiers](ADR/0006-use-public-uuid-identifiers.md)
+  * [ADR 0007: Use Bucket4j Rate Limiting](ADR/0007-use-bucket4j-rate-limiting.md)
+  * [ADR 0008: Use REST Plus STOMP WebSocket Chat](ADR/0008-use-rest-plus-stomp-chat.md)
+  * [ADR 0009: Use Environment-Driven Container Deployment](ADR/0009-use-environment-driven-container-deployment.md)
+  * [ADR 0010: Use Async AI Recommendation Boundary](ADR/0010-use-async-ai-recommendation-boundary.md)
 
 ---
 
