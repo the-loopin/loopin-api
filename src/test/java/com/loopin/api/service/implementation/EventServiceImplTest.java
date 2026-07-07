@@ -4,16 +4,19 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
+import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.event.request.EventCreateRequest;
 import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.User;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.recommendation.event.EventEmbeddingService;
 import com.loopin.api.repository.EventRepository;
+import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.UserRepository;
 
 import com.loopin.api.repository.InterestRepository;
@@ -55,6 +58,7 @@ class EventServiceImplTest {
     private EventRepository eventRepository;
     private EventMapper eventMapper;
     private UserRepository userRepository;
+    private EventGroupRepository eventGroupRepository;
     private EventEmbeddingService eventEmbeddingService;
     private InterestRepository interestRepository;
     private EventInterestRepository eventInterestRepository;
@@ -69,6 +73,7 @@ class EventServiceImplTest {
         eventRepository = mock(EventRepository.class);
         eventMapper = mock(EventMapper.class);
         userRepository = mock(UserRepository.class);
+        eventGroupRepository = mock(EventGroupRepository.class);
         eventEmbeddingService = mock(EventEmbeddingService.class);
         interestRepository = mock(InterestRepository.class);
         eventInterestRepository = mock(EventInterestRepository.class);
@@ -80,6 +85,7 @@ class EventServiceImplTest {
                 eventRepository,
                 eventMapper,
                 userRepository,
+                eventGroupRepository,
                 interestRepository,
                 eventInterestRepository,
                 eventEmbeddingService,
@@ -229,11 +235,18 @@ class EventServiceImplTest {
         when(userRepository.findByEmailAndDeletedAtIsNull(USERNAME)).thenReturn(Optional.of(user));
 
         Event event = event(10L, EVENT_ID);
+        EventGroup group = new EventGroup();
+        group.setStatus(GroupStatus.OPEN);
+
         event.setOwner(user);
         when(eventRepository.findOne(any(Specification.class))).thenReturn(Optional.of(event));
+        when(eventGroupRepository.findByEventIdAndStatusNot(event.getId(), GroupStatus.ARCHIVED))
+                .thenReturn(List.of(group));
 
         eventService.deleteEvent(EVENT_ID, USERNAME);
 
+        assertEquals(GroupStatus.ARCHIVED, group.getStatus());
+        verify(eventGroupRepository).save(group);
         verify(eventRepository).save(event);
         // The event object's internal state for deletedAt should be updated via markAsDeleted()
         // Here we just verify the save call on the modified object
