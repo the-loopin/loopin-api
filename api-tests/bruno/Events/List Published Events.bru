@@ -1,0 +1,11 @@
+meta {
+  name: List Published Events
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/events?city=Baku&type=EVENT&category=TECH&isFree=true&page=0&size=10
+  body: none
+  auth: none
+}
