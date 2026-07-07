@@ -1,0 +1,15 @@
+meta {
+  name: Reject Join Request
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base_url}}/groups/{{group_id}}/join-requests/{{join_request_id}}/reject
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
