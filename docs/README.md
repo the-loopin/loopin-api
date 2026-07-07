@@ -18,6 +18,7 @@ This directory contains the developer documentation for the Loopin API.
   * [Database Design & Schema](DATABASE.md) - Entity Relationship (ER) diagram, table descriptions, indices, and constraints.
   * [Environment Configuration](ENVIRONMENT.md) - Environment variables checklist for local, staging, and production environments.
   * [API Endpoint Reference](API_OVERVIEW.md) - Comprehensive API specifications, request payloads, and response structures.
+  * [API Testing With Bruno](API_TESTING.md) - Git-friendly Bruno collection setup for local and staging backend validation.
   * [Security Model](SECURITY.md) - Security configuration, stateless authentication, role authorization, and moderation filter.
 
 * **Lifecycle & Operations**
@@ -85,10 +86,11 @@ The application will start, by default listening on `http://localhost:8080/api`.
 ---
 
 ##  API Testing
-API endpoints can be tested using the **Bruno** API client. The test collections are located in `/api-tests/bruno`.
+API endpoints can be tested using the **Bruno** API client. The collection is located in `/api-tests/bruno`, with local and staging example environments. See [API Testing With Bruno](API_TESTING.md) for setup, authentication workflow, and safe Git hygiene.
 1. Download and install [Bruno](https://www.usebruno.com/).
 2. Import the collection folder into Bruno.
 3. Select the `Local` environment configuration.
-4. Execute queries.
+4. Add local-only values for `auth_token`, `google_id_token`, and resource IDs.
+5. Execute requests.
 
 
