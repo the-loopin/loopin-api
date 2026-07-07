@@ -1,4 +1,4 @@
-﻿# Loopin API - Documentation Hub
+# Loopin API - Documentation Hub
 
 Loopin is a high-performance backend API built with Java 21 and Spring Boot, designed for discovering interest-based local events, joining event groups, and coordinating with like-minded people through real-time group chat communication.
 
@@ -43,6 +43,7 @@ This directory contains the developer documentation for the Loopin API.
 * **Rate Limiting:** Bucket4j + Lettuce (Redis)
 * **Security:** JSON Web Tokens (JWT) + Google OAuth integration
 * **Containerization:** Docker & Docker Compose
+* **Performance & Query Optimization:** Batch-fetching (`left join fetch`) for event-interest associations to prevent N+1 query patterns; Spring Cache with Redis provider.
 
 ---
 
