@@ -42,4 +42,26 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
             where event.id in :ids
             """)
     List<Event> findAllByIdWithInterests(@Param("ids") List<Long> ids);
+
+    @Query("""
+            select distinct event
+            from Event event
+            left join fetch event.interests ei
+            left join fetch ei.interest
+            where event.id in :ids
+              and event.status = com.loopin.api.common.enums.EventStatus.PUBLISHED
+              and event.deletedAt is null
+            """)
+    List<Event> findPublishedByIdInWithInterests(@Param("ids") List<Long> ids);
+
+    @Query("""
+            select distinct event
+            from Event event
+            left join fetch event.interests ei
+            left join fetch ei.interest
+            where event.publicId = :publicId
+              and event.status = com.loopin.api.common.enums.EventStatus.PUBLISHED
+              and event.deletedAt is null
+            """)
+    Optional<Event> findPublishedByPublicIdWithInterests(@Param("publicId") UUID publicId);
 }
