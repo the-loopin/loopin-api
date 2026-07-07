@@ -22,18 +22,13 @@ import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserReportRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
@@ -49,10 +44,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class ReportFlowIntegrationTest {
+class ReportFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -86,15 +78,6 @@ class ReportFlowIntegrationTest {
 
     private String eventId;
     private String groupId;
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        @Primary
-        GoogleTokenVerifier googleTokenVerifier() {
-            return mock(GoogleTokenVerifier.class);
-        }
-    }
 
     @BeforeEach
     void setUp() throws Exception {
