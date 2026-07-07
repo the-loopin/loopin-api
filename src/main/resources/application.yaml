@@ -85,6 +85,10 @@ cors:
 loopin:
   seed:
     enabled: ${SEED_DATA_ENABLED:false}
+  group-retention:
+    archived-cleanup-days: ${GROUP_ARCHIVE_RETENTION_DAYS:30}
+    cleanup-fixed-delay-ms: ${GROUP_ARCHIVE_CLEANUP_FIXED_DELAY_MS:86400000}
+    cleanup-initial-delay-ms: ${GROUP_ARCHIVE_CLEANUP_INITIAL_DELAY_MS:300000}
   ai:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
     timeout: ${LOOPIN_AI_TIMEOUT:2s}
