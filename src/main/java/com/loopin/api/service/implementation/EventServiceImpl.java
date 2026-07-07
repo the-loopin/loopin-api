@@ -1,11 +1,13 @@
 package com.loopin.api.service.implementation;
 
 import com.loopin.api.auth.enums.Role;
+import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.dto.event.request.EventCreateRequest;
 import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
 import com.loopin.api.entity.EventInterest;
+import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.Interest;
 import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.EventCategory;
@@ -20,6 +22,7 @@ import com.loopin.api.recommendation.event.EventCandidate;
 import com.loopin.api.recommendation.event.EventEmbeddingRepository;
 import com.loopin.api.recommendation.user.UserEmbeddingRepository;
 import com.loopin.api.repository.EventInterestRepository;
+import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.UserRepository;
@@ -60,6 +63,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
+    private final EventGroupRepository eventGroupRepository;
     private final InterestRepository interestRepository;
     private final EventInterestRepository eventInterestRepository;
     private final EventEmbeddingService eventEmbeddingService;
@@ -208,8 +212,17 @@ public class EventServiceImpl implements EventService {
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
         eventInterestRepository.deleteByEvent_Id(event.getId());
+        archiveGroupsForEvent(event.getId());
         event.markAsDeleted();
         eventRepository.save(event);
+    }
+
+    private void archiveGroupsForEvent(Long eventId) {
+        List<EventGroup> groups = eventGroupRepository.findByEventIdAndStatusNot(eventId, GroupStatus.ARCHIVED);
+        groups.forEach(group -> {
+            group.setStatus(GroupStatus.ARCHIVED);
+            eventGroupRepository.save(group);
+        });
     }
 
     private void replaceEventInterests(Event event, List<UUID> interestIds) {
