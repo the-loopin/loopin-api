@@ -1,0 +1,25 @@
+meta {
+  name: Update Group Status
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/groups/{{group_id}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "status": "OPEN"
+  }
+}
