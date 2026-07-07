@@ -242,20 +242,20 @@ class EventCrudSearchIntegrationTest {
         // Filter by category=TECH and city=Dubai
         mockMvc.perform(get("/events?category=TECH&city=Dubai"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", is(2))) // "Tech Meetup Dubai" and "Tech Activity Dubai"
-                .andExpect(jsonPath("$[*].title", containsInAnyOrder("Tech Meetup Dubai", "Tech Activity Dubai")));
+                .andExpect(jsonPath("$.content.length()", is(2))) // "Tech Meetup Dubai" and "Tech Activity Dubai"
+                .andExpect(jsonPath("$.content[*].title", containsInAnyOrder("Tech Meetup Dubai", "Tech Activity Dubai")));
 
         // Filter by type=EVENT, category=TECH, city=Dubai
         mockMvc.perform(get("/events?type=EVENT&category=TECH&city=Dubai"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", is(1)))
-                .andExpect(jsonPath("$[0].title", is("Tech Meetup Dubai")));
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.content[0].title", is("Tech Meetup Dubai")));
 
         // Filter by search string "startup"
         mockMvc.perform(get("/events?search=startup"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", is(1)))
-                .andExpect(jsonPath("$[0].title", is("Startup Pitch Dubai")));
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.content[0].title", is("Startup Pitch Dubai")));
     }
 
     @Test
@@ -264,7 +264,7 @@ class EventCrudSearchIntegrationTest {
 
         mockMvc.perform(get("/events?city=Tokyo"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", is(0)));
+                .andExpect(jsonPath("$.content.length()", is(0)));
     }
 
     /**

@@ -142,8 +142,8 @@ class EventServiceImplTest {
         when(eventRepository.exists(any(Specification.class))).thenReturn(false);
 
         Event mappedEvent = new Event();
-        when(eventMapper.toEntity(request)).thenReturn(mappedEvent);
-        when(eventRepository.save(mappedEvent)).thenReturn(mappedEvent);
+        when(eventMapper.toEntity(any(EventCreateRequest.class))).thenReturn(mappedEvent);
+        when(eventRepository.saveAndFlush(mappedEvent)).thenReturn(mappedEvent);
 
         EventResponse realResponse = eventResponse(EVENT_ID);
         when(eventMapper.toResponse(mappedEvent)).thenReturn(realResponse);
@@ -151,7 +151,7 @@ class EventServiceImplTest {
         EventResponse result = eventService.createEvent(request, USERNAME);
 
         assertEquals(user, mappedEvent.getOwner());
-        verify(eventRepository).save(mappedEvent);
+        verify(eventRepository).saveAndFlush(mappedEvent);
         verify(eventEmbeddingService).indexEvent(mappedEvent);
         assertEquals(realResponse, result);
         assertEquals(realResponse.getTitle(), result.getTitle());
@@ -219,7 +219,7 @@ class EventServiceImplTest {
         request.setIsFree(true);
         request.setPrice(BigDecimal.ZERO);
 
-        assertThrows(ResponseStatusException.class, () -> eventService.updateEvent(EVENT_ID, request, USERNAME));
+        assertThrows(com.loopin.api.common.exception.ForbiddenAccessException.class, () -> eventService.updateEvent(EVENT_ID, request, USERNAME));
     }
 
     @Test

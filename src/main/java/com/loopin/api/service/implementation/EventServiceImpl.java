@@ -217,17 +217,16 @@ public class EventServiceImpl implements EventService {
 
         Map<UUID, Interest> interestsByPublicId = findInterestsByPublicId(uniqueInterestIds);
 
-        if (event.getId() != null) {
-            eventInterestRepository.deleteByEvent_Id(event.getId());
-            eventInterestRepository.flush();
-        }
-
-        List<EventInterest> eventInterests = requestedInterestIds.stream()
+        List<EventInterest> newInterests = requestedInterestIds.stream()
                 .map(interestId -> new EventInterest(event, interestsByPublicId.get(interestId)))
                 .toList();
 
-        List<EventInterest> savedEventInterests = eventInterestRepository.saveAll(eventInterests);
-        event.setInterests(new LinkedHashSet<>(savedEventInterests));
+        if (event.getInterests() == null) {
+            event.setInterests(new LinkedHashSet<>(newInterests));
+        } else {
+            event.getInterests().clear();
+            event.getInterests().addAll(newInterests);
+        }
     }
 
     private Map<UUID, Interest> findInterestsByPublicId(Set<UUID> publicIds) {
