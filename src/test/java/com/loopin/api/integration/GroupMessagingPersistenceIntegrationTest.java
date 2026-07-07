@@ -227,7 +227,7 @@ class GroupMessagingPersistenceIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Only group members can access group messages")));
+                .andExpect(jsonPath("$.message", containsString("Only group members can access group messages")));
     }
 
     @Test
@@ -277,7 +277,7 @@ class GroupMessagingPersistenceIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("no longer allows messaging")));
+                .andExpect(jsonPath("$.message", containsString("no longer allows messaging")));
     }
 
     @Test
