@@ -4,7 +4,10 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
+import com.loopin.api.common.enums.GroupSizeType;
+import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.User;
 import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
@@ -226,6 +229,38 @@ class AdminControllerTest {
 
         Event cancelledEvent = eventRepository.findById(event.getId()).orElseThrow();
         assertEquals(EventStatus.CANCELLED, cancelledEvent.getStatus());
+    }
+
+    @Test
+    void deleteEvent_ArchivesLinkedGroups() throws Exception {
+        Event event = new Event();
+        event.setTitle("Event With Group");
+        event.setDescription("Desc");
+        event.setType(EventType.EVENT);
+        event.setCategory(EventCategory.TECH);
+        event.setCity("Baku");
+        event.setStartDateTime(LocalDateTime.now().plusDays(1));
+        event.setEndDateTime(LocalDateTime.now().plusDays(2));
+        event.setIsFree(true);
+        event.setOrganizerName("Org");
+        event.setStatus(EventStatus.PUBLISHED);
+        event = eventRepository.save(event);
+
+        EventGroup group = new EventGroup();
+        group.setEvent(event);
+        group.setAdmin(adminUser);
+        group.setTitle("Group to Archive");
+        group.setGroupSize(GroupSizeType.FOUR);
+        group.setMaxMembers(4);
+        group.setStatus(GroupStatus.OPEN);
+        group = eventGroupRepository.save(group);
+
+        mockMvc.perform(delete("/admin/events/" + event.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+
+        EventGroup archivedGroup = eventGroupRepository.findById(group.getId()).orElseThrow();
+        assertEquals(GroupStatus.ARCHIVED, archivedGroup.getStatus());
     }
 
     @Test
