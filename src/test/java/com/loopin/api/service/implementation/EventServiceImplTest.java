@@ -12,9 +12,19 @@ import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
 import com.loopin.api.entity.User;
 import com.loopin.api.mapper.EventMapper;
-import com.loopin.api.recommendation.EventEmbeddingService;
+import com.loopin.api.recommendation.event.EventEmbeddingService;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.UserRepository;
+
+import com.loopin.api.repository.InterestRepository;
+import com.loopin.api.repository.EventInterestRepository;
+import com.loopin.api.recommendation.user.UserEmbeddingRepository;
+import com.loopin.api.recommendation.event.EventEmbeddingRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import java.util.ArrayList;
+import com.loopin.api.dto.interest.InterestResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
@@ -46,6 +56,11 @@ class EventServiceImplTest {
     private EventMapper eventMapper;
     private UserRepository userRepository;
     private EventEmbeddingService eventEmbeddingService;
+    private InterestRepository interestRepository;
+    private EventInterestRepository eventInterestRepository;
+    private UserEmbeddingRepository userEmbeddingRepository;
+    private EventEmbeddingRepository eventEmbeddingRepository;
+
 
     private EventServiceImpl eventService;
 
@@ -55,26 +70,35 @@ class EventServiceImplTest {
         eventMapper = mock(EventMapper.class);
         userRepository = mock(UserRepository.class);
         eventEmbeddingService = mock(EventEmbeddingService.class);
+        interestRepository = mock(InterestRepository.class);
+        eventInterestRepository = mock(EventInterestRepository.class);
+        userEmbeddingRepository = mock(UserEmbeddingRepository.class);
+        eventEmbeddingRepository = mock(EventEmbeddingRepository.class);
+
 
         eventService = new EventServiceImpl(
                 eventRepository,
                 eventMapper,
                 userRepository,
-                eventEmbeddingService
+                interestRepository,
+                eventInterestRepository,
+                eventEmbeddingService,
+                userEmbeddingRepository,
+                eventEmbeddingRepository
         );
     }
 
     @Test
     void getPublishedEvents_Valid_ReturnsListOfEvents() {
         Event event = event(1L, EVENT_ID);
-        when(eventRepository.findAll(any(Specification.class))).thenReturn(List.of(event));
+        when(eventRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(event)));
         
         EventResponse realResponse = eventResponse(EVENT_ID);
         when(eventMapper.toResponse(event)).thenReturn(realResponse);
 
         List<EventResponse> result = eventService.getPublishedEvents(
-                EventType.EVENT, EventCategory.TECH, "City", true, "Search", LocalDate.now(), LocalDate.now().plusDays(1)
-        );
+                EventType.EVENT, EventCategory.TECH, "City", true, "Search", LocalDate.now(), LocalDate.now().plusDays(1), Pageable.unpaged()
+        ).getContent();
 
         assertEquals(1, result.size());
         assertEquals(realResponse, result.get(0));
@@ -234,7 +258,7 @@ class EventServiceImplTest {
         return new EventResponse(
                 id, "Title", "Desc", EventType.EVENT, EventCategory.TECH, "City", "Address",
                 LocalDateTime.now(), LocalDateTime.now().plusDays(1), true, BigDecimal.ZERO,
-                "Organizer", "Image", EventStatus.PUBLISHED, LocalDateTime.now(), LocalDateTime.now()
+                "Organizer", "Image", EventStatus.PUBLISHED, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now()
         );
     }
 }

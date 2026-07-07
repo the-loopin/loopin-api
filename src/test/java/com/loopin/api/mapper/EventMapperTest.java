@@ -8,6 +8,7 @@ import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
 import org.junit.jupiter.api.BeforeEach;
+import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ class EventMapperTest {
 
     @BeforeEach
     void setUp() {
-        eventMapper = new EventMapper();
+        eventMapper = Mappers.getMapper(EventMapper.class);
     }
 
     @Test

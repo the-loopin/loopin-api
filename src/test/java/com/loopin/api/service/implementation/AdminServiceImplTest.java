@@ -238,7 +238,7 @@ class AdminServiceImplTest {
                 com.loopin.api.common.enums.EventCategory.TECH, "City", "Address",
                 java.time.LocalDateTime.now(), java.time.LocalDateTime.now().plusDays(1), true, 
                 java.math.BigDecimal.ZERO, "Organizer", "Image", EventStatus.PUBLISHED, 
-                java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
+                new java.util.ArrayList<>(), java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
         );
     }
 }

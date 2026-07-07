@@ -7,6 +7,8 @@ import com.loopin.api.dto.user.response.UserResponse;
 import com.loopin.api.entity.User;
 import com.loopin.api.mapper.UserMapper;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.repository.UserInterestRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +30,8 @@ class UserServiceImplTest {
     private static final String EMAIL = "test@example.com";
 
     private UserRepository userRepository;
+    private UserInterestRepository userInterestRepository;
+
     private UserMapper userMapper;
 
     private UserServiceImpl userService;
@@ -35,8 +39,10 @@ class UserServiceImplTest {
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
+        userInterestRepository = mock(UserInterestRepository.class);
+
         userMapper = mock(UserMapper.class);
-        userService = new UserServiceImpl(userRepository, userMapper);
+        userService = new UserServiceImpl(userRepository, userInterestRepository, userMapper);
     }
 
     @Test

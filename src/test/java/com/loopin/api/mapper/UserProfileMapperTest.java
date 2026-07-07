@@ -5,6 +5,9 @@ import com.loopin.api.dto.userProfile.response.UserProfileResponse;
 import com.loopin.api.entity.User;
 import com.loopin.api.entity.UserProfile;
 import org.junit.jupiter.api.BeforeEach;
+import org.mapstruct.factory.Mappers;
+import org.mockito.Mockito;
+import com.loopin.api.mapper.InterestMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -18,7 +21,7 @@ class UserProfileMapperTest {
 
     @BeforeEach
     void setUp() {
-        userProfileMapper = new UserProfileMapper();
+        userProfileMapper = new UserProfileMapper(org.mockito.Mockito.mock(com.loopin.api.mapper.InterestMapper.class));
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.loopin.api.dto.user.response.UserResponse;
 import com.loopin.api.entity.User;
 import com.loopin.api.auth.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
+import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -19,7 +20,7 @@ class UserMapperTest {
 
     @BeforeEach
     void setUp() {
-        userMapper = new UserMapper();
+        userMapper = Mappers.getMapper(UserMapper.class);
     }
 
     @Test
