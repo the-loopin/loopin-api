@@ -215,24 +215,23 @@ public class EventServiceImpl implements EventService {
     private void replaceEventInterests(Event event, List<UUID> interestIds) {
         List<UUID> requestedInterestIds = interestIds == null ? List.of() : interestIds;
         Set<UUID> uniqueInterestIds = new LinkedHashSet<>(requestedInterestIds);
-
+    
         if (uniqueInterestIds.size() != requestedInterestIds.size()) {
             throw new IllegalArgumentException("Duplicate interests are not allowed.");
         }
-
+    
         Map<UUID, Interest> interestsByPublicId = findInterestsByPublicId(uniqueInterestIds);
-
-        if (event.getId() != null) {
-            eventInterestRepository.deleteByEvent_Id(event.getId());
-            eventInterestRepository.flush();
-        }
-
-        List<EventInterest> eventInterests = requestedInterestIds.stream()
+    
+        Set<EventInterest> newInterests = uniqueInterestIds.stream()
                 .map(interestId -> new EventInterest(event, interestsByPublicId.get(interestId)))
-                .toList();
-
-        List<EventInterest> savedEventInterests = eventInterestRepository.saveAll(eventInterests);
-        event.setInterests(new LinkedHashSet<>(savedEventInterests));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    
+        if (event.getInterests() == null) {
+            event.setInterests(new LinkedHashSet<>());
+        }
+    
+        event.getInterests().clear();
+        event.getInterests().addAll(newInterests);
     }
 
     private Map<UUID, Interest> findInterestsByPublicId(Set<UUID> publicIds) {
