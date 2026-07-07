@@ -92,9 +92,10 @@ class EventServiceImplTest {
     void getPublishedEvents_Valid_ReturnsListOfEvents() {
         Event event = event(1L, EVENT_ID);
         when(eventRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(event)));
+        when(eventRepository.findPublishedByIdInWithInterests(any())).thenReturn(List.of(event));
         
         EventResponse realResponse = eventResponse(EVENT_ID);
-        when(eventMapper.toResponse(event)).thenReturn(realResponse);
+        when(eventMapper.toResponse(any())).thenReturn(realResponse);
 
         List<EventResponse> result = eventService.getPublishedEvents(
                 EventType.EVENT, EventCategory.TECH, "City", true, "Search", LocalDate.now(), LocalDate.now().plusDays(1), Pageable.unpaged()
@@ -108,10 +109,10 @@ class EventServiceImplTest {
     @Test
     void getPublishedEventById_Found_ReturnsEvent() {
         Event event = event(1L, EVENT_ID);
-        when(eventRepository.findOne(any(Specification.class))).thenReturn(Optional.of(event));
+        when(eventRepository.findPublishedByPublicIdWithInterests(any())).thenReturn(Optional.of(event));
         
         EventResponse realResponse = eventResponse(EVENT_ID);
-        when(eventMapper.toResponse(event)).thenReturn(realResponse);
+        when(eventMapper.toResponse(any())).thenReturn(realResponse);
 
         EventResponse result = eventService.getPublishedEventById(EVENT_ID);
 
@@ -121,7 +122,7 @@ class EventServiceImplTest {
 
     @Test
     void getPublishedEventById_NotFound_ThrowsNoSuchElementException() {
-        when(eventRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
+        when(eventRepository.findPublishedByPublicIdWithInterests(any())).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> eventService.getPublishedEventById(EVENT_ID));
     }
@@ -192,7 +193,7 @@ class EventServiceImplTest {
 
         when(eventRepository.save(event)).thenReturn(event);
         EventResponse realResponse = eventResponse(EVENT_ID);
-        when(eventMapper.toResponse(event)).thenReturn(realResponse);
+        when(eventMapper.toResponse(any())).thenReturn(realResponse);
 
         EventResponse result = eventService.updateEvent(EVENT_ID, request, USERNAME);
 

@@ -31,6 +31,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -45,6 +46,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -91,19 +93,21 @@ public class EventServiceImpl implements EventService {
                 .and(startsOnOrAfter(startDate))
                 .and(startsOnOrBefore(endDate));
 
-        return eventRepository.findAll(specification, pageable)
-                .map(eventMapper::toResponse);
+        Page<Event> eventPage = eventRepository.findAll(specification, pageable);
+        List<EventResponse> responses = fetchPublishedEventsWithInterestsInOrder(eventPage.getContent())
+                .stream()
+                .map(eventMapper::toResponse)
+                .toList();
+
+        return new PageImpl<>(responses, pageable, eventPage.getTotalElements());
     }
 
     @Override
     @Cacheable(value = "eventById", key = "#id")
     @Transactional(readOnly = true)
     public EventResponse getPublishedEventById(UUID id) {
-        Event event = eventRepository.findOne(
-                Specification.where(notDeleted())
-                        .and(hasStatus(EventStatus.PUBLISHED))
-                        .and(hasPublicId(id))
-        ).orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
+        Event event = eventRepository.findPublishedByPublicIdWithInterests(id)
+                .orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
 
         return eventMapper.toResponse(event);
     }
@@ -123,14 +127,13 @@ public class EventServiceImpl implements EventService {
                         .map(EventCandidate::eventId)
                         .toList();
 
-                List<Event> events = eventRepository.findAllByIdWithInterests(eventIds);
-
-                Map<Long, Event> eventMap = events.stream()
+                List<Event> events = eventRepository.findPublishedByIdInWithInterests(eventIds);
+                Map<Long, Event> eventsById = events.stream()
                         .collect(Collectors.toMap(Event::getId, Function.identity()));
 
-                return candidates.stream()
-                        .map(candidate -> eventMap.get(candidate.eventId()))
-                        .filter(java.util.Objects::nonNull)
+                return eventIds.stream()
+                        .map(eventsById::get)
+                        .filter(Objects::nonNull)
                         .map(eventMapper::toResponse)
                         .toList();
             }
@@ -144,10 +147,12 @@ public class EventServiceImpl implements EventService {
                 .and((root, query, criteriaBuilder) ->
                         criteriaBuilder.greaterThanOrEqualTo(root.get("endDateTime"), LocalDateTime.now()));
 
-        return eventRepository.findAll(
+        Page<Event> fallbackPage = eventRepository.findAll(
                 specification,
                 PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"))
-        )
+        );
+
+        return fetchPublishedEventsWithInterestsInOrder(fallbackPage.getContent())
                 .stream()
                 .map(eventMapper::toResponse)
                 .toList();
@@ -243,6 +248,25 @@ public class EventServiceImpl implements EventService {
         }
 
         return interestsByPublicId;
+    }
+
+    private List<Event> fetchPublishedEventsWithInterestsInOrder(List<Event> events) {
+        if (events.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Event> eventsWithInterestsById = eventRepository.findPublishedByIdInWithInterests(eventIds)
+                .stream()
+                .collect(Collectors.toMap(Event::getId, Function.identity()));
+
+        return eventIds.stream()
+                .map(eventsWithInterestsById::get)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private User findCurrentUser(String currentUsername) {
