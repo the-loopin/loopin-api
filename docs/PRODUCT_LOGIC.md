@@ -22,9 +22,9 @@ flowchart LR
 ##  Core Business Rules
 
 ### 1. Events Discovery & Types
-* **Categories:** Events are cataloged by type (e.g., `TECH`, `MUSIC`, `SPORTS`, `ART`, `FOOD`, etc.).
+* **Categories:** Events are cataloged by category (for example `TECH`, `STARTUP`, `TRAVEL`, `SOCIAL`, `CREATIVE`, and `OTHER`) and by type (`EVENT` or `ACTIVITY`).
 * **Free vs. Paid:** Events can be free or paid. Paid events require explicit price parameters.
-* **Status:** Events can be `DRAFT`, `PUBLISHED`, or `CANCELLED`. Only `PUBLISHED` events are discoverable by regular users.
+* **Status:** Events can be `DRAFT`, `PUBLISHED`, `COMPLETED`, or `CANCELLED`. Only `PUBLISHED` events are discoverable by regular users.
 
 ### 2. Event Groups & Coordination
 * When a user wants to attend an event with others, they can either:
