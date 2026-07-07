@@ -1,4 +1,4 @@
-package com.loopin.api.recommendation;
+package com.loopin.api.recommendation.event;
 
 import com.loopin.api.entity.Event;
 import lombok.RequiredArgsConstructor;

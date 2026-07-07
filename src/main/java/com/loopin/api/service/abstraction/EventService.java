@@ -12,14 +12,15 @@ import java.util.UUID;
 
 public interface EventService {
 
-    List<EventResponse> getPublishedEvents(
+    org.springframework.data.domain.Page<EventResponse> getPublishedEvents(
             EventType type,
             EventCategory category,
             String city,
             Boolean isFree,
             String search,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            org.springframework.data.domain.Pageable pageable
     );
 
     EventResponse getPublishedEventById(UUID id);
@@ -29,4 +30,6 @@ public interface EventService {
     EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername);
 
     void deleteEvent(UUID id, String currentUsername);
+
+    List<EventResponse> getRecommendedEvents(String currentUsername, int limit);
 }

@@ -88,7 +88,15 @@ Authorization: Bearer <your_jwt_token>
     "id": "22222222-2222-4222-8222-222222222222",
     "name": "Alex Smith",
     "city": "San Francisco",
-    "bio": "Tech enthusiast and avid hiker."
+    "bio": "Tech enthusiast and avid hiker.",
+    "interests": [
+      {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "name": "Technology",
+        "slug": "technology",
+        "category": "Professional"
+      }
+    ]
   }
   ```
 
@@ -109,11 +117,55 @@ Authorization: Bearer <your_jwt_token>
     "id": "22222222-2222-4222-8222-222222222222",
     "name": "Alex Smith Jr.",
     "city": "Oakland",
-    "bio": "Event organizer & visual designer."
+    "bio": "Event organizer & visual designer.",
+    "interests": []
   }
   ```
 
-### 3. Get My Earned Badges
+### 3. Get My Interests
+* **Endpoint:** `GET /me/interests`
+* **Headers:** `Authorization: Bearer <token>`
+* **Success Response (200 OK):**
+  ```json
+  [
+    {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Technology",
+      "slug": "technology",
+      "category": "Professional"
+    }
+  ]
+  ```
+
+### 4. Update My Interests
+* **Endpoint:** `PUT /me/interests`
+* **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
+* **Request Body:**
+  ```json
+  {
+    "interests": [
+      {
+        "interestId": "33333333-3333-4333-8333-333333333333",
+        "weight": 1.00,
+        "source": "USER"
+      }
+    ]
+  }
+  ```
+* **Notes:** This request replaces the user's full interest set. Duplicate interest IDs are rejected.
+* **Success Response (200 OK):**
+  ```json
+  [
+    {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Technology",
+      "slug": "technology",
+      "category": "Professional"
+    }
+  ]
+  ```
+
+### 5. Get My Earned Badges
 * **Endpoint:** `GET /me/badges`
 * **Headers:** `Authorization: Bearer <token>`
 * **Success Response (200 OK):**
@@ -121,6 +173,25 @@ Authorization: Bearer <your_jwt_token>
   [
     "EARLY_ADOPTER",
     "GROUP_LEADER"
+  ]
+  ```
+
+---
+
+##  Interests
+
+### 1. List Interests
+* **Endpoint:** `GET /interests`
+* **Headers:** `Authorization: Bearer <token>`
+* **Success Response (200 OK):**
+  ```json
+  [
+    {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Technology",
+      "slug": "technology",
+      "category": "Professional"
+    }
   ]
   ```
 
@@ -154,7 +225,15 @@ Authorization: Bearer <your_jwt_token>
       "price": 25.00,
       "organizerName": "Oakland Sounds",
       "imageUrl": "https://picsum.photos/600",
-      "status": "PUBLISHED"
+      "status": "PUBLISHED",
+      "interests": [
+        {
+          "id": "33333333-3333-4333-8333-333333333333",
+          "name": "Technology",
+          "slug": "technology",
+          "category": "Professional"
+        }
+      ]
     }
   ]
   ```
@@ -176,16 +255,28 @@ Authorization: Bearer <your_jwt_token>
     "isFree": true,
     "price": 0.00,
     "organizerName": "Oakland Gamers Club",
-    "imageUrl": "https://picsum.photos/400"
+    "imageUrl": "https://picsum.photos/400",
+    "interestIds": [
+      "33333333-3333-4333-8333-333333333333"
+    ]
   }
   ```
+* **Notes:** `interestIds` are optional public UUIDs from `GET /interests`. Duplicate interest IDs are rejected.
 * **Success Response (201 Created):**
   ```json
   {
     "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     "title": "Board Games Night",
     ...
-    "status": "PUBLISHED"
+    "status": "PUBLISHED",
+    "interests": [
+      {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "name": "Technology",
+        "slug": "technology",
+        "category": "Professional"
+      }
+    ]
   }
   ```
 

@@ -5,65 +5,54 @@ import com.loopin.api.dto.event.request.EventUpdateRequest;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.entity.Event;
 import com.loopin.api.common.enums.EventStatus;
-import org.springframework.stereotype.Component;
+import com.loopin.api.entity.EventInterest;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Component
-public class EventMapper {
+import java.util.Comparator;
+import java.util.List;
 
-    public Event toEntity(EventCreateRequest request) {
-        Event event = new Event();
+@Mapper(componentModel = "spring", uses = {InterestMapper.class})
+public abstract class EventMapper {
 
-        event.setTitle(request.getTitle());
-        event.setDescription(request.getDescription());
-        event.setType(request.getType());
-        event.setCategory(request.getCategory());
-        event.setCity(request.getCity());
-        event.setAddress(request.getAddress());
-        event.setStartDateTime(request.getStartDateTime());
-        event.setEndDateTime(request.getEndDateTime());
-        event.setIsFree(request.getIsFree());
-        event.setPrice(request.getPrice());
-        event.setOrganizerName(request.getOrganizerName());
-        event.setImageUrl(request.getImageUrl());
-        event.setStatus(request.getStatus() != null ? request.getStatus() : EventStatus.PUBLISHED);
+    @Autowired
+    protected InterestMapper interestMapper;
 
-        return event;
-    }
+    @Mapping(target = "status", expression = "java(request.getStatus() != null ? request.getStatus() : com.loopin.api.common.enums.EventStatus.PUBLISHED)")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "publicId", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "interests", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    public abstract Event toEntity(EventCreateRequest request);
 
-    public void updateEntity(Event event, EventUpdateRequest request) {
-        event.setTitle(request.getTitle());
-        event.setDescription(request.getDescription());
-        event.setType(request.getType());
-        event.setCategory(request.getCategory());
-        event.setCity(request.getCity());
-        event.setAddress(request.getAddress());
-        event.setStartDateTime(request.getStartDateTime());
-        event.setEndDateTime(request.getEndDateTime());
-        event.setIsFree(request.getIsFree());
-        event.setPrice(request.getPrice());
-        event.setOrganizerName(request.getOrganizerName());
-        event.setImageUrl(request.getImageUrl());
-        event.setStatus(request.getStatus());
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "publicId", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "interests", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    public abstract void updateEntity(@MappingTarget Event event, EventUpdateRequest request);
 
-    public EventResponse toResponse(Event event) {
-        return new EventResponse(
-                event.getPublicId(),
-                event.getTitle(),
-                event.getDescription(),
-                event.getType(),
-                event.getCategory(),
-                event.getCity(),
-                event.getAddress(),
-                event.getStartDateTime(),
-                event.getEndDateTime(),
-                event.getIsFree(),
-                event.getPrice(),
-                event.getOrganizerName(),
-                event.getImageUrl(),
-                event.getStatus(),
-                event.getCreatedAt(),
-                event.getUpdatedAt()
-        );
+    @Mapping(target = "id", source = "publicId")
+    @Mapping(target = "interests", expression = "java(mapInterests(event))")
+    public abstract EventResponse toResponse(Event event);
+
+    protected List<com.loopin.api.dto.interest.InterestResponse> mapInterests(Event event) {
+        if (event.getInterests() == null) {
+            return List.of();
+        }
+
+        return event.getInterests()
+                .stream()
+                .map(EventInterest::getInterest)
+                .sorted(Comparator.comparing(interest -> interest.getName().toLowerCase()))
+                .map(interestMapper::toResponse)
+                .toList();
     }
 }

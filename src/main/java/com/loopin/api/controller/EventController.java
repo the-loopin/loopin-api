@@ -8,10 +8,12 @@ import com.loopin.api.common.enums.EventType;
 import com.loopin.api.service.abstraction.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.loopin.api.common.security.SecurityUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,23 +36,25 @@ public class EventController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<List<EventResponse>> getPublishedEvents(
+    public ResponseEntity<Page<EventResponse>> getPublishedEvents(
             @RequestParam(required = false) EventType type,
             @RequestParam(required = false) EventCategory category,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) Boolean isFree,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Pageable pageable
     ) {
-        List<EventResponse> events = eventService.getPublishedEvents(
+        Page<EventResponse> events = eventService.getPublishedEvents(
                 type,
                 category,
                 city,
                 isFree,
                 search,
                 startDate,
-                endDate
+                endDate,
+                pageable
         );
 
         return ResponseEntity.ok(events);
@@ -61,37 +65,35 @@ public class EventController {
         return ResponseEntity.ok(eventService.getPublishedEventById(id));
     }
 
+    @GetMapping("/recommended")
+    public ResponseEntity<List<EventResponse>> getRecommendedEvents(
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        List<EventResponse> events = eventService.getRecommendedEvents(SecurityUtils.getRequiredCurrentUserEmail(), limit);
+        return ResponseEntity.ok(events);
+    }
+
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(
-            @Valid @RequestBody EventCreateRequest request,
-            Authentication authentication
+            @Valid @RequestBody EventCreateRequest request
     ) {
-        EventResponse createdEvent = eventService.createEvent(request, resolveUsername(authentication));
+        EventResponse createdEvent = eventService.createEvent(request, SecurityUtils.getRequiredCurrentUserEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> updateEvent(
             @PathVariable UUID id,
-            @Valid @RequestBody EventUpdateRequest request,
-            Authentication authentication
+            @Valid @RequestBody EventUpdateRequest request
     ) {
-        return ResponseEntity.ok(eventService.updateEvent(id, request, resolveUsername(authentication)));
+        return ResponseEntity.ok(eventService.updateEvent(id, request, SecurityUtils.getRequiredCurrentUserEmail()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(
-            @PathVariable UUID id,
-            Authentication authentication
+            @PathVariable UUID id
     ) {
-        eventService.deleteEvent(id, resolveUsername(authentication));
+        eventService.deleteEvent(id, SecurityUtils.getRequiredCurrentUserEmail());
         return ResponseEntity.noContent().build();
-    }
-
-    private String resolveUsername(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
-        return authentication.getName();
     }
 }
