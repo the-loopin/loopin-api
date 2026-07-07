@@ -33,6 +33,7 @@ public class AdminServiceImpl implements AdminService {
     private final EventGroupRepository eventGroupRepository;
     private final UserMapper userMapper;
     private final EventMapper eventMapper;
+    private final GroupArchiveService groupArchiveService;
 
     @Override
     @Transactional(readOnly = true)
@@ -126,6 +127,7 @@ public class AdminServiceImpl implements AdminService {
                 cb.equal(root.get("id"), eventId)
         )).orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
 
+        groupArchiveService.archiveGroupsForEvent(eventId);
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
 
