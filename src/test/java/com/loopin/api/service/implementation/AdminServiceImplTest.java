@@ -2,11 +2,13 @@ package com.loopin.api.service.implementation;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.admin.response.DashboardStatsResponse;
 import com.loopin.api.dto.event.response.EventResponse;
 import com.loopin.api.dto.user.response.UserResponse;
 import com.loopin.api.entity.Event;
+import com.loopin.api.entity.EventGroup;
 import com.loopin.api.entity.User;
 import com.loopin.api.mapper.EventMapper;
 import com.loopin.api.mapper.UserMapper;
@@ -195,12 +197,19 @@ class AdminServiceImplTest {
     @Test
     void deleteEvent_ValidEvent_SetsStatusToCancelledAndSaves() {
         Event event = event(1L, TARGET_EVENT_ID);
+        EventGroup group = new EventGroup();
+        group.setStatus(GroupStatus.OPEN);
+
         when(eventRepository.findByPublicIdAndDeletedAtIsNull(TARGET_EVENT_ID))
                 .thenReturn(Optional.of(event));
+        when(eventGroupRepository.findByEventIdAndStatusNot(event.getId(), GroupStatus.ARCHIVED))
+                .thenReturn(List.of(group));
 
         adminService.deleteEvent(TARGET_EVENT_ID, ADMIN_USER_ID.toString());
 
         assertEquals(EventStatus.CANCELLED, event.getStatus());
+        assertEquals(GroupStatus.ARCHIVED, group.getStatus());
+        verify(eventGroupRepository).save(group);
         verify(eventRepository).save(event);
     }
 
