@@ -2,17 +2,19 @@ package com.loopin.api.config;
 
 import com.loopin.api.common.security.WebSocketAuthChannelInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
 import org.springframework.web.socket.handler.WebSocketHandlerDecoratorFactory;
@@ -32,7 +34,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private List<String> allowedOrigins;
 
     private final WebSocketAuthChannelInterceptor webSocketAuthChannelInterceptor;
-    private final TaskScheduler taskScheduler;
+
+    // @Lazy breaks the circular dependency between WebSocketConfig (a WebSocketMessageBrokerConfigurer)
+    // and DelegatingWebSocketMessageBrokerConfiguration which needs all configurers during startup.
+    @Lazy
+    @Autowired
+    private TaskScheduler taskScheduler;
 
     private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
