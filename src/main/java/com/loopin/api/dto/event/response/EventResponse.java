@@ -25,6 +25,8 @@ public class EventResponse {
     private EventCategory category;
     private String city;
     private String address;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private Boolean isFree;
