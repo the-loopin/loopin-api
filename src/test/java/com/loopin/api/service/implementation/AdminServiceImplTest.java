@@ -245,6 +245,7 @@ class AdminServiceImplTest {
         return new EventResponse(
                 id, "Title", "Desc", com.loopin.api.common.enums.EventType.EVENT, 
                 com.loopin.api.common.enums.EventCategory.TECH, "City", "Address",
+                new java.math.BigDecimal("40.376200"), new java.math.BigDecimal("49.844700"),
                 java.time.LocalDateTime.now(), java.time.LocalDateTime.now().plusDays(1), true, 
                 java.math.BigDecimal.ZERO, "Organizer", "Image", EventStatus.PUBLISHED, 
                 new java.util.ArrayList<>(), java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
