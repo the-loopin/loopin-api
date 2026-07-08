@@ -6,3 +6,6 @@ spring:
 
   liquibase:
     contexts: staging
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
