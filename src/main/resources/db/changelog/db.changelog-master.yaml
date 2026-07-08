@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/changes/006-public-ids.yaml
   - include:
       file: db/changelog/changes/007-interests.yaml
+  - include:
+      file: db/changelog/changes/008-user-last-seen.yaml

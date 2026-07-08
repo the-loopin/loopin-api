@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-add-user-last-seen
+      author: loopin
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: last_seen
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true

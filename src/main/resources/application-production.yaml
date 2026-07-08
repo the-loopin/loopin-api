@@ -7,6 +7,9 @@ spring:
   liquibase:
     contexts: production
 
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
   jpa:
     show-sql: false
     properties:

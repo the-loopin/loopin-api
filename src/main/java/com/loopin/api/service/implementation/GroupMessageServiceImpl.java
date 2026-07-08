@@ -16,8 +16,10 @@ import com.loopin.api.service.abstraction.GroupMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,27 +32,25 @@ public class GroupMessageServiceImpl implements GroupMessageService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GroupMessageResponse> getGroupMessages(Long groupId, Long currentUserId) {
+    public Page<GroupMessageResponse> getGroupMessages(UUID groupId, Long currentUserId, Pageable pageable) {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAllowsMessaging(group);
-        validateUserIsGroupMember(groupId, currentUserId);
+        validateUserIsGroupMember(group.getId(), currentUserId);
 
-        return groupMessageRepository.findByGroupIdOrderByCreatedAtAsc(groupId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return groupMessageRepository.findByGroupIdOrderByCreatedAtAsc(group.getId(), pageable)
+                .map(this::toResponse);
     }
 
     @Override
     @Transactional
     public GroupMessageResponse sendMessage(
-            Long groupId,
+            UUID groupId,
             Long currentUserId,
             CreateGroupMessageRequest request
     ) {
         EventGroup group = findGroupOrThrow(groupId);
         validateGroupAllowsMessaging(group);
-        validateUserIsGroupMember(groupId, currentUserId);
+        validateUserIsGroupMember(group.getId(), currentUserId);
 
         User sender = userRepository.findByIdAndDeletedAtIsNull(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUserId));
@@ -65,8 +65,8 @@ public class GroupMessageServiceImpl implements GroupMessageService {
         return toResponse(savedMessage);
     }
 
-    private EventGroup findGroupOrThrow(Long groupId) {
-        return eventGroupRepository.findById(groupId)
+    private EventGroup findGroupOrThrow(UUID groupId) {
+        return eventGroupRepository.findByPublicId(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
     }
 
@@ -86,9 +86,9 @@ public class GroupMessageServiceImpl implements GroupMessageService {
 
     private GroupMessageResponse toResponse(GroupMessage message) {
         return new GroupMessageResponse(
-                message.getId(),
-                message.getGroup().getId(),
-                message.getSender().getId(),
+                message.getPublicId(),
+                message.getGroup().getPublicId(),
+                message.getSender().getPublicId(),
                 message.getSender().getName(),
                 message.getMessageText(),
                 message.getCreatedAt()

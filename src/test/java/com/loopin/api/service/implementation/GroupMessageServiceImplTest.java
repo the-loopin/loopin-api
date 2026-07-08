@@ -18,6 +18,11 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +34,7 @@ import static org.mockito.Mockito.when;
 class GroupMessageServiceImplTest {
 
     private static final Long GROUP_ID = 1L;
+    private static final UUID GROUP_UUID = UUID.randomUUID();
     private static final Long USER_ID = 2L;
 
     private GroupMessageRepository groupMessageRepository;
@@ -55,37 +61,39 @@ class GroupMessageServiceImplTest {
 
     @Test
     void getGroupMessages_ValidMember_ReturnsMessages() {
-        EventGroup group = group(GROUP_ID, GroupStatus.OPEN);
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.OPEN);
         User user = user(USER_ID, "test user");
 
-        when(eventGroupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_ID, USER_ID)).thenReturn(true);
 
         GroupMessage message = message(10L, group, user, "hello");
-        when(groupMessageRepository.findByGroupIdOrderByCreatedAtAsc(GROUP_ID)).thenReturn(List.of(message));
+        Pageable pageable = PageRequest.of(0, 50);
+        when(groupMessageRepository.findByGroupIdOrderByCreatedAtAsc(GROUP_ID, pageable)).thenReturn(new PageImpl<>(List.of(message)));
 
-        List<GroupMessageResponse> result = groupMessageService.getGroupMessages(GROUP_ID, USER_ID);
+        Page<GroupMessageResponse> result = groupMessageService.getGroupMessages(GROUP_UUID, USER_ID, pageable);
 
-        assertEquals(1, result.size());
-        assertEquals("hello", result.get(0).getMessageText());
+        assertEquals(1, result.getContent().size());
+        assertEquals("hello", result.getContent().get(0).getMessageText());
     }
 
     @Test
     void getGroupMessages_NotMember_ThrowsInvalidGroupStateException() {
-        EventGroup group = group(GROUP_ID, GroupStatus.OPEN);
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.OPEN);
 
-        when(eventGroupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_ID, USER_ID)).thenReturn(false);
 
-        assertThrows(InvalidGroupStateException.class, () -> groupMessageService.getGroupMessages(GROUP_ID, USER_ID));
+        Pageable pageable = PageRequest.of(0, 50);
+        assertThrows(InvalidGroupStateException.class, () -> groupMessageService.getGroupMessages(GROUP_UUID, USER_ID, pageable));
     }
 
     @Test
     void sendMessage_ValidMember_SavesAndReturnsMessage() {
-        EventGroup group = group(GROUP_ID, GroupStatus.OPEN);
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.OPEN);
         User user = user(USER_ID, "test user");
 
-        when(eventGroupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_ID, USER_ID)).thenReturn(true);
         when(userRepository.findByIdAndDeletedAtIsNull(USER_ID)).thenReturn(Optional.of(user));
 
@@ -95,55 +103,56 @@ class GroupMessageServiceImplTest {
         CreateGroupMessageRequest request = new CreateGroupMessageRequest();
         request.setMessageText("new message");
 
-        GroupMessageResponse result = groupMessageService.sendMessage(GROUP_ID, USER_ID, request);
+        GroupMessageResponse result = groupMessageService.sendMessage(GROUP_UUID, USER_ID, request);
 
         verify(groupMessageRepository).save(any(GroupMessage.class));
         assertEquals("new message", result.getMessageText());
-        assertEquals(USER_ID, result.getSenderId());
+        assertEquals(user.getPublicId(), result.getSenderId());
     }
 
     @Test
     void sendMessage_GroupArchived_ThrowsInvalidGroupStateException() {
-        EventGroup group = group(GROUP_ID, GroupStatus.ARCHIVED);
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.ARCHIVED);
 
-        when(eventGroupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
 
         CreateGroupMessageRequest request = new CreateGroupMessageRequest();
         request.setMessageText("new message");
 
-        assertThrows(InvalidGroupStateException.class, () -> groupMessageService.sendMessage(GROUP_ID, USER_ID, request));
+        assertThrows(InvalidGroupStateException.class, () -> groupMessageService.sendMessage(GROUP_UUID, USER_ID, request));
     }
 
     @Test
     void sendMessage_NotMember_ThrowsInvalidGroupStateException() {
-        EventGroup group = group(GROUP_ID, GroupStatus.OPEN);
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.OPEN);
 
-        when(eventGroupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_ID, USER_ID)).thenReturn(false);
 
         CreateGroupMessageRequest request = new CreateGroupMessageRequest();
         request.setMessageText("new message");
 
-        assertThrows(InvalidGroupStateException.class, () -> groupMessageService.sendMessage(GROUP_ID, USER_ID, request));
+        assertThrows(InvalidGroupStateException.class, () -> groupMessageService.sendMessage(GROUP_UUID, USER_ID, request));
     }
 
     @Test
     void sendMessage_UserNotFound_ThrowsResourceNotFoundException() {
-        EventGroup group = group(GROUP_ID, GroupStatus.OPEN);
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.OPEN);
 
-        when(eventGroupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
         when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_ID, USER_ID)).thenReturn(true);
         when(userRepository.findByIdAndDeletedAtIsNull(USER_ID)).thenReturn(Optional.empty());
 
         CreateGroupMessageRequest request = new CreateGroupMessageRequest();
         request.setMessageText("new message");
 
-        assertThrows(ResourceNotFoundException.class, () -> groupMessageService.sendMessage(GROUP_ID, USER_ID, request));
+        assertThrows(ResourceNotFoundException.class, () -> groupMessageService.sendMessage(GROUP_UUID, USER_ID, request));
     }
 
-    private EventGroup group(Long id, GroupStatus status) {
+    private EventGroup group(Long id, UUID publicId, GroupStatus status) {
         EventGroup group = new EventGroup();
         group.setId(id);
+        group.setPublicId(publicId);
         group.setStatus(status);
         return group;
     }
@@ -151,12 +160,14 @@ class GroupMessageServiceImplTest {
     private User user(Long id, String name) {
         User user = new User("test@email.com", name, null);
         user.setId(id);
+        user.setPublicId(UUID.randomUUID());
         return user;
     }
 
     private GroupMessage message(Long id, EventGroup group, User sender, String text) {
         GroupMessage message = new GroupMessage();
         message.setId(id);
+        message.setPublicId(UUID.randomUUID());
         message.setGroup(group);
         message.setSender(sender);
         message.setMessageText(text);
