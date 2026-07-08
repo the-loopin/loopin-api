@@ -1,5 +1,7 @@
 package com.loopin.api.common.security;
 
+import com.loopin.api.entity.EventGroup;
+import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.service.implementation.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,11 +28,12 @@ import java.util.regex.Pattern;
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private static final Pattern GROUP_MESSAGES_TOPIC =
-            Pattern.compile("^/topic/groups/(\\d+)/messages$");
+            Pattern.compile("^/topic/groups/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/messages$");
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
     private final GroupMemberRepository groupMemberRepository;
+    private final EventGroupRepository eventGroupRepository;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -82,10 +86,13 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
             return;
         }
 
-        Long groupId = Long.valueOf(matcher.group(1));
+        UUID groupPublicId = UUID.fromString(matcher.group(1));
+        EventGroup group = eventGroupRepository.findByPublicId(groupPublicId)
+                .orElseThrow(() -> new AccessDeniedException("Group not found"));
+        Long internalGroupId = group.getId();
         Long currentUserId = getCurrentUserId(accessor.getUser());
 
-        if (!groupMemberRepository.existsByGroupIdAndUserId(groupId, currentUserId)) {
+        if (!groupMemberRepository.existsByGroupIdAndUserId(internalGroupId, currentUserId)) {
             throw new AccessDeniedException("Only group members can subscribe to group messages");
         }
     }
