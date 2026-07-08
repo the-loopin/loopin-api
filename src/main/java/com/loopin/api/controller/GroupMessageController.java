@@ -7,12 +7,15 @@ import com.loopin.api.entity.User;
 import com.loopin.api.service.abstraction.GroupMessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/groups/{groupId}/messages")
@@ -22,17 +25,18 @@ public class GroupMessageController {
     private final GroupMessageService groupMessageService;
 
     @GetMapping
-    public ResponseEntity<List<GroupMessageResponse>> getGroupMessages(
-            @PathVariable Long groupId
+    public ResponseEntity<Page<GroupMessageResponse>> getGroupMessages(
+            @PathVariable UUID groupId,
+            @PageableDefault(page = 0, size = 50) Pageable pageable
     ) {
         Long currentUserId = getCurrentUserId();
 
-        return ResponseEntity.ok(groupMessageService.getGroupMessages(groupId, currentUserId));
+        return ResponseEntity.ok(groupMessageService.getGroupMessages(groupId, currentUserId, pageable));
     }
 
     @PostMapping
     public ResponseEntity<GroupMessageResponse> sendMessage(
-            @PathVariable Long groupId,
+            @PathVariable UUID groupId,
             @Valid @RequestBody CreateGroupMessageRequest request
     ) {
         Long currentUserId = getCurrentUserId();
