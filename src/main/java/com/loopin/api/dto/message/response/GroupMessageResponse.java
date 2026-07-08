@@ -5,15 +5,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 public class GroupMessageResponse {
 
-    private Long id;
-    private Long groupId;
-    private Long senderId;
+    private UUID id;
+    private UUID groupId;
+    private UUID senderId;
     private String senderName;
     private String messageText;
     private LocalDateTime createdAt;
