@@ -49,6 +49,12 @@ public class Event extends BaseEntity {
     @Column(length = 255)
     private String address;
 
+    @Column(precision = 9, scale = 6)
+    private BigDecimal latitude;
+
+    @Column(precision = 9, scale = 6)
+    private BigDecimal longitude;
+
     @Column(nullable = false)
     private LocalDateTime startDateTime;
 
