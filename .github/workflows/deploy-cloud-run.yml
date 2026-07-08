@@ -6,7 +6,7 @@ on:
       region:
         description: Cloud Run region
         required: true
-        default: us-central1
+        default: europe-west1
       service:
         description: Cloud Run service name
         required: true
