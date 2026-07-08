@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class GroupMessageWebSocketController {
 
     @MessageMapping("/groups/{groupId}/messages")
     public void sendMessage(
-            @DestinationVariable Long groupId,
+            @DestinationVariable UUID groupId,
             @Valid @Payload CreateGroupMessageRequest request,
             Principal principal
     ) {
