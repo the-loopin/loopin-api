@@ -14,6 +14,8 @@ import com.loopin.api.repository.GroupJoinRequestRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.moderation.ContentModerationProperties;
+import com.loopin.api.moderation.ContentModerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +61,8 @@ class GroupJoinRequestServiceImplTest {
                 eventGroupRepository,
                 userRepository,
                 groupMemberRepository,
-                notificationService
+                notificationService,
+                new ContentModerationService(new ContentModerationProperties())
         );
     }
 
@@ -122,6 +126,34 @@ class GroupJoinRequestServiceImplTest {
 
         CreateGroupJoinRequestRequest requestDto = new CreateGroupJoinRequestRequest();
         assertThrows(ResponseStatusException.class, () -> joinRequestService.create(GROUP_ID, USER_ID, requestDto));
+    }
+
+    @Test
+    void create_BlockedMessage_SavesRejectedRequestWithoutNotifyingAdmin() {
+        EventGroup group = group(GROUP_INTERNAL_ID, GROUP_ID, GroupStatus.OPEN, ADMIN_ID, 10);
+        User user = user(USER_ID);
+        user.setPublicId(UUID.randomUUID());
+        GroupJoinRequest savedEntity = request(1L, REQUEST_ID, group, user, RequestStatus.REJECTED);
+
+        ContentModerationProperties properties = new ContentModerationProperties();
+        properties.setBannedWords(List.of("scam"));
+        joinRequestService = new GroupJoinRequestServiceImpl(
+                joinRequestRepository, eventGroupRepository, userRepository, groupMemberRepository,
+                notificationService, new ContentModerationService(properties));
+
+        when(eventGroupRepository.findByPublicId(GROUP_ID)).thenReturn(Optional.of(group));
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_INTERNAL_ID, USER_ID)).thenReturn(false);
+        when(joinRequestRepository.existsByGroupIdAndUserIdAndStatus(GROUP_INTERNAL_ID, USER_ID, RequestStatus.PENDING)).thenReturn(false);
+        when(joinRequestRepository.save(any(GroupJoinRequest.class))).thenReturn(savedEntity);
+
+        CreateGroupJoinRequestRequest requestDto = new CreateGroupJoinRequestRequest();
+        requestDto.setMessage("This is a SCAM");
+
+        GroupJoinRequestResponse response = joinRequestService.create(GROUP_ID, USER_ID, requestDto);
+
+        assertEquals(RequestStatus.REJECTED, response.getStatus());
+        verify(notificationService, never()).create(any());
     }
 
     @Test
