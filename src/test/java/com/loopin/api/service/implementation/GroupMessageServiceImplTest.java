@@ -12,6 +12,8 @@ import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.GroupMessageRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.moderation.ContentModerationProperties;
+import com.loopin.api.moderation.ContentModerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +58,8 @@ class GroupMessageServiceImplTest {
                 groupMessageRepository,
                 eventGroupRepository,
                 groupMemberRepository,
-                userRepository
+                userRepository,
+                new ContentModerationService(new ContentModerationProperties())
         );
     }
 
@@ -147,6 +151,27 @@ class GroupMessageServiceImplTest {
         request.setMessageText("new message");
 
         assertThrows(ResourceNotFoundException.class, () -> groupMessageService.sendMessage(GROUP_UUID, USER_ID, request));
+    }
+
+    @Test
+    void sendMessage_BlockedText_IsRejectedBeforePersistence() {
+        EventGroup group = group(GROUP_ID, GROUP_UUID, GroupStatus.OPEN);
+        User user = user(USER_ID, "test user");
+        ContentModerationProperties properties = new ContentModerationProperties();
+        properties.setBannedWords(List.of("scam"));
+        groupMessageService = new GroupMessageServiceImpl(
+                groupMessageRepository, eventGroupRepository, groupMemberRepository, userRepository,
+                new ContentModerationService(properties));
+
+        when(eventGroupRepository.findByPublicId(GROUP_UUID)).thenReturn(Optional.of(group));
+        when(groupMemberRepository.existsByGroupIdAndUserId(GROUP_ID, USER_ID)).thenReturn(true);
+        when(userRepository.findByIdAndDeletedAtIsNull(USER_ID)).thenReturn(Optional.of(user));
+
+        CreateGroupMessageRequest request = new CreateGroupMessageRequest();
+        request.setMessageText("Known SCAM link");
+
+        assertThrows(IllegalArgumentException.class, () -> groupMessageService.sendMessage(GROUP_UUID, USER_ID, request));
+        verify(groupMessageRepository, never()).save(any(GroupMessage.class));
     }
 
     private EventGroup group(Long id, UUID publicId, GroupStatus status) {
