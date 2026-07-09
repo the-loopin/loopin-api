@@ -2,6 +2,7 @@ package com.loopin.api.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
 import com.loopin.api.common.enums.EventCategory;
+import com.loopin.api.common.enums.ContentModerationStatus;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
 import jakarta.persistence.Column;
@@ -76,6 +77,13 @@ public class Event extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private EventStatus status = EventStatus.PUBLISHED;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", nullable = false, length = 30)
+    private ContentModerationStatus moderationStatus = ContentModerationStatus.APPROVED;
+
+    @Column(name = "moderation_rejection_reason", length = 1000)
+    private String moderationRejectionReason;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
