@@ -1,41 +1,39 @@
 package com.loopin.api.core.events.service;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.groups.enums.GroupStatus;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.service.EventServiceImpl;
+import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.common.exception.DuplicateResourceException;
-import com.loopin.api.common.exception.ResourceNotFoundException;
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.events.dto.request.EventUpdateRequest;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.mapper.EventMapper;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.mapper.EventMapper;
 import com.loopin.api.recommendation.event.EventEmbeddingService;
-import com.loopin.api.core.events.repository.EventRepository;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.users.repository.UserRepository;
 
-import com.loopin.api.core.interests.repository.InterestRepository;
-import com.loopin.api.core.events.repository.EventInterestRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.interests.repository.InterestRepository;
+import com.loopin.api.events.repository.EventInterestRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.recommendation.user.UserEmbeddingRepository;
 import com.loopin.api.recommendation.event.EventEmbeddingRepository;
 import com.loopin.api.moderation.ContentModerationProperties;
 import com.loopin.api.moderation.ContentModerationService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.ArrayList;
-import com.loopin.api.core.interests.dto.InterestResponse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -110,7 +108,7 @@ class EventServiceImplTest {
         Event event = event(1L, EVENT_ID);
         when(eventRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(event)));
         when(eventRepository.findPublishedByIdInWithInterests(any())).thenReturn(List.of(event));
-        
+
         EventResponse realResponse = eventResponse(EVENT_ID);
         when(eventMapper.toResponse(any())).thenReturn(realResponse);
 
@@ -127,7 +125,7 @@ class EventServiceImplTest {
     void getPublishedEventById_Found_ReturnsEvent() {
         Event event = event(1L, EVENT_ID);
         when(eventRepository.findPublishedByPublicIdWithInterests(any())).thenReturn(Optional.of(event));
-        
+
         EventResponse realResponse = eventResponse(EVENT_ID);
         when(eventMapper.toResponse(any())).thenReturn(realResponse);
 

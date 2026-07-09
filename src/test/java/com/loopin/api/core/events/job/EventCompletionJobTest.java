@@ -1,7 +1,11 @@
 package com.loopin.api.core.events.job;
 
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.repository.EventRepository;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.job.EventCompletionJob;
+import com.loopin.api.events.job.EventCompletionJobLockService;
+import com.loopin.api.events.job.EventCompletionProcessor;
+import com.loopin.api.events.job.EventCompletionResult;
+import com.loopin.api.events.repository.EventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

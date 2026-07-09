@@ -1,7 +1,8 @@
 package com.loopin.api.core.events.dto.request;
 
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventType;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

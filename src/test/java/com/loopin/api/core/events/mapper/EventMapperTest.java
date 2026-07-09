@@ -1,12 +1,13 @@
 package com.loopin.api.core.events.mapper;
 
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.events.dto.request.EventUpdateRequest;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.mapper.EventMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.Test;
@@ -136,7 +137,7 @@ class EventMapperTest {
         event.setOrganizerName("Test Org");
         event.setImageUrl("http://image.com");
         event.setStatus(EventStatus.PUBLISHED);
-        
+
         LocalDateTime now = LocalDateTime.now();
         event.setCreatedAt(now);
         event.setUpdatedAt(now);
