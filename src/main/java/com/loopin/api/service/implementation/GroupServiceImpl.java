@@ -23,6 +23,7 @@ import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.GroupService;
 import com.loopin.api.service.abstraction.NotificationService;
 import com.loopin.api.service.notification.NotificationCommand;
+import com.loopin.api.moderation.ContentModerationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,24 +38,28 @@ public class GroupServiceImpl implements GroupService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ContentModerationService contentModerationService;
 
     public GroupServiceImpl(EventGroupRepository eventGroupRepository,
                             GroupMapper groupMapper,
                             GroupMemberRepository groupMemberRepository,
                             EventRepository eventRepository,
                             UserRepository userRepository,
-                            NotificationService notificationService) {
+                            NotificationService notificationService,
+                            ContentModerationService contentModerationService) {
         this.eventGroupRepository = eventGroupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.contentModerationService = contentModerationService;
         this.groupMapper = groupMapper;
     }
 
     @Override
     @Transactional
     public GroupResponse createGroup(CreateGroupRequest request, String currentUsername) {
+        rejectUnsafeContent(request.getTitle(), request.getGroupNote());
         User currentUser = userRepository.findByEmail(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
 
@@ -92,6 +97,8 @@ public class GroupServiceImpl implements GroupService {
         if (!group.getAdmin().getEmail().equals(currentUsername)) {
             throw new InvalidGroupStateException("Only the group admin can update this group");
         }
+
+        rejectUnsafeContent(request.getTitle(), request.getGroupNote());
 
         int currentMemberCount = groupMemberRepository.countByGroupId(group.getId());
 
@@ -253,6 +260,12 @@ public class GroupServiceImpl implements GroupService {
     private EventGroup findGroupOrThrow(UUID groupId) {
         return eventGroupRepository.findByPublicId(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
+    }
+
+    private void rejectUnsafeContent(String... content) {
+        if (!contentModerationService.moderate(content).isApproved()) {
+            throw new IllegalArgumentException("Content contains blocked language and cannot be published");
+        }
     }
 
 }

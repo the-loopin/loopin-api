@@ -25,6 +25,8 @@ import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.service.abstraction.NotificationService;
 import com.loopin.api.recommendation.user.UserEmbeddingRepository;
 import com.loopin.api.recommendation.event.EventEmbeddingRepository;
+import com.loopin.api.moderation.ContentModerationProperties;
+import com.loopin.api.moderation.ContentModerationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -98,7 +100,8 @@ class EventServiceImplTest {
                 userEmbeddingRepository,
                 eventEmbeddingRepository,
                 groupMemberRepository,
-                notificationService
+                notificationService,
+                new ContentModerationService(new ContentModerationProperties())
         );
     }
 
@@ -189,6 +192,38 @@ class EventServiceImplTest {
         when(eventRepository.exists(any(Specification.class))).thenReturn(true);
 
         assertThrows(DuplicateResourceException.class, () -> eventService.createEvent(request, USERNAME));
+    }
+
+    @Test
+    void createEvent_BlockedContent_IsSavedAsDraft() {
+        User user = user(1L, USER_ID, Role.USER);
+        when(userRepository.findByEmailAndDeletedAtIsNull(USERNAME)).thenReturn(Optional.of(user));
+        when(eventRepository.exists(any(Specification.class))).thenReturn(false);
+
+        ContentModerationProperties properties = new ContentModerationProperties();
+        properties.setBannedWords(List.of("scam"));
+        eventService = new EventServiceImpl(
+                eventRepository, eventMapper, userRepository, eventGroupRepository, interestRepository,
+                eventInterestRepository, eventEmbeddingService, userEmbeddingRepository, eventEmbeddingRepository,
+                groupMemberRepository, notificationService, new ContentModerationService(properties));
+
+        EventCreateRequest request = new EventCreateRequest();
+        request.setStartDateTime(LocalDateTime.now().plusDays(1));
+        request.setEndDateTime(LocalDateTime.now().plusDays(2));
+        request.setIsFree(true);
+        request.setPrice(BigDecimal.ZERO);
+        request.setTitle("Not a SCAM");
+        request.setDescription("Join us");
+        request.setCity("Test City");
+
+        Event mappedEvent = new Event();
+        when(eventMapper.toEntity(request)).thenReturn(mappedEvent);
+        when(eventRepository.saveAndFlush(mappedEvent)).thenReturn(mappedEvent);
+        when(eventMapper.toResponse(mappedEvent)).thenReturn(eventResponse(EVENT_ID));
+
+        eventService.createEvent(request, USERNAME);
+
+        assertEquals(EventStatus.DRAFT, mappedEvent.getStatus());
     }
 
     @Test

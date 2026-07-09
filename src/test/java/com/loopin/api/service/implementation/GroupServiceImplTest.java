@@ -16,6 +16,8 @@ import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.moderation.ContentModerationProperties;
+import com.loopin.api.moderation.ContentModerationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -60,7 +62,8 @@ class GroupServiceImplTest {
                 groupMemberRepository,
                 eventRepository,
                 userRepository,
-                notificationService);
+                notificationService,
+                new ContentModerationService(new ContentModerationProperties()));
     }
 
     @Test
@@ -85,6 +88,20 @@ class GroupServiceImplTest {
 
         assertEquals(10, group.getMaxMembers());
         assertEquals(GroupStatus.OPEN, group.getStatus());
+    }
+
+    @Test
+    void createGroup_BlockedTitle_IsRejectedBeforeAnyPersistence() {
+        ContentModerationProperties properties = new ContentModerationProperties();
+        properties.setBannedWords(java.util.List.of("scam"));
+        groupService = new GroupServiceImpl(
+                eventGroupRepository, groupMapper, groupMemberRepository, eventRepository, userRepository,
+                notificationService, new ContentModerationService(properties));
+        CreateGroupRequest request = new CreateGroupRequest();
+        request.setTitle("SCAM meetup");
+
+        assertThrows(IllegalArgumentException.class, () -> groupService.createGroup(request, "admin@email.com"));
+        verify(userRepository, never()).findByEmail(any());
     }
 
     @Test

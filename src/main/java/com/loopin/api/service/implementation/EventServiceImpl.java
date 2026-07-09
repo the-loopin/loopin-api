@@ -33,6 +33,7 @@ import com.loopin.api.recommendation.event.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
 import com.loopin.api.service.abstraction.NotificationService;
 import com.loopin.api.service.notification.NotificationCommand;
+import com.loopin.api.moderation.ContentModerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -76,6 +77,7 @@ public class EventServiceImpl implements EventService {
     private final EventEmbeddingRepository eventEmbeddingRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final NotificationService notificationService;
+    private final ContentModerationService contentModerationService;
 
     @Override
     @Cacheable(value = "publishedEvents", key = "{#type, #category, #city, #isFree, #search, #startDate, #endDate, #pageable}")
@@ -180,6 +182,7 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventMapper.toEntity(request);
         event.setOwner(currentUser);
+        applyModerationStatus(event, request.getTitle(), request.getDescription());
         Event savedEvent = eventRepository.saveAndFlush(event);
         replaceEventInterests(savedEvent, request.getInterestIds());
         eventEmbeddingService.indexEvent(savedEvent);
@@ -209,6 +212,7 @@ public class EventServiceImpl implements EventService {
         validateOwnerOrAdmin(event, currentUser);
         EventStatus previousStatus = event.getStatus();
         eventMapper.updateEntity(event, request);
+        applyModerationStatus(event, request.getTitle(), request.getDescription());
         replaceEventInterests(event, request.getInterestIds());
 
         Event savedEvent = eventRepository.save(event);
@@ -380,6 +384,14 @@ public class EventServiceImpl implements EventService {
 
         if (exists) {
             throw new DuplicateResourceException("Event already exists with same title, city, and start date time");
+        }
+    }
+
+    private void applyModerationStatus(Event event, String title, String description) {
+        if (!contentModerationService.moderate(title, description).isApproved()) {
+            // EventStatus has no moderation-specific state. DRAFT keeps the
+            // event out of all public event queries until a future review flow.
+            event.setStatus(EventStatus.DRAFT);
         }
     }
 

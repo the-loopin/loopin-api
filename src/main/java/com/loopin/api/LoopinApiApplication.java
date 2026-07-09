@@ -2,10 +2,13 @@ package com.loopin.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import com.loopin.api.moderation.ContentModerationProperties;
 
 @SpringBootApplication
 @EnableScheduling
+@EnableConfigurationProperties(ContentModerationProperties.class)
 public class LoopinApiApplication {
 
 	public static void main(String[] args) {
