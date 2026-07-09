@@ -1,6 +1,7 @@
 package com.loopin.api.repository;
 
 import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.common.enums.ContentModerationStatus;
 import com.loopin.api.entity.Event;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,11 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
     long countByStatus(EventStatus status);
 
     Page<Event> findByStatus(EventStatus status, Pageable pageable);
+
+    Page<Event> findByModerationStatusAndDeletedAtIsNull(
+            ContentModerationStatus moderationStatus,
+            Pageable pageable
+    );
 
     Optional<Event> findByPublicIdAndDeletedAtIsNull(UUID publicId);
 
