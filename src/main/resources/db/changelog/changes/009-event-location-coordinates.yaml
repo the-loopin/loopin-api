@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-add-event-location-coordinates
+      author: loopin
+      changes:
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: latitude
+                  type: DECIMAL(9,6)
+              - column:
+                  name: longitude
+                  type: DECIMAL(9,6)

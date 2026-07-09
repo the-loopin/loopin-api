@@ -9,6 +9,7 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -176,6 +177,39 @@ class EventCreateRequestTest {
         Set<ConstraintViolation<EventCreateRequest>> violations = validator.validate(request);
 
         assertTrue(violations.isEmpty());
+    }
+
+    @Test
+    void coordinates_ValidBoundaryValues_AreValid() {
+        EventCreateRequest request = createValidRequest();
+        request.setLatitude(new BigDecimal("90.0"));
+        request.setLongitude(new BigDecimal("-180.0"));
+
+        Set<ConstraintViolation<EventCreateRequest>> violations = validator.validate(request);
+
+        assertTrue(violations.isEmpty());
+    }
+
+    @Test
+    void latitude_OutOfRange_ViolatesDecimalConstraints() {
+        EventCreateRequest request = createValidRequest();
+        request.setLatitude(new BigDecimal("90.1"));
+
+        Set<ConstraintViolation<EventCreateRequest>> violations = validator.validate(request);
+
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("latitude")));
+    }
+
+    @Test
+    void longitude_OutOfRange_ViolatesDecimalConstraints() {
+        EventCreateRequest request = createValidRequest();
+        request.setLongitude(new BigDecimal("-180.1"));
+
+        Set<ConstraintViolation<EventCreateRequest>> violations = validator.validate(request);
+
+        assertFalse(violations.isEmpty());
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("longitude")));
     }
 
     @Test

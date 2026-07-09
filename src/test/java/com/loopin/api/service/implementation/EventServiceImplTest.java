@@ -271,6 +271,7 @@ class EventServiceImplTest {
     private EventResponse eventResponse(UUID id) {
         return new EventResponse(
                 id, "Title", "Desc", EventType.EVENT, EventCategory.TECH, "City", "Address",
+                new BigDecimal("40.376200"), new BigDecimal("49.844700"),
                 LocalDateTime.now(), LocalDateTime.now().plusDays(1), true, BigDecimal.ZERO,
                 "Organizer", "Image", EventStatus.PUBLISHED, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now()
         );

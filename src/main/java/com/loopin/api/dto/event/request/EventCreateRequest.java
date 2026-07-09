@@ -3,6 +3,8 @@ package com.loopin.api.dto.event.request;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -39,6 +41,14 @@ public class EventCreateRequest {
 
     @Size(max = 255, message = "Address must not exceed 255 characters")
     private String address;
+
+    @DecimalMin(value = "-90.0", message = "Latitude must be greater than or equal to -90")
+    @DecimalMax(value = "90.0", message = "Latitude must be less than or equal to 90")
+    private BigDecimal latitude;
+
+    @DecimalMin(value = "-180.0", message = "Longitude must be greater than or equal to -180")
+    @DecimalMax(value = "180.0", message = "Longitude must be less than or equal to 180")
+    private BigDecimal longitude;
 
     @NotNull(message = "Start date and time is required")
     private LocalDateTime startDateTime;

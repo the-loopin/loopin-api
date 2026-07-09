@@ -37,6 +37,8 @@ class EventMapperTest {
         request.setCategory(EventCategory.TECH);
         request.setCity("Test City");
         request.setAddress("Test Address");
+        request.setLatitude(new BigDecimal("40.376200"));
+        request.setLongitude(new BigDecimal("49.844700"));
         request.setStartDateTime(LocalDateTime.of(2025, 1, 1, 10, 0));
         request.setEndDateTime(LocalDateTime.of(2025, 1, 1, 12, 0));
         request.setIsFree(true);
@@ -53,6 +55,8 @@ class EventMapperTest {
         assertEquals(EventCategory.TECH, event.getCategory());
         assertEquals("Test City", event.getCity());
         assertEquals("Test Address", event.getAddress());
+        assertEquals(new BigDecimal("40.376200"), event.getLatitude());
+        assertEquals(new BigDecimal("49.844700"), event.getLongitude());
         assertEquals(LocalDateTime.of(2025, 1, 1, 10, 0), event.getStartDateTime());
         assertEquals(LocalDateTime.of(2025, 1, 1, 12, 0), event.getEndDateTime());
         assertTrue(event.getIsFree());
@@ -82,6 +86,8 @@ class EventMapperTest {
         request.setCategory(EventCategory.TECH);
         request.setCity("Updated City");
         request.setAddress("Updated Address");
+        request.setLatitude(new BigDecimal("40.409300"));
+        request.setLongitude(new BigDecimal("49.867100"));
         request.setStartDateTime(LocalDateTime.of(2025, 2, 1, 10, 0));
         request.setEndDateTime(LocalDateTime.of(2025, 2, 1, 12, 0));
         request.setIsFree(false);
@@ -98,6 +104,8 @@ class EventMapperTest {
         assertEquals(EventCategory.TECH, event.getCategory());
         assertEquals("Updated City", event.getCity());
         assertEquals("Updated Address", event.getAddress());
+        assertEquals(new BigDecimal("40.409300"), event.getLatitude());
+        assertEquals(new BigDecimal("49.867100"), event.getLongitude());
         assertEquals(LocalDateTime.of(2025, 2, 1, 10, 0), event.getStartDateTime());
         assertEquals(LocalDateTime.of(2025, 2, 1, 12, 0), event.getEndDateTime());
         assertEquals(false, event.getIsFree());
@@ -119,6 +127,8 @@ class EventMapperTest {
         event.setCategory(EventCategory.TECH);
         event.setCity("Test City");
         event.setAddress("Test Address");
+        event.setLatitude(new BigDecimal("40.376200"));
+        event.setLongitude(new BigDecimal("49.844700"));
         event.setStartDateTime(LocalDateTime.of(2025, 1, 1, 10, 0));
         event.setEndDateTime(LocalDateTime.of(2025, 1, 1, 12, 0));
         event.setIsFree(true);
@@ -140,6 +150,8 @@ class EventMapperTest {
         assertEquals(EventCategory.TECH, response.getCategory());
         assertEquals("Test City", response.getCity());
         assertEquals("Test Address", response.getAddress());
+        assertEquals(new BigDecimal("40.376200"), response.getLatitude());
+        assertEquals(new BigDecimal("49.844700"), response.getLongitude());
         assertEquals(LocalDateTime.of(2025, 1, 1, 10, 0), response.getStartDateTime());
         assertEquals(LocalDateTime.of(2025, 1, 1, 12, 0), response.getEndDateTime());
         assertTrue(response.getIsFree());
