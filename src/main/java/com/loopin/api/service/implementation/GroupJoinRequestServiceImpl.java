@@ -18,6 +18,7 @@ import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.GroupJoinRequestService;
 import com.loopin.api.service.abstraction.NotificationService;
 import com.loopin.api.service.notification.NotificationCommand;
+import com.loopin.api.moderation.ContentModerationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
     private final UserRepository userRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final NotificationService notificationService;
+    private final ContentModerationService contentModerationService;
 
     @Override
     @Transactional
@@ -58,16 +60,19 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
         request.setGroup(group);
         request.setUser(user);
         request.setMessage(requestDto.getMessage());
-        request.setStatus(RequestStatus.PENDING);
+        boolean unsafeContent = !contentModerationService.moderate(requestDto.getMessage()).isApproved();
+        request.setStatus(unsafeContent ? RequestStatus.REJECTED : RequestStatus.PENDING);
 
         GroupJoinRequest saved = joinRequestRepository.save(request);
-        notificationService.create(new NotificationCommand(
-                group.getAdmin(),
-                NotificationType.GROUP_ACTIVITY,
-                "New group join request",
-                user.getName() + " requested to join \"" + group.getTitle() + "\".",
-                NotificationReferenceType.GROUP,
-                group.getPublicId()));
+        if (!unsafeContent) {
+            notificationService.create(new NotificationCommand(
+                    group.getAdmin(),
+                    NotificationType.GROUP_ACTIVITY,
+                    "New group join request",
+                    user.getName() + " requested to join \"" + group.getTitle() + "\".",
+                    NotificationReferenceType.GROUP,
+                    group.getPublicId()));
+        }
         return GroupJoinRequestResponse.from(saved);
     }
 
