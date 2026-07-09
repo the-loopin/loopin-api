@@ -552,3 +552,6 @@ All endpoints in this table require the `ADMIN` role.
 | `DELETE` | `/admin/users/{id}` | Delete a user. |
 | `GET` | `/admin/events` | List events, optionally filtered by `status`. |
 | `DELETE` | `/admin/events/{id}` | Delete an event. |
+| `GET` | `/admin/moderation/pending` | List content awaiting moderation review. |
+| `PATCH` | `/admin/moderation/events/{id}/approve` | Approve a pending event and publish it. |
+| `PATCH` | `/admin/moderation/events/{id}/reject` | Reject a pending event; accepts an optional `reason`. |

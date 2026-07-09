@@ -180,6 +180,8 @@ Details events discovered and linked by coordinates.
 * `organizer_name` (VARCHAR(120), Not Null): Primary event owner/organization name.
 * `image_url` (VARCHAR(500)): Banner/cover photo url.
 * `status` (VARCHAR(30), Not Null): Lifecycle status (e.g. `DRAFT`, `PUBLISHED`, `CANCELLED`).
+* `moderation_status` (VARCHAR(30), Not Null): Moderation outcome (`APPROVED`, `PENDING_REVIEW`, or `REJECTED`).
+* `moderation_rejection_reason` (VARCHAR(1000)): Optional reason recorded when the event is rejected.
 
 ### 3. `user_profiles`
 Associated with `users` via a 1-to-1 mapping. Contains optional details.

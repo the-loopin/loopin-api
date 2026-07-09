@@ -41,6 +41,7 @@ class DatabaseMigrationTest {
                         "group_messages",
                         "job_locks",
                         "user_reports",
+                        "moderation_logs",
                         "interests",
                         "user_interests",
                         "event_interests",

@@ -12,6 +12,7 @@ import com.loopin.api.entity.Interest;
 import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
+import com.loopin.api.common.enums.ContentModerationStatus;
 import com.loopin.api.common.enums.EventType;
 import com.loopin.api.common.enums.NotificationReferenceType;
 import com.loopin.api.common.enums.NotificationType;
@@ -389,10 +390,16 @@ public class EventServiceImpl implements EventService {
 
     private void applyModerationStatus(Event event, String title, String description) {
         if (!contentModerationService.moderate(title, description).isApproved()) {
-            // EventStatus has no moderation-specific state. DRAFT keeps the
-            // event out of all public event queries until a future review flow.
+            event.setModerationStatus(ContentModerationStatus.PENDING_REVIEW);
+            event.setModerationRejectionReason(null);
+            // Pending content must remain outside public event queries until an
+            // administrator makes an explicit moderation decision.
             event.setStatus(EventStatus.DRAFT);
+            return;
         }
+
+        event.setModerationStatus(ContentModerationStatus.APPROVED);
+        event.setModerationRejectionReason(null);
     }
 
     private Specification<Event> alwaysTrue() {

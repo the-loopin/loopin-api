@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/changes/009-event-location-coordinates.yaml
   - include:
       file: db/changelog/changes/010-notifications.yaml
+  - include:
+      file: db/changelog/changes/011-moderation-review.yaml
