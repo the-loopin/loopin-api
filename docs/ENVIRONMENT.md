@@ -21,7 +21,7 @@ The Loopin API reads runtime parameters from system environment variables. This 
 | `JPA_SHOW_SQL` | Print Hibernate database queries to console. | `false` | Set to `true` strictly during debugging |
 | `JPA_FORMAT_SQL` | Output prettified Hibernate SQL statements. | `false` | Formatting toggle |
 | **Moderation Settings** | | | |
-| `BANNED_WORDS_LIST` | Comma-separated list of keywords flagged by moderation filters. | `scam,spam,offensiveword1...` | Checked on event descriptions and chats |
+| `BANNED_WORDS_LIST` | Comma-separated list of case-insensitive words or phrases flagged by local moderation. | `scam,spam,offensiveword1...` | Checked on group titles/notes, join-request messages, chat messages, and event titles/descriptions |
 | **JWT Authentication** | | | |
 | `JWT_SECRET` | HS256 key signature token. Must be cryptographically strong. | **Required (No Default)** | E.g. 512-bit Base64 encoded string |
 | `JWT_EXPIRATION` | Duration in milliseconds that issued tokens remain valid. | `86400000` (24 Hours) | Adjust based on security policy |
@@ -76,3 +76,7 @@ Additional variables used by Docker Compose and Redis-backed rate limiting:
 | `SPRING_DATA_REDIS_PORT` | Redis port used when `RATE_LIMIT_STORAGE=redis`. | `6379` | Compose maps this to the Redis service |
 
 `RATE_LIMIT_STORAGE=redis` requires a reachable Redis instance. In Docker Compose, the API uses `SPRING_DATA_REDIS_HOST=redis`; when running the JVM directly on the host, use `localhost` unless Redis runs elsewhere.
+
+## Manual content moderation
+
+`BANNED_WORDS_LIST` is evaluated locally before user-generated content is exposed. Unsafe group titles, group notes, and chat messages are rejected. Unsafe group join requests are stored with the existing `REJECTED` request status, while unsafe events are kept in `DRAFT` because events do not yet have a dedicated moderation-status column. The local checker is failure-safe: a configuration or matching error is logged and does not interrupt the request. No AI moderation is used.
