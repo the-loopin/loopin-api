@@ -2,7 +2,7 @@ package com.loopin.api.recommendation;
 
 import com.loopin.api.ai.client.LoopinAiClient;
 import com.loopin.api.ai.dto.EmbeddingResponse;
-import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.events.entity.Event;
 import com.loopin.api.recommendation.event.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
