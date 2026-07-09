@@ -22,6 +22,11 @@ The Loopin API reads runtime parameters from system environment variables. This 
 | `JPA_FORMAT_SQL` | Output prettified Hibernate SQL statements. | `false` | Formatting toggle |
 | **Moderation Settings** | | | |
 | `BANNED_WORDS_LIST` | Comma-separated list of case-insensitive words or phrases flagged by local moderation. | `scam,spam,offensiveword1...` | Checked on group titles/notes, join-request messages, chat messages, and event titles/descriptions |
+| `AI_MODERATION_ENABLED` | Enables the optional external AI check after manual moderation passes. | `false` | Leave disabled unless an AI moderation provider is configured. |
+| `AI_MODERATION_BASE_URL` | Base URL of the AI moderation provider. | *Empty* | Required only when AI moderation is enabled. |
+| `AI_MODERATION_ENDPOINT_PATH` | Provider path appended to the base URL. | `/v1/moderation/check` | The provider receives `{ "textFields": [...] }` and must return `{ "risky": boolean, "reason": string }`. |
+| `AI_MODERATION_TIMEOUT` | Connection and request timeout for the AI provider. | `2s` | Spring duration format, such as `500ms` or `2s`. |
+| `AI_MODERATION_API_KEY` | Optional provider API key sent as `X-API-Key`. | *Empty* | Inject from a secret manager; never commit a real value. |
 | **JWT Authentication** | | | |
 | `JWT_SECRET` | HS256 key signature token. Must be cryptographically strong. | **Required (No Default)** | E.g. 512-bit Base64 encoded string |
 | `JWT_EXPIRATION` | Duration in milliseconds that issued tokens remain valid. | `86400000` (24 Hours) | Adjust based on security policy |
@@ -77,6 +82,8 @@ Additional variables used by Docker Compose and Redis-backed rate limiting:
 
 `RATE_LIMIT_STORAGE=redis` requires a reachable Redis instance. In Docker Compose, the API uses `SPRING_DATA_REDIS_HOST=redis`; when running the JVM directly on the host, use `localhost` unless Redis runs elsewhere.
 
-## Manual content moderation
+## Content moderation
 
-`BANNED_WORDS_LIST` is evaluated locally before user-generated content is exposed. Unsafe group titles, group notes, and chat messages are rejected. Unsafe group join requests are stored with the existing `REJECTED` request status. Unsafe events are stored as `DRAFT` with a `PENDING_REVIEW` moderation status, where an administrator can approve (publishing the event) or reject it with an optional reason. Each decision is retained in `moderation_logs`. The local checker is failure-safe: a configuration or matching error is logged and does not interrupt the request. No AI moderation is used.
+`BANNED_WORDS_LIST` is always evaluated locally before user-generated content is exposed. Unsafe group titles, group notes, and chat messages are rejected. Unsafe group join requests are stored with the existing `REJECTED` request status. Unsafe events are stored as `DRAFT` with a `PENDING_REVIEW` moderation status, where an administrator can approve (publishing the event) or reject it with an optional reason. Each decision is retained in `moderation_logs`.
+
+When `AI_MODERATION_ENABLED=true`, text that passes the local rules is then checked by the configured AI provider. A response with `risky: true` follows the same pending/rejected path as local risky content. AI checks are fail-open: disabled configuration, timeouts, invalid responses, and provider failures are logged and treated as an approved AI result so they never interrupt the main request. Manual moderation remains independent and always runs first.
