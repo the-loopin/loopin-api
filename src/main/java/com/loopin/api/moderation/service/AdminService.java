@@ -1,10 +1,10 @@
 package com.loopin.api.moderation.service;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.moderation.dto.admin.response.DashboardStatsResponse;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.users.dto.response.UserResponse;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.users.dto.response.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
