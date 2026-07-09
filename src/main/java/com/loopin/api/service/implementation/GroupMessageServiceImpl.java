@@ -13,6 +13,7 @@ import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.GroupMessageRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.GroupMessageService;
+import com.loopin.api.moderation.ContentModerationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class GroupMessageServiceImpl implements GroupMessageService {
     private final EventGroupRepository eventGroupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserRepository userRepository;
+    private final ContentModerationService contentModerationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -54,6 +56,10 @@ public class GroupMessageServiceImpl implements GroupMessageService {
 
         User sender = userRepository.findByIdAndDeletedAtIsNull(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUserId));
+
+        if (!contentModerationService.moderate(request.getMessageText()).isApproved()) {
+            throw new IllegalArgumentException("Content contains blocked language and cannot be sent");
+        }
 
         GroupMessage message = new GroupMessage();
         message.setGroup(group);
