@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-add-event-moderation-status
+      author: loopin
+      changes:
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: moderation_status
+                  type: VARCHAR(30)
+                  defaultValue: APPROVED
+                  constraints:
+                    nullable: false
+              - column:
+                  name: moderation_rejection_reason
+                  type: VARCHAR(1000)
+        - createIndex:
+            tableName: events
+            indexName: idx_events_moderation_status
+            columns:
+              - column:
+                  name: moderation_status
+      rollback:
+        - dropIndex:
+            tableName: events
+            indexName: idx_events_moderation_status
+        - dropColumn:
+            tableName: events
+            columnName: moderation_rejection_reason
+        - dropColumn:
+            tableName: events
+            columnName: moderation_status
+
+  - changeSet:
+      id: 012-create-moderation-logs
+      author: loopin
+      changes:
+        - createTable:
+            tableName: moderation_logs
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, primaryKeyName: pk_moderation_logs, nullable: false } }
+              - column: { name: public_id, type: UUID, constraints: { nullable: false, unique: true } }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+              - column: { name: content_type, type: VARCHAR(30), constraints: { nullable: false } }
+              - column: { name: content_public_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: action, type: VARCHAR(30), constraints: { nullable: false } }
+              - column: { name: rejection_reason, type: VARCHAR(1000) }
+              - column: { name: admin_id, type: BIGINT, constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: moderation_logs
+            baseColumnNames: admin_id
+            constraintName: fk_moderation_logs_admin_id
+            referencedTableName: users
+            referencedColumnNames: id
+        - createIndex:
+            tableName: moderation_logs
+            indexName: idx_moderation_logs_content_public_id
+            columns:
+              - column:
+                  name: content_public_id
+      rollback:
+        - dropTable:
+            tableName: moderation_logs
