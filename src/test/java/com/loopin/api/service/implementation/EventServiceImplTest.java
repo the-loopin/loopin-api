@@ -21,6 +21,8 @@ import com.loopin.api.repository.UserRepository;
 
 import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.EventInterestRepository;
+import com.loopin.api.repository.GroupMemberRepository;
+import com.loopin.api.service.abstraction.NotificationService;
 import com.loopin.api.recommendation.user.UserEmbeddingRepository;
 import com.loopin.api.recommendation.event.EventEmbeddingRepository;
 import org.springframework.data.domain.Page;
@@ -64,6 +66,8 @@ class EventServiceImplTest {
     private EventInterestRepository eventInterestRepository;
     private UserEmbeddingRepository userEmbeddingRepository;
     private EventEmbeddingRepository eventEmbeddingRepository;
+    private GroupMemberRepository groupMemberRepository;
+    private NotificationService notificationService;
 
 
     private EventServiceImpl eventService;
@@ -79,6 +83,8 @@ class EventServiceImplTest {
         eventInterestRepository = mock(EventInterestRepository.class);
         userEmbeddingRepository = mock(UserEmbeddingRepository.class);
         eventEmbeddingRepository = mock(EventEmbeddingRepository.class);
+        groupMemberRepository = mock(GroupMemberRepository.class);
+        notificationService = mock(NotificationService.class);
 
 
         eventService = new EventServiceImpl(
@@ -90,7 +96,9 @@ class EventServiceImplTest {
                 eventInterestRepository,
                 eventEmbeddingService,
                 userEmbeddingRepository,
-                eventEmbeddingRepository
+                eventEmbeddingRepository,
+                groupMemberRepository,
+                notificationService
         );
     }
 
@@ -160,6 +168,7 @@ class EventServiceImplTest {
         assertEquals(user, mappedEvent.getOwner());
         verify(eventRepository).saveAndFlush(mappedEvent);
         verify(eventEmbeddingService).indexEvent(mappedEvent);
+        verify(notificationService).create(any());
         assertEquals(realResponse, result);
         assertEquals(realResponse.getTitle(), result.getTitle());
     }
@@ -206,6 +215,7 @@ class EventServiceImplTest {
         verify(eventMapper).updateEntity(event, request);
         verify(eventRepository).save(event);
         verify(eventEmbeddingService).indexEvent(event);
+        verify(notificationService).createAll(any());
         assertEquals(realResponse, result);
         assertEquals(realResponse.getTitle(), result.getTitle());
     }
@@ -248,6 +258,7 @@ class EventServiceImplTest {
         assertEquals(GroupStatus.ARCHIVED, group.getStatus());
         verify(eventGroupRepository).save(group);
         verify(eventRepository).save(event);
+        verify(notificationService).createAll(any());
         // The event object's internal state for deletedAt should be updated via markAsDeleted()
         // Here we just verify the save call on the modified object
     }
