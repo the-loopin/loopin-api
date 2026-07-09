@@ -3,7 +3,7 @@ package com.loopin.api.notifications.controller;
 import com.loopin.api.notifications.enums.NotificationStatus;
 import com.loopin.api.common.security.SecurityUtils;
 import com.loopin.api.notifications.dto.response.NotificationResponse;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.notifications.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

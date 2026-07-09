@@ -3,8 +3,7 @@ package com.loopin.api.notifications.service;
 import com.loopin.api.notifications.enums.NotificationStatus;
 import com.loopin.api.notifications.dto.response.NotificationResponse;
 import com.loopin.api.notifications.entity.Notification;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.notifications.service.NotificationCommand;
+import com.loopin.api.users.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

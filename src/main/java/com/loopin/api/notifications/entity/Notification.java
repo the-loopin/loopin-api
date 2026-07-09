@@ -1,7 +1,7 @@
 package com.loopin.api.notifications.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationStatus;
 import com.loopin.api.notifications.enums.NotificationType;

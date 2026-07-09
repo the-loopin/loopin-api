@@ -2,7 +2,7 @@ package com.loopin.api.notifications.service;
 
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 
 import java.util.UUID;
 
