@@ -1,6 +1,6 @@
 package com.loopin.api.moderation;
 
-import com.loopin.api.common.enums.ContentModerationStatus;
+import com.loopin.api.moderation.enums.ContentModerationStatus;
 import com.loopin.api.moderation.ai.AiModerationClient;
 import com.loopin.api.moderation.ai.AiModerationProperties;
 import com.loopin.api.moderation.ai.dto.AiModerationResponse;
