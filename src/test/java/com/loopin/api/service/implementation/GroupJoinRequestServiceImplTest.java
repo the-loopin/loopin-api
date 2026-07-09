@@ -13,6 +13,7 @@ import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.GroupJoinRequestRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.service.abstraction.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,6 +41,7 @@ class GroupJoinRequestServiceImplTest {
     private EventGroupRepository eventGroupRepository;
     private UserRepository userRepository;
     private GroupMemberRepository groupMemberRepository;
+    private NotificationService notificationService;
 
     private GroupJoinRequestServiceImpl joinRequestService;
 
@@ -49,12 +51,14 @@ class GroupJoinRequestServiceImplTest {
         eventGroupRepository = mock(EventGroupRepository.class);
         userRepository = mock(UserRepository.class);
         groupMemberRepository = mock(GroupMemberRepository.class);
+        notificationService = mock(NotificationService.class);
 
         joinRequestService = new GroupJoinRequestServiceImpl(
                 joinRequestRepository,
                 eventGroupRepository,
                 userRepository,
-                groupMemberRepository
+                groupMemberRepository,
+                notificationService
         );
     }
 
@@ -77,6 +81,7 @@ class GroupJoinRequestServiceImplTest {
         GroupJoinRequestResponse response = joinRequestService.create(GROUP_ID, USER_ID, requestDto);
 
         verify(joinRequestRepository).save(any(GroupJoinRequest.class));
+        verify(notificationService).create(any());
         assertEquals(REQUEST_ID, response.getId());
     }
 
@@ -135,6 +140,7 @@ class GroupJoinRequestServiceImplTest {
         assertEquals(RequestStatus.ACCEPTED, requestEntity.getStatus());
         verify(joinRequestRepository).save(requestEntity);
         verify(groupMemberRepository).save(any(GroupMember.class));
+        verify(notificationService).create(any());
     }
 
     @Test
@@ -151,6 +157,7 @@ class GroupJoinRequestServiceImplTest {
 
         assertEquals(RequestStatus.REJECTED, requestEntity.getStatus());
         verify(joinRequestRepository).save(requestEntity);
+        verify(notificationService).create(any());
     }
 
     @Test
