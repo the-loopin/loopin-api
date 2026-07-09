@@ -1,14 +1,14 @@
 package com.loopin.api.controller;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.common.enums.EventCategory;
-import com.loopin.api.common.enums.EventStatus;
-import com.loopin.api.common.enums.EventType;
-import com.loopin.api.entity.Event;
-import com.loopin.api.entity.User;
-import com.loopin.api.repository.EventGroupRepository;
-import com.loopin.api.repository.EventRepository;
-import com.loopin.api.repository.UserRepository;
+import com.loopin.api.core.events.enums.EventCategory;
+import com.loopin.api.core.events.enums.EventStatus;
+import com.loopin.api.core.events.enums.EventType;
+import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.core.users.entity.User;
+import com.loopin.api.core.events.repository.EventGroupRepository;
+import com.loopin.api.core.events.repository.EventRepository;
+import com.loopin.api.core.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
