@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/changes/008-user-last-seen.yaml
   - include:
       file: db/changelog/changes/009-event-location-coordinates.yaml
+  - include:
+      file: db/changelog/changes/010-notifications.yaml
