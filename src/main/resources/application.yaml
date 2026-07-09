@@ -42,6 +42,12 @@ spring:
 # Local Content Check Rule Targets
 moderation:
   banned-words: ${BANNED_WORDS_LIST:scam,spam,offensiveword1,offensiveword2}
+  ai:
+    enabled: ${AI_MODERATION_ENABLED:false}
+    base-url: ${AI_MODERATION_BASE_URL:}
+    endpoint-path: ${AI_MODERATION_ENDPOINT_PATH:/v1/moderation/check}
+    timeout: ${AI_MODERATION_TIMEOUT:2s}
+    api-key: ${AI_MODERATION_API_KEY:}
 
 rate-limit:
   enabled: ${RATE_LIMIT_ENABLED:true}

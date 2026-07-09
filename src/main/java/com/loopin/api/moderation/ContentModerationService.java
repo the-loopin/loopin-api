@@ -1,29 +1,49 @@
 package com.loopin.api.moderation;
 
 import com.loopin.api.common.enums.ContentModerationStatus;
+import com.loopin.api.moderation.ai.AiModerationClient;
+import com.loopin.api.moderation.ai.AiModerationProperties;
+import com.loopin.api.moderation.ai.dto.AiModerationRequest;
+import com.loopin.api.moderation.ai.dto.AiModerationResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 /**
- * Local, deterministic moderation for user-provided text. This deliberately
- * has no network or AI dependency so it can be used on synchronous write
- * paths. A configuration or matching failure is fail-open to protect the
- * application availability; failures are logged for operators.
+ * Manual moderation is always the first layer. When explicitly enabled, clean
+ * text is subsequently sent to the optional AI client. Any AI failure is
+ * fail-open so an external dependency cannot prevent content creation.
  */
 @Slf4j
 @Service
 public class ContentModerationService {
 
     private final ContentModerationProperties properties;
+    private final AiModerationProperties aiProperties;
+    private final AiModerationClient aiModerationClient;
 
-    public ContentModerationService(ContentModerationProperties properties) {
+    @Autowired
+    public ContentModerationService(
+            ContentModerationProperties properties,
+            AiModerationProperties aiProperties,
+            AiModerationClient aiModerationClient
+    ) {
         this.properties = properties;
+        this.aiProperties = aiProperties;
+        this.aiModerationClient = aiModerationClient;
+    }
+
+    /** Retained for focused manual-moderation tests and legacy callers. */
+    public ContentModerationService(ContentModerationProperties properties) {
+        this(properties, new AiModerationProperties(), request -> new AiModerationResponse(false, null));
     }
 
     public ContentModerationDecision moderate(String... textFields) {
@@ -44,13 +64,38 @@ public class ContentModerationService {
                 }
             }
 
-            return matchedTerms.isEmpty()
-                    ? ContentModerationDecision.approved()
-                    : new ContentModerationDecision(
-                            ContentModerationStatus.PENDING_REVIEW,
-                            List.copyOf(matchedTerms));
+            if (!matchedTerms.isEmpty()) {
+                return new ContentModerationDecision(
+                        ContentModerationStatus.PENDING_REVIEW,
+                        List.copyOf(matchedTerms));
+            }
+
+            return moderateWithAi(textFields);
         } catch (RuntimeException exception) {
             log.warn("Local content moderation failed; allowing content to preserve availability: {}",
+                    exception.getMessage());
+            return ContentModerationDecision.approved();
+        }
+    }
+
+    private ContentModerationDecision moderateWithAi(String... textFields) {
+        if (!aiProperties.isEnabled()) {
+            return ContentModerationDecision.approved();
+        }
+
+        try {
+            AiModerationResponse response = aiModerationClient.moderate(
+                    new AiModerationRequest(Arrays.stream(textFields == null ? new String[0] : textFields)
+                            .filter(Objects::nonNull)
+                            .toList()));
+            if (response == null || response.risky() == null) {
+                throw new IllegalStateException("AI moderation returned an invalid response");
+            }
+            return Boolean.TRUE.equals(response.risky())
+                    ? new ContentModerationDecision(ContentModerationStatus.PENDING_REVIEW, List.of())
+                    : ContentModerationDecision.approved();
+        } catch (RuntimeException exception) {
+            log.warn("AI moderation unavailable; allowing content according to fail-open policy: {}",
                     exception.getMessage());
             return ContentModerationDecision.approved();
         }
