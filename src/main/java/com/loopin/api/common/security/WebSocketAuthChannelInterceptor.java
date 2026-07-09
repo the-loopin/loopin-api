@@ -1,9 +1,9 @@
 package com.loopin.api.common.security;
 
-import com.loopin.api.entity.EventGroup;
-import com.loopin.api.repository.EventGroupRepository;
-import com.loopin.api.repository.GroupMemberRepository;
-import com.loopin.api.service.implementation.CustomUserDetailsService;
+import com.loopin.api.core.events.entity.EventGroup;
+import com.loopin.api.core.events.repository.EventGroupRepository;
+import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.auth.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;

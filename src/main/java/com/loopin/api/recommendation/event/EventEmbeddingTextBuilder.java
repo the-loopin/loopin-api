@@ -1,7 +1,7 @@
 package com.loopin.api.recommendation.event;
 
-import com.loopin.api.entity.Event;
-import com.loopin.api.entity.EventInterest;
+import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.core.events.entity.EventInterest;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;

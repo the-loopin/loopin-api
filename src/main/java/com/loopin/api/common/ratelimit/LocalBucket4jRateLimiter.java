@@ -1,6 +1,6 @@
 package com.loopin.api.common.ratelimit;
 
-import com.loopin.api.config.RateLimitProperties;
+import com.loopin.api.common.config.RateLimitProperties;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;

@@ -1,6 +1,6 @@
 package com.loopin.api.moderation;
 
-import com.loopin.api.common.enums.ContentModerationStatus;
+import com.loopin.api.moderation.enums.ContentModerationStatus;
 
 import java.util.List;
 

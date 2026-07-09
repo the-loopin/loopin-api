@@ -1,6 +1,6 @@
 package com.loopin.api.common.security;
 
-import com.loopin.api.service.implementation.CustomUserDetailsService;
+import com.loopin.api.auth.service.CustomUserDetailsService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

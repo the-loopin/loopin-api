@@ -1,6 +1,6 @@
 package com.loopin.api.recommendation.user;
 
-import com.loopin.api.entity.Interest;
+import com.loopin.api.core.interests.entity.Interest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

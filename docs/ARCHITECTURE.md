@@ -39,9 +39,9 @@ flowchart TD
 
 ---
 
-## Code Layering Pattern
+## Package Organization
 
-The codebase follows the industry-standard layered architecture pattern, separating concerns between controllers, business logic, persistence, and data transfer.
+The former global technical-layer layout is retained below as historical context. The active layout is a package-based modular monolith, described after it.
 
 ```
 com.loopin.api
@@ -62,11 +62,38 @@ com.loopin.api
       └── implementation # Business logic implementation classes
 ```
 
+### Active Modular Monolith Layout
+
+```
+com.loopin.api
+|- core
+|  |- events          # controller, service, repository, entity, dto, mapper, job, seed
+|  |- groups          # controller, service, repository, entity, dto, mapper, job, seed
+|  |- users           # controller, service, repository, entity, dto, mapper, seed
+|  `- interests       # controller, service, repository, entity, dto, mapper
+|- auth               # authentication controller, DTOs, role model, services
+|- chat               # REST/STOMP controllers, message persistence, DTOs, services
+|- reports            # report endpoints, persistence, mapping, and services
+|- moderation         # moderation/admin endpoints, policies, persistence, services
+|- notifications      # notification endpoints, delivery services, repositories, jobs
+|- recommendation     # event and user embedding workflows
+|- ai                 # client, configuration properties, request/response DTOs
+`- common
+   |- config          # application, security, cache, async, and WebSocket configuration
+   |- exception       # global error handling and shared error DTOs
+   |- security        # JWT and WebSocket security infrastructure
+   |- ratelimit       # Bucket4j and Redis rate-limiting infrastructure
+   |- entity          # shared JPA base entity
+   `- seed            # cross-module development-data orchestration
+```
+
+Each business module owns its layer-specific types, preserving the current service behavior while removing the global `controller`, `service`, `repository`, `entity`, `dto`, and `mapper` packages. This is intentionally not a VSA/CQRS migration: endpoint paths, API contracts, JPA mappings, and service behavior remain unchanged. Command/query handlers can be introduced selectively inside modules in a later phase.
+
 ### 1. Presentation Layer (Controllers)
 Receives incoming HTTP requests, validates input payloads using Jakarta Validation annotations (`@Valid`, `@NotNull`, etc.), delegates execution to the appropriate service, and returns standardized `ResponseEntity` models.
 
 ### 2. Business Logic Layer (Services)
-Contains all business rules, validation logic (such as checking if a group size exceeds limits, or if a user is authorized to perform actions), transaction boundaries, and coordinates database reads/writes. Services implement interface contracts defined in `service/abstraction`.
+Contains all business rules, validation logic (such as checking if a group size exceeds limits, or if a user is authorized to perform actions), transaction boundaries, and coordinates database reads/writes. Service contracts and implementations live together under their owning module's `service` package.
 
 ### 3. Data Access Layer (Repositories)
 Utilizes Spring Data JPA to execute database CRUD operations. Entities are mapped to tables using standard JPA annotations (`@Entity`, `@Table`, `@Id`, etc.).
