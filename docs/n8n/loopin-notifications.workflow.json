@@ -1,0 +1,55 @@
+{
+  "name": "Loopin Notification Delivery",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "loopin-notifications",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "loopin-webhook",
+      "name": "Loopin Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "loopin-notifications"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"accepted\": true, \"deliveryId\": \"{{ $json.body.deliveryId }}\"}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "accepted-response",
+      "name": "Accept Delivery",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [520, 300]
+    }
+  ],
+  "connections": {
+    "Loopin Webhook": {
+      "main": [
+        [
+          {
+            "node": "Accept Delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "versionId": "f3459318-330a-4fb8-98c4-3a99e73cfc55",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

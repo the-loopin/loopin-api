@@ -12,6 +12,8 @@ import com.loopin.api.entity.GroupMember;
 import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.common.enums.GroupSizeType;
+import com.loopin.api.common.enums.NotificationReferenceType;
+import com.loopin.api.common.enums.NotificationType;
 import com.loopin.api.common.exception.InvalidGroupStateException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.repository.EventGroupRepository;
@@ -19,6 +21,8 @@ import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.GroupService;
+import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.service.notification.NotificationCommand;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,16 +36,19 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMapper  groupMapper;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public GroupServiceImpl(EventGroupRepository eventGroupRepository,
                             GroupMapper groupMapper,
                             GroupMemberRepository groupMemberRepository,
                             EventRepository eventRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            NotificationService notificationService) {
         this.eventGroupRepository = eventGroupRepository;
         this.groupMemberRepository = groupMemberRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         this.groupMapper = groupMapper;
     }
 
@@ -140,6 +147,13 @@ public class GroupServiceImpl implements GroupService {
         member.setUser(user);
         groupMemberRepository.save(member);
         refreshGroupCapacityStatus(group, currentMemberCount + 1);
+        notificationService.create(new NotificationCommand(
+                user,
+                NotificationType.GROUP_INVITATION,
+                "Added to group",
+                "You were added to \"" + group.getTitle() + "\".",
+                NotificationReferenceType.GROUP,
+                group.getPublicId()));
     }
 
     @Override
@@ -158,6 +172,13 @@ public class GroupServiceImpl implements GroupService {
         int currentMemberCount = groupMemberRepository.countByGroupId(group.getId());
         groupMemberRepository.delete(member);
         refreshGroupCapacityStatus(group, currentMemberCount - 1);
+        notificationService.create(new NotificationCommand(
+                user,
+                NotificationType.GROUP_ACTIVITY,
+                "Removed from group",
+                "You were removed from \"" + group.getTitle() + "\".",
+                NotificationReferenceType.GROUP,
+                group.getPublicId()));
     }
 
     @Override

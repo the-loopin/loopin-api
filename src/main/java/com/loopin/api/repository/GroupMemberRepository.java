@@ -3,6 +3,8 @@ package com.loopin.api.repository;
 
 import com.loopin.api.entity.GroupMember;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +20,13 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     int countByGroupId(Long groupId);
 
     void deleteByGroupId(Long groupId);
+
+    @Query("""
+            select distinct member.user
+              from GroupMember member
+             where member.group.event.id = :eventId
+               and member.user.deletedAt is null
+               and member.user.isActive = true
+            """)
+    List<com.loopin.api.entity.User> findDistinctActiveUsersByEventId(@Param("eventId") Long eventId);
 }

@@ -2,6 +2,8 @@ package com.loopin.api.service.implementation;
 
 import com.loopin.api.common.enums.ReportStatus;
 import com.loopin.api.common.enums.ReportTargetType;
+import com.loopin.api.common.enums.NotificationReferenceType;
+import com.loopin.api.common.enums.NotificationType;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.report.request.CreateReportRequest;
 import com.loopin.api.dto.report.response.ReportResponse;
@@ -15,6 +17,8 @@ import com.loopin.api.repository.GroupMessageRepository;
 import com.loopin.api.repository.UserReportRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.UserReportService;
+import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.service.notification.NotificationCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +36,7 @@ public class UserReportServiceImpl implements UserReportService {
     private final EventGroupRepository eventGroupRepository;
     private final GroupMessageRepository groupMessageRepository;
     private final UserReportMapper reportMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -66,8 +71,19 @@ public class UserReportServiceImpl implements UserReportService {
         UserReport report = reportRepository.findByPublicId(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
 
+        ReportStatus previousStatus = report.getStatus();
         report.setStatus(status);
-        return reportMapper.toResponse(reportRepository.save(report));
+        UserReport saved = reportRepository.save(report);
+        if (previousStatus != status) {
+            notificationService.create(new NotificationCommand(
+                    report.getReporter(),
+                    NotificationType.MODERATION_UPDATE,
+                    "Report status updated",
+                    "Your report status is now " + status.name().toLowerCase() + ".",
+                    NotificationReferenceType.REPORT,
+                    report.getPublicId()));
+        }
+        return reportMapper.toResponse(saved);
     }
 
     private void assignTarget(UserReport report, CreateReportRequest request) {

@@ -25,6 +25,9 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
 
     List<Event> findByStatusAndEndDateTimeBeforeAndDeletedAtIsNull(EventStatus status, LocalDateTime now);
 
+    List<Event> findByStatusAndStartDateTimeAfterAndStartDateTimeLessThanEqualAndDeletedAtIsNull(
+            EventStatus status, LocalDateTime after, LocalDateTime before);
+
     @Query("""
             select event.id
             from Event event

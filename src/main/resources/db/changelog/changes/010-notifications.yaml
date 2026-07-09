@@ -1,0 +1,95 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-create-notifications
+      author: loopin
+      changes:
+        - createTable:
+            tableName: notifications
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: public_id, type: UUID, constraints: { nullable: false, unique: true } }
+              - column: { name: recipient_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: type, type: VARCHAR(40), constraints: { nullable: false } }
+              - column: { name: title, type: VARCHAR(120), constraints: { nullable: false } }
+              - column: { name: message, type: VARCHAR(2000), constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: reference_type, type: VARCHAR(30) }
+              - column: { name: reference_id, type: UUID }
+              - column: { name: deduplication_key, type: VARCHAR(255) }
+              - column: { name: read_at, type: TIMESTAMP }
+              - column: { name: archived_at, type: TIMESTAMP }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+        - addForeignKeyConstraint:
+            baseTableName: notifications
+            baseColumnNames: recipient_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_notifications_recipient
+            onDelete: CASCADE
+        - addUniqueConstraint:
+            tableName: notifications
+            columnNames: deduplication_key
+            constraintName: uk_notifications_deduplication_key
+        - createIndex:
+            tableName: notifications
+            indexName: idx_notifications_recipient_status_created
+            columns:
+              - column: { name: recipient_id }
+              - column: { name: status }
+              - column: { name: created_at, descending: true }
+
+  - changeSet:
+      id: 016-create-notification-deliveries
+      author: loopin
+      changes:
+        - createTable:
+            tableName: notification_deliveries
+            columns:
+              - column: { name: id, type: BIGINT, autoIncrement: true, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: public_id, type: UUID, constraints: { nullable: false, unique: true } }
+              - column: { name: notification_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: channel, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(20), constraints: { nullable: false } }
+              - column: { name: attempt_count, type: INT, defaultValueNumeric: 0, constraints: { nullable: false } }
+              - column: { name: next_attempt_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: delivered_at, type: TIMESTAMP }
+              - column: { name: last_error, type: VARCHAR(2000) }
+              - column: { name: created_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, constraints: { nullable: false } }
+              - column: { name: deleted_at, type: TIMESTAMP }
+        - addForeignKeyConstraint:
+            baseTableName: notification_deliveries
+            baseColumnNames: notification_id
+            referencedTableName: notifications
+            referencedColumnNames: id
+            constraintName: fk_notification_deliveries_notification
+            onDelete: CASCADE
+        - addUniqueConstraint:
+            tableName: notification_deliveries
+            columnNames: notification_id, channel
+            constraintName: uk_notification_deliveries_notification_channel
+        - createIndex:
+            tableName: notification_deliveries
+            indexName: idx_notification_deliveries_due
+            columns:
+              - column: { name: status }
+              - column: { name: next_attempt_at }
+
+  - changeSet:
+      id: 017-add-notification-job-locks
+      author: loopin
+      changes:
+        - insert:
+            tableName: job_locks
+            columns:
+              - column: { name: lock_name, value: notification-delivery }
+              - column: { name: locked_until, valueDate: "1970-01-01T00:00:00" }
+              - column: { name: locked_at, valueDate: "1970-01-01T00:00:00" }
+        - insert:
+            tableName: job_locks
+            columns:
+              - column: { name: lock_name, value: event-reminders }
+              - column: { name: locked_until, valueDate: "1970-01-01T00:00:00" }
+              - column: { name: locked_at, valueDate: "1970-01-01T00:00:00" }

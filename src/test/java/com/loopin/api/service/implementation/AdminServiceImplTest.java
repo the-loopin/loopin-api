@@ -15,6 +15,8 @@ import com.loopin.api.mapper.UserMapper;
 import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.repository.GroupMemberRepository;
+import com.loopin.api.service.abstraction.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +51,8 @@ class AdminServiceImplTest {
     private EventGroupRepository eventGroupRepository;
     private UserMapper userMapper;
     private EventMapper eventMapper;
+    private GroupMemberRepository groupMemberRepository;
+    private NotificationService notificationService;
 
     private AdminServiceImpl adminService;
 
@@ -59,13 +63,17 @@ class AdminServiceImplTest {
         eventGroupRepository = mock(EventGroupRepository.class);
         userMapper = mock(UserMapper.class);
         eventMapper = mock(EventMapper.class);
+        groupMemberRepository = mock(GroupMemberRepository.class);
+        notificationService = mock(NotificationService.class);
 
         adminService = new AdminServiceImpl(
                 userRepository,
                 eventRepository,
                 eventGroupRepository,
                 userMapper,
-                eventMapper
+                eventMapper,
+                groupMemberRepository,
+                notificationService
         );
     }
 

@@ -93,6 +93,19 @@ loopin:
     archived-cleanup-days: ${GROUP_ARCHIVE_RETENTION_DAYS:30}
     cleanup-fixed-delay-ms: ${GROUP_ARCHIVE_CLEANUP_FIXED_DELAY_MS:86400000}
     cleanup-initial-delay-ms: ${GROUP_ARCHIVE_CLEANUP_INITIAL_DELAY_MS:300000}
+  notifications:
+    reminders:
+      fixed-delay-ms: ${NOTIFICATION_REMINDER_DELAY_MS:300000}
+      initial-delay-ms: ${NOTIFICATION_REMINDER_INITIAL_DELAY_MS:60000}
+    n8n:
+      enabled: ${N8N_NOTIFICATIONS_ENABLED:false}
+      webhook-url: ${N8N_NOTIFICATION_WEBHOOK_URL:http://localhost:5678/webhook/loopin-notifications}
+      secret: ${N8N_NOTIFICATION_WEBHOOK_SECRET:}
+      timeout: ${N8N_NOTIFICATION_TIMEOUT:5s}
+      batch-size: ${N8N_NOTIFICATION_BATCH_SIZE:50}
+      max-backoff: ${N8N_NOTIFICATION_MAX_BACKOFF:1h}
+      worker-delay-ms: ${N8N_NOTIFICATION_WORKER_DELAY_MS:10000}
+      worker-initial-delay-ms: ${N8N_NOTIFICATION_WORKER_INITIAL_DELAY_MS:10000}
   ai:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
     timeout: ${LOOPIN_AI_TIMEOUT:2s}
