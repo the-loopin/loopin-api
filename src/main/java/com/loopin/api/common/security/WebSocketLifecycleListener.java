@@ -1,6 +1,6 @@
 package com.loopin.api.common.security;
 
-import com.loopin.api.service.abstraction.UserPresenceService;
+import com.loopin.api.core.users.service.UserPresenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

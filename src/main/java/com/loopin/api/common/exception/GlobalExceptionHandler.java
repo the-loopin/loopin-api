@@ -1,6 +1,6 @@
 package com.loopin.api.common.exception;
 
-import com.loopin.api.dto.error.ErrorResponse;
+import com.loopin.api.common.exception.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

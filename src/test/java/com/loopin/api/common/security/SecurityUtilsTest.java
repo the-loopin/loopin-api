@@ -1,7 +1,7 @@
 package com.loopin.api.common.security;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.entity.User;
+import com.loopin.api.core.users.entity.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
