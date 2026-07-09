@@ -13,6 +13,8 @@ import com.loopin.api.entity.User;
 import com.loopin.api.common.enums.EventCategory;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.EventType;
+import com.loopin.api.common.enums.NotificationReferenceType;
+import com.loopin.api.common.enums.NotificationType;
 import com.loopin.api.common.exception.DuplicateResourceException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.common.exception.UnauthorizedException;
@@ -26,8 +28,11 @@ import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.InterestRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.recommendation.event.EventEmbeddingService;
 import com.loopin.api.service.abstraction.EventService;
+import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.service.notification.NotificationCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -69,6 +74,8 @@ public class EventServiceImpl implements EventService {
     private final EventEmbeddingService eventEmbeddingService;
     private final UserEmbeddingRepository userEmbeddingRepository;
     private final EventEmbeddingRepository eventEmbeddingRepository;
+    private final GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Cacheable(value = "publishedEvents", key = "{#type, #category, #city, #isFree, #search, #startDate, #endDate, #pageable}")
@@ -176,6 +183,13 @@ public class EventServiceImpl implements EventService {
         Event savedEvent = eventRepository.saveAndFlush(event);
         replaceEventInterests(savedEvent, request.getInterestIds());
         eventEmbeddingService.indexEvent(savedEvent);
+        notificationService.create(new NotificationCommand(
+                currentUser,
+                NotificationType.EVENT_UPDATE,
+                "Event created",
+                "Your event \"" + savedEvent.getTitle() + "\" was created.",
+                NotificationReferenceType.EVENT,
+                savedEvent.getPublicId()));
 
         return eventMapper.toResponse(savedEvent);
     }
@@ -193,11 +207,20 @@ public class EventServiceImpl implements EventService {
 
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
+        EventStatus previousStatus = event.getStatus();
         eventMapper.updateEntity(event, request);
         replaceEventInterests(event, request.getInterestIds());
 
         Event savedEvent = eventRepository.save(event);
         eventEmbeddingService.indexEvent(savedEvent);
+        boolean cancelled = savedEvent.getStatus() == EventStatus.CANCELLED
+                && previousStatus != EventStatus.CANCELLED;
+        notifyEventMembers(
+                savedEvent,
+                cancelled ? "Event cancelled" : "Event updated",
+                cancelled
+                        ? "\"" + savedEvent.getTitle() + "\" has been cancelled."
+                        : "\"" + savedEvent.getTitle() + "\" has been updated.");
         return eventMapper.toResponse(savedEvent);
     }
 
@@ -211,10 +234,29 @@ public class EventServiceImpl implements EventService {
         User currentUser = findCurrentUser(currentUsername);
         Event event = findActiveEventById(id);
         validateOwnerOrAdmin(event, currentUser);
+        notifyEventMembers(
+                event,
+                "Event cancelled",
+                "\"" + event.getTitle() + "\" has been cancelled.");
         eventInterestRepository.deleteByEvent_Id(event.getId());
         archiveGroupsForEvent(event.getId());
         event.markAsDeleted();
         eventRepository.save(event);
+    }
+
+    private void notifyEventMembers(Event event, String title, String message) {
+        List<NotificationCommand> commands = groupMemberRepository
+                .findDistinctActiveUsersByEventId(event.getId())
+                .stream()
+                .map(recipient -> new NotificationCommand(
+                        recipient,
+                        NotificationType.EVENT_UPDATE,
+                        title,
+                        message,
+                        NotificationReferenceType.EVENT,
+                        event.getPublicId()))
+                .toList();
+        notificationService.createAll(commands);
     }
 
     private void archiveGroupsForEvent(Long eventId) {
