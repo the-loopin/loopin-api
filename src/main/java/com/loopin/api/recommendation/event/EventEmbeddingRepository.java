@@ -1,6 +1,6 @@
 package com.loopin.api.recommendation.event;
 
-import com.loopin.api.ai.LoopinAiProperties;
+import com.loopin.api.ai.config.LoopinAiProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 

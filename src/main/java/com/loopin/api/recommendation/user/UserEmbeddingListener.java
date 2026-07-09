@@ -1,6 +1,6 @@
 package com.loopin.api.recommendation.user;
 
-import com.loopin.api.ai.LoopinAiClient;
+import com.loopin.api.ai.client.LoopinAiClient;
 import com.loopin.api.ai.dto.EmbeddingResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
