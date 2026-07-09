@@ -3,6 +3,8 @@ package com.loopin.api.service.implementation;
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.enums.EventStatus;
 import com.loopin.api.common.enums.GroupStatus;
+import com.loopin.api.common.enums.NotificationReferenceType;
+import com.loopin.api.common.enums.NotificationType;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.admin.response.DashboardStatsResponse;
 import com.loopin.api.dto.event.response.EventResponse;
@@ -15,7 +17,10 @@ import com.loopin.api.mapper.UserMapper;
 import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.service.abstraction.AdminService;
+import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.service.notification.NotificationCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,6 +43,8 @@ public class AdminServiceImpl implements AdminService {
     private final EventGroupRepository eventGroupRepository;
     private final UserMapper userMapper;
     private final EventMapper eventMapper;
+    private final GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -129,6 +136,16 @@ public class AdminServiceImpl implements AdminService {
         Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
 
+        notificationService.createAll(groupMemberRepository.findDistinctActiveUsersByEventId(event.getId())
+                .stream()
+                .map(recipient -> new NotificationCommand(
+                        recipient,
+                        NotificationType.EVENT_UPDATE,
+                        "Event cancelled",
+                        "\"" + event.getTitle() + "\" has been cancelled.",
+                        NotificationReferenceType.EVENT,
+                        event.getPublicId()))
+                .toList());
         archiveGroupsForEvent(event.getId());
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
