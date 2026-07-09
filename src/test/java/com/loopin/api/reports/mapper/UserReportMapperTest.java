@@ -3,9 +3,9 @@ package com.loopin.api.reports.mapper;
 import com.loopin.api.reports.enums.ReportStatus;
 import com.loopin.api.reports.enums.ReportTargetType;
 import com.loopin.api.reports.dto.response.ReportResponse;
-import com.loopin.api.core.events.entity.EventGroup;
+import com.loopin.api.events.entity.EventGroup;
 import com.loopin.api.chat.entity.GroupMessage;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.reports.entity.UserReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ class UserReportMapperTest {
         report.setReporter(reporter);
 
         report.setTargetType(ReportTargetType.GROUP);
-        
+
         EventGroup group = new EventGroup();
         UUID groupPublicId = UUID.randomUUID();
         group.setPublicId(groupPublicId);
@@ -47,7 +47,7 @@ class UserReportMapperTest {
         report.setReason("Inappropriate behavior");
         report.setDetails("More details here");
         report.setStatus(ReportStatus.PENDING);
-        
+
         LocalDateTime now = LocalDateTime.now();
         report.setCreatedAt(now);
         report.setUpdatedAt(now);
@@ -78,7 +78,7 @@ class UserReportMapperTest {
         report.setReporter(reporter);
 
         report.setTargetType(ReportTargetType.MESSAGE);
-        
+
         GroupMessage message = new GroupMessage();
         UUID messagePublicId = UUID.randomUUID();
         message.setPublicId(messagePublicId);
