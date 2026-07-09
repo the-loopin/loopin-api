@@ -5,17 +5,17 @@ import com.loopin.api.auth.dto.GoogleLoginRequest;
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.auth.service.GoogleTokenClaims;
 import com.loopin.api.auth.service.GoogleTokenVerifier;
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.reports.dto.request.UpdateReportStatusRequest;
 import com.loopin.api.reports.enums.ReportStatus;
-import com.loopin.api.core.users.dto.request.UpdateUserRoleRequest;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.entity.UserProfile;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.dto.request.UpdateUserRoleRequest;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.entity.UserProfile;
+import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,10 +105,10 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
     @Test
     void regularUserCannotAccessAdminEndpoints_ReturnsForbidden() throws Exception {
         UUID dummyId = UUID.randomUUID();
-        
+
         UpdateUserRoleRequest roleRequest = new UpdateUserRoleRequest();
         roleRequest.setRole(Role.USER);
-        
+
         UpdateReportStatusRequest reportRequest = new UpdateReportStatusRequest();
         reportRequest.setStatus(ReportStatus.RESOLVED);
 
@@ -154,7 +154,7 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
     @Test
     void adminCanAccessAdminEndpoints_ReturnsSuccess() throws Exception {
         UUID dummyId = testUser.getPublicId(); // Use a real ID for operations that might fetch it
-        
+
         UpdateUserRoleRequest roleRequest = new UpdateUserRoleRequest();
         roleRequest.setRole(Role.USER);
 
@@ -182,7 +182,7 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         // List reports
         mockMvc.perform(get("/admin/reports").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
-                
+
         // Delete user (we do this last so we don't break other tests depending on testUser)
         mockMvc.perform(delete("/admin/users/" + dummyId).header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());

@@ -4,9 +4,9 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.security.JwtUtils;
 import com.loopin.api.auth.dto.GoogleLoginRequest;
 import com.loopin.api.auth.dto.AuthResponse;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.entity.UserProfile;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.entity.UserProfile;
+import com.loopin.api.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +26,10 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse authenticateGoogleUser(GoogleLoginRequest request) {
         GoogleTokenClaims claims = googleTokenVerifier.verify(request.getIdToken());
         User user;
-        
+
         // 1. Try to find user by googleId
         Optional<User> userByGoogleId = userRepository.findByGoogleId(claims.googleId());
-        
+
         if (userByGoogleId.isPresent()) {
             user = userByGoogleId.get();
             if (user.isDeleted()) {
@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         } else {
             // 2. Try to find user by email
             Optional<User> userByEmail = userRepository.findByEmail(claims.email());
-            
+
             if (userByEmail.isPresent()) {
                 user = userByEmail.get();
                 if (user.isDeleted()) {
@@ -60,12 +60,12 @@ public class AuthServiceImpl implements AuthService {
                 // 3. Register a new user
                 user = new User(claims.email(), claims.name(), claims.googleId());
                 user.setRole(Role.USER); // Default role
-                
+
                 UserProfile profile = new UserProfile();
                 profile.setUser(user);
                 profile.setName(claims.name());
                 user.setProfile(profile);
-                
+
                 user = userRepository.save(user);
             }
         }
