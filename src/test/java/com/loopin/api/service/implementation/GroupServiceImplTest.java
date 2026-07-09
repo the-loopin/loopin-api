@@ -15,6 +15,7 @@ import com.loopin.api.repository.EventGroupRepository;
 import com.loopin.api.repository.EventRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserRepository;
+import com.loopin.api.service.abstraction.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +43,7 @@ class GroupServiceImplTest {
     private GroupMapper groupMapper;
     private EventRepository eventRepository;
     private UserRepository userRepository;
+    private NotificationService notificationService;
     private GroupServiceImpl groupService;
 
     @BeforeEach
@@ -51,12 +53,14 @@ class GroupServiceImplTest {
         groupMapper = mock(GroupMapper.class);
         eventRepository = mock(EventRepository.class);
         userRepository = mock(UserRepository.class);
+        notificationService = mock(NotificationService.class);
         groupService = new GroupServiceImpl(
                 eventGroupRepository,
                 groupMapper,
                 groupMemberRepository,
                 eventRepository,
-                userRepository);
+                userRepository,
+                notificationService);
     }
 
     @Test
@@ -140,6 +144,7 @@ class GroupServiceImplTest {
 
         ArgumentCaptor<GroupMember> memberCaptor = ArgumentCaptor.forClass(GroupMember.class);
         verify(groupMemberRepository).save(memberCaptor.capture());
+        verify(notificationService).create(any());
         assertEquals(group, memberCaptor.getValue().getGroup());
         assertEquals(newMember, memberCaptor.getValue().getUser());
         assertEquals(GroupStatus.OPEN, group.getStatus());
