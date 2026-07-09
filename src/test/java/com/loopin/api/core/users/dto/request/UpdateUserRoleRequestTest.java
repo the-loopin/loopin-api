@@ -1,6 +1,7 @@
 package com.loopin.api.core.users.dto.request;
 
 import com.loopin.api.auth.enums.Role;
+import com.loopin.api.users.dto.request.UpdateUserRoleRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

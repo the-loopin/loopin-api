@@ -1,5 +1,6 @@
 package com.loopin.api.core.users.dto.request;
 
+import com.loopin.api.users.dto.request.UserRegisterRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
