@@ -1,10 +1,11 @@
 package com.loopin.api.core.groups.job;
 
-import com.loopin.api.core.groups.enums.GroupStatus;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.groups.repository.GroupJoinRequestRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.groups.enums.GroupStatus;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.job.ArchivedGroupCleanupJob;
+import com.loopin.api.groups.repository.GroupJoinRequestRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.chat.repository.GroupMessageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

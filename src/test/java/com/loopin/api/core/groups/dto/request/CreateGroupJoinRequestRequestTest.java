@@ -1,5 +1,6 @@
 package com.loopin.api.core.groups.dto.request;
 
+import com.loopin.api.groups.dto.request.CreateGroupJoinRequestRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

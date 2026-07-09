@@ -1,16 +1,17 @@
 package com.loopin.api.core.groups.service;
 
 import com.loopin.api.common.exception.ResourceNotFoundException;
-import com.loopin.api.core.groups.dto.request.GroupMemberRequest;
-import com.loopin.api.core.groups.dto.response.GroupMemberResponse;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.groups.entity.GroupMember;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.groups.mapper.GroupMemberMapper;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
-import com.loopin.api.core.users.repository.UserRepository;
-import com.loopin.api.core.groups.service.GroupService;
+import com.loopin.api.groups.dto.request.GroupMemberRequest;
+import com.loopin.api.groups.dto.response.GroupMemberResponse;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.GroupMember;
+import com.loopin.api.groups.service.GroupMemberServiceImpl;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.groups.mapper.GroupMemberMapper;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
+import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.groups.service.GroupService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

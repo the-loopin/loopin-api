@@ -1,12 +1,14 @@
 package com.loopin.api.core.groups.mapper;
 
-import com.loopin.api.core.groups.enums.GroupStatus;
-import com.loopin.api.core.groups.dto.request.CreateGroupRequest;
-import com.loopin.api.core.groups.dto.response.GroupResponse;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.groups.enums.GroupSizeType;
+import com.loopin.api.groups.enums.GroupStatus;
+import com.loopin.api.groups.dto.request.CreateGroupRequest;
+import com.loopin.api.groups.dto.response.GroupResponse;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.mapper.GroupMapper;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +35,7 @@ class GroupMapperTest {
     void toEntity_ValidRequest_MapsFieldsAndSetsOpenStatus() {
         CreateGroupRequest request = new CreateGroupRequest();
         request.setTitle("Test Group");
-        request.setGroupSize(com.loopin.api.core.groups.enums.GroupSizeType.FOUR);
+        request.setGroupSize(GroupSizeType.FOUR);
         request.setMaxMembers(20);
         request.setGroupNote("Test Note");
 
@@ -43,7 +45,7 @@ class GroupMapperTest {
         EventGroup group = groupMapper.toEntity(request, admin, event);
 
         assertEquals("Test Group", group.getTitle());
-        assertEquals(com.loopin.api.core.groups.enums.GroupSizeType.FOUR, group.getGroupSize());
+        assertEquals(GroupSizeType.FOUR, group.getGroupSize());
         assertEquals(20, group.getMaxMembers());
         assertEquals("Test Note", group.getGroupNote());
         assertEquals(admin, group.getAdmin());
@@ -58,7 +60,7 @@ class GroupMapperTest {
         UUID groupPublicId = UUID.randomUUID();
         group.setPublicId(groupPublicId);
         group.setTitle("Test Group");
-        group.setGroupSize(com.loopin.api.core.groups.enums.GroupSizeType.FOUR);
+        group.setGroupSize(GroupSizeType.FOUR);
         group.setMaxMembers(20);
         group.setGroupNote("Test Note");
         group.setStatus(GroupStatus.OPEN);
@@ -85,7 +87,7 @@ class GroupMapperTest {
         assertEquals(adminPublicId, response.getAdminId()); // EXPLICIT CHECK: Uses publicId
         assertEquals("admin@test.com", response.getAdminUsername());
         assertEquals("Test Group", response.getTitle());
-        assertEquals(com.loopin.api.core.groups.enums.GroupSizeType.FOUR, response.getGroupSize());
+        assertEquals(GroupSizeType.FOUR, response.getGroupSize());
         assertEquals(20, response.getMaxMembers());
         assertEquals(GroupStatus.OPEN, response.getStatus());
         assertEquals("Test Note", response.getGroupNote());

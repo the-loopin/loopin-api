@@ -1,6 +1,7 @@
 package com.loopin.api.core.groups.dto.request;
 
-import com.loopin.api.core.groups.enums.GroupStatus;
+import com.loopin.api.groups.dto.request.UpdateGroupStatusRequest;
+import com.loopin.api.groups.enums.GroupStatus;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
