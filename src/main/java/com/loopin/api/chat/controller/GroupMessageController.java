@@ -3,7 +3,7 @@ package com.loopin.api.chat.controller;
 import com.loopin.api.common.security.SecurityUtils;
 import com.loopin.api.chat.dto.request.CreateGroupMessageRequest;
 import com.loopin.api.chat.dto.response.GroupMessageResponse;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.chat.service.GroupMessageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

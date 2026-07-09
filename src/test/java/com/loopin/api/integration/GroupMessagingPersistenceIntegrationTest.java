@@ -5,23 +5,23 @@ import com.loopin.api.auth.dto.GoogleLoginRequest;
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.auth.service.GoogleTokenClaims;
 import com.loopin.api.auth.service.GoogleTokenVerifier;
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.groups.enums.GroupSizeType;
-import com.loopin.api.core.groups.enums.GroupStatus;
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.groups.dto.request.CreateGroupRequest;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.groups.enums.GroupSizeType;
+import com.loopin.api.groups.enums.GroupStatus;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.groups.dto.request.CreateGroupRequest;
 import com.loopin.api.chat.dto.request.CreateGroupMessageRequest;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.groups.entity.GroupMember;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.entity.UserProfile;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.events.repository.EventRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.GroupMember;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.entity.UserProfile;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.chat.repository.GroupMessageRepository;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -163,7 +163,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andReturn();
-        
+
         // Setup group and members for the message test (since message API uses Long ID)
         group = eventGroupRepository.findAll().get(0);
 
