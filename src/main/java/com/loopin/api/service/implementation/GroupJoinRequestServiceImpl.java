@@ -2,6 +2,8 @@ package com.loopin.api.service.implementation;
 
 import com.loopin.api.common.enums.GroupStatus;
 import com.loopin.api.common.enums.RequestStatus;
+import com.loopin.api.common.enums.NotificationReferenceType;
+import com.loopin.api.common.enums.NotificationType;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.dto.group.request.CreateGroupJoinRequestRequest;
 import com.loopin.api.dto.group.response.GroupJoinRequestResponse;
@@ -14,6 +16,8 @@ import com.loopin.api.repository.GroupJoinRequestRepository;
 import com.loopin.api.repository.GroupMemberRepository;
 import com.loopin.api.repository.UserRepository;
 import com.loopin.api.service.abstraction.GroupJoinRequestService;
+import com.loopin.api.service.abstraction.NotificationService;
+import com.loopin.api.service.notification.NotificationCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
     private final EventGroupRepository eventGroupRepository;
     private final UserRepository userRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -55,7 +60,15 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
         request.setMessage(requestDto.getMessage());
         request.setStatus(RequestStatus.PENDING);
 
-        return GroupJoinRequestResponse.from(joinRequestRepository.save(request));
+        GroupJoinRequest saved = joinRequestRepository.save(request);
+        notificationService.create(new NotificationCommand(
+                group.getAdmin(),
+                NotificationType.GROUP_ACTIVITY,
+                "New group join request",
+                user.getName() + " requested to join \"" + group.getTitle() + "\".",
+                NotificationReferenceType.GROUP,
+                group.getPublicId()));
+        return GroupJoinRequestResponse.from(saved);
     }
 
     @Override
@@ -120,6 +133,14 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
             eventGroupRepository.save(group);
         }
 
+        notificationService.create(new NotificationCommand(
+                request.getUser(),
+                NotificationType.GROUP_INVITATION,
+                "Join request approved",
+                "Your request to join \"" + group.getTitle() + "\" was approved.",
+                NotificationReferenceType.GROUP,
+                group.getPublicId()));
+
         return GroupJoinRequestResponse.from(request);
     }
 
@@ -134,7 +155,15 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
         }
 
         request.setStatus(RequestStatus.REJECTED);
-        return GroupJoinRequestResponse.from(joinRequestRepository.save(request));
+        GroupJoinRequest saved = joinRequestRepository.save(request);
+        notificationService.create(new NotificationCommand(
+                request.getUser(),
+                NotificationType.GROUP_ACTIVITY,
+                "Join request declined",
+                "Your request to join \"" + request.getGroup().getTitle() + "\" was declined.",
+                NotificationReferenceType.GROUP,
+                request.getGroup().getPublicId()));
+        return GroupJoinRequestResponse.from(saved);
     }
 
     @Override
