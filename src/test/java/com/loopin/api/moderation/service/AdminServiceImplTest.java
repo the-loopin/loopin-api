@@ -1,21 +1,21 @@
 package com.loopin.api.moderation.service;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.groups.enums.GroupStatus;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.moderation.dto.admin.response.DashboardStatsResponse;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.users.dto.response.UserResponse;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.mapper.EventMapper;
-import com.loopin.api.core.users.mapper.UserMapper;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.events.repository.EventRepository;
-import com.loopin.api.core.users.repository.UserRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.users.dto.response.UserResponse;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.mapper.EventMapper;
+import com.loopin.api.users.mapper.UserMapper;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.notifications.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -251,8 +251,8 @@ class AdminServiceImplTest {
 
     private EventResponse eventResponse(UUID id) {
         return new EventResponse(
-                id, "Title", "Desc", com.loopin.api.core.events.enums.EventType.EVENT, 
-                com.loopin.api.core.events.enums.EventCategory.TECH, "City", "Address",
+                id, "Title", "Desc", com.loopin.api.events.enums.EventType.EVENT,
+                com.loopin.api.events.enums.EventCategory.TECH, "City", "Address",
                 new java.math.BigDecimal("40.376200"), new java.math.BigDecimal("49.844700"),
                 java.time.LocalDateTime.now(), java.time.LocalDateTime.now().plusDays(1), true, 
                 java.math.BigDecimal.ZERO, "Organizer", "Image", EventStatus.PUBLISHED, 
