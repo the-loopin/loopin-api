@@ -4,7 +4,20 @@ package com.loopin.api.groups.controller;
 import com.loopin.api.common.security.SecurityUtils;
 import com.loopin.api.groups.dto.request.CreateGroupJoinRequestRequest;
 import com.loopin.api.groups.dto.response.GroupJoinRequestResponse;
-import com.loopin.api.groups.service.GroupJoinRequestService;
+import com.loopin.api.groups.approvegroupjoinrequest.ApproveGroupJoinRequestCommand;
+import com.loopin.api.groups.approvegroupjoinrequest.ApproveGroupJoinRequestHandler;
+import com.loopin.api.groups.creategroupjoinrequest.CreateGroupJoinRequestCommand;
+import com.loopin.api.groups.creategroupjoinrequest.CreateGroupJoinRequestHandler;
+import com.loopin.api.groups.deletegroupjoinrequest.DeleteGroupJoinRequestCommand;
+import com.loopin.api.groups.deletegroupjoinrequest.DeleteGroupJoinRequestHandler;
+import com.loopin.api.groups.getgroupjoinrequest.GetGroupJoinRequestHandler;
+import com.loopin.api.groups.getgroupjoinrequest.GetGroupJoinRequestQuery;
+import com.loopin.api.groups.listgroupjoinrequests.ListGroupJoinRequestsHandler;
+import com.loopin.api.groups.listgroupjoinrequests.ListGroupJoinRequestsQuery;
+import com.loopin.api.groups.listmygroupjoinrequests.ListMyGroupJoinRequestsHandler;
+import com.loopin.api.groups.listmygroupjoinrequests.ListMyGroupJoinRequestsQuery;
+import com.loopin.api.groups.rejectgroupjoinrequest.RejectGroupJoinRequestCommand;
+import com.loopin.api.groups.rejectgroupjoinrequest.RejectGroupJoinRequestHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +33,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GroupJoinRequestController {
 
-    private final GroupJoinRequestService joinRequestService;
+    private final CreateGroupJoinRequestHandler createGroupJoinRequestHandler;
+    private final GetGroupJoinRequestHandler getGroupJoinRequestHandler;
+    private final ListGroupJoinRequestsHandler listGroupJoinRequestsHandler;
+    private final ListMyGroupJoinRequestsHandler listMyGroupJoinRequestsHandler;
+    private final ApproveGroupJoinRequestHandler approveGroupJoinRequestHandler;
+    private final RejectGroupJoinRequestHandler rejectGroupJoinRequestHandler;
+    private final DeleteGroupJoinRequestHandler deleteGroupJoinRequestHandler;
 
     @PostMapping("/groups/{groupId}/join-requests")
     public ResponseEntity<GroupJoinRequestResponse> create(
@@ -29,7 +48,7 @@ public class GroupJoinRequestController {
     ) {
         Long currentUserId = getCurrentUserId();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(joinRequestService.create(groupId, currentUserId, request));
+                .body(createGroupJoinRequestHandler.handle(new CreateGroupJoinRequestCommand(groupId, currentUserId, request)));
     }
 
     @GetMapping("/groups/{groupId}/join-requests/{requestId}")
@@ -38,20 +57,22 @@ public class GroupJoinRequestController {
             @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
-        return ResponseEntity.ok(joinRequestService.getById(groupId, requestId, currentUserId));
+        return ResponseEntity.ok(getGroupJoinRequestHandler.handle(
+                new GetGroupJoinRequestQuery(groupId, requestId, currentUserId)));
     }
 
 
     @GetMapping("/groups/{groupId}/join-requests")
     public ResponseEntity<List<GroupJoinRequestResponse>> getByGroupId(@PathVariable UUID groupId) {
         Long currentUserId = getCurrentUserId();
-        return ResponseEntity.ok(joinRequestService.getByGroupId(groupId, currentUserId));
+        return ResponseEntity.ok(listGroupJoinRequestsHandler.handle(
+                new ListGroupJoinRequestsQuery(groupId, currentUserId)));
     }
 
     @GetMapping("/me/group-join-requests")
     public ResponseEntity<List<GroupJoinRequestResponse>> getMyRequests() {
         Long currentUserId = getCurrentUserId();
-        return ResponseEntity.ok(joinRequestService.getByUserId(currentUserId));
+        return ResponseEntity.ok(listMyGroupJoinRequestsHandler.handle(new ListMyGroupJoinRequestsQuery(currentUserId)));
     }
 
     @PatchMapping("/groups/{groupId}/join-requests/{requestId}/approve")
@@ -60,7 +81,8 @@ public class GroupJoinRequestController {
             @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
-        return ResponseEntity.ok(joinRequestService.approve(groupId, requestId, currentUserId));
+        return ResponseEntity.ok(approveGroupJoinRequestHandler.handle(
+                new ApproveGroupJoinRequestCommand(groupId, requestId, currentUserId)));
     }
 
     @PatchMapping("/groups/{groupId}/join-requests/{requestId}/reject")
@@ -69,7 +91,8 @@ public class GroupJoinRequestController {
             @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
-        return ResponseEntity.ok(joinRequestService.reject(groupId, requestId, currentUserId));
+        return ResponseEntity.ok(rejectGroupJoinRequestHandler.handle(
+                new RejectGroupJoinRequestCommand(groupId, requestId, currentUserId)));
     }
 
     @DeleteMapping("/groups/{groupId}/join-requests/{requestId}")
@@ -78,7 +101,7 @@ public class GroupJoinRequestController {
             @PathVariable UUID requestId
     ) {
         Long currentUserId = getCurrentUserId();
-        joinRequestService.delete(groupId, requestId, currentUserId);
+        deleteGroupJoinRequestHandler.handle(new DeleteGroupJoinRequestCommand(groupId, requestId, currentUserId));
         return ResponseEntity.noContent().build();
     }
 
