@@ -4,7 +4,14 @@ import com.loopin.api.groups.dto.request.CreateGroupRequest;
 import com.loopin.api.groups.dto.request.UpdateGroupRequest;
 import com.loopin.api.groups.dto.request.UpdateGroupStatusRequest;
 import com.loopin.api.groups.dto.response.GroupResponse;
-import com.loopin.api.groups.service.GroupServiceImpl;
+import com.loopin.api.groups.changegroupstatus.ChangeGroupStatusCommand;
+import com.loopin.api.groups.changegroupstatus.ChangeGroupStatusHandler;
+import com.loopin.api.groups.creategroup.CreateGroupCommand;
+import com.loopin.api.groups.creategroup.CreateGroupHandler;
+import com.loopin.api.groups.getgroupdetails.GetGroupDetailsHandler;
+import com.loopin.api.groups.getgroupdetails.GetGroupDetailsQuery;
+import com.loopin.api.groups.updategroup.UpdateGroupCommand;
+import com.loopin.api.groups.updategroup.UpdateGroupHandler;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,23 +24,30 @@ import java.util.UUID;
 @RequestMapping("/v1/groups")
 public class GroupController {
 
-    private final GroupServiceImpl groupService;
+    private final CreateGroupHandler createGroupHandler;
+    private final GetGroupDetailsHandler getGroupDetailsHandler;
+    private final UpdateGroupHandler updateGroupHandler;
+    private final ChangeGroupStatusHandler changeGroupStatusHandler;
 
-    public GroupController(GroupServiceImpl groupService) {
-        this.groupService = groupService;
+    public GroupController(CreateGroupHandler createGroupHandler, GetGroupDetailsHandler getGroupDetailsHandler,
+                           UpdateGroupHandler updateGroupHandler, ChangeGroupStatusHandler changeGroupStatusHandler) {
+        this.createGroupHandler = createGroupHandler;
+        this.getGroupDetailsHandler = getGroupDetailsHandler;
+        this.updateGroupHandler = updateGroupHandler;
+        this.changeGroupStatusHandler = changeGroupStatusHandler;
     }
 
     @PostMapping
     public ResponseEntity<GroupResponse> createGroup(
             @Valid @RequestBody CreateGroupRequest request) {
         String currentUsername = SecurityUtils.getRequiredCurrentUserEmail();
-        GroupResponse response = groupService.createGroup(request, currentUsername);
+        GroupResponse response = createGroupHandler.handle(new CreateGroupCommand(request, currentUsername));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupResponse> getGroup(@PathVariable UUID groupId) {
-        return ResponseEntity.ok(groupService.getGroup(groupId));
+        return ResponseEntity.ok(getGroupDetailsHandler.handle(new GetGroupDetailsQuery(groupId)));
     }
 
     @PutMapping("/{groupId}")
@@ -42,11 +56,7 @@ public class GroupController {
             @Valid @RequestBody UpdateGroupRequest request) {
 
         String currentUsername = SecurityUtils.getRequiredCurrentUserEmail();
-        GroupResponse response = groupService.updateGroup(
-                groupId,
-                request,
-                currentUsername
-        );
+        GroupResponse response = updateGroupHandler.handle(new UpdateGroupCommand(groupId, request, currentUsername));
 
         return ResponseEntity.ok(response);
     }
@@ -57,10 +67,8 @@ public class GroupController {
             @Valid @RequestBody UpdateGroupStatusRequest request) {
 
         String currentUsername = SecurityUtils.getRequiredCurrentUserEmail();
-        GroupResponse response = groupService.updateGroupStatus(
-                groupId,
-                request,
-                currentUsername);
+        GroupResponse response = changeGroupStatusHandler.handle(
+                new ChangeGroupStatusCommand(groupId, request, currentUsername));
 
         return ResponseEntity.ok(response);
     }
