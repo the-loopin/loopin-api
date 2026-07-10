@@ -1,7 +1,6 @@
 package com.loopin.api.events.dto.request;
 
 import com.loopin.api.events.enums.EventCategory;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -67,9 +66,6 @@ public class EventUpdateRequest {
 
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
-
-    @NotNull(message = "Status is required")
-    private EventStatus status;
 
     private List<UUID> interestIds = new ArrayList<>();
 }
