@@ -4,6 +4,8 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
+import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdQuery;
 import com.loopin.api.common.security.JwtUtils;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.entity.EventInterest;
@@ -25,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -63,6 +67,9 @@ class EventControllerTest {
 
     @Autowired
     private EventService eventService;
+
+    @MockitoSpyBean
+    private GetPublishedEventByIdHandler getPublishedEventByIdHandler;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -178,6 +185,16 @@ class EventControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.components.schemas.EventCreateRequest.properties.status").doesNotExist())
                 .andExpect(jsonPath("$.components.schemas.EventUpdateRequest.properties.status").doesNotExist());
+    }
+
+    @Test
+    void getPublishedEventById_DelegatesToQueryHandler() throws Exception {
+        Event event = eventRepository.save(event("Published Event", owner));
+
+        mockMvc.perform(get("/v1/events/" + event.getPublicId()))
+                .andExpect(status().isOk());
+
+        verify(getPublishedEventByIdHandler).handle(new GetPublishedEventByIdQuery(event.getPublicId()));
     }
 
     private User saveUser(String email, String name, Role role) {

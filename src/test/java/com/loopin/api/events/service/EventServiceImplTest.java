@@ -41,7 +41,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -121,27 +120,6 @@ class EventServiceImplTest {
         assertEquals(1, result.size());
         assertEquals(realResponse, result.get(0));
         assertEquals(realResponse.getTitle(), result.get(0).getTitle());
-    }
-
-    @Test
-    void getPublishedEventById_Found_ReturnsEvent() {
-        Event event = event(1L, EVENT_ID);
-        when(eventRepository.findPublishedByPublicIdWithInterests(any())).thenReturn(Optional.of(event));
-        
-        EventResponse realResponse = eventResponse(EVENT_ID);
-        when(eventMapper.toResponse(any())).thenReturn(realResponse);
-
-        EventResponse result = eventService.getPublishedEventById(EVENT_ID);
-
-        assertEquals(realResponse, result);
-        assertEquals(realResponse.getTitle(), result.getTitle());
-    }
-
-    @Test
-    void getPublishedEventById_NotFound_ThrowsNoSuchElementException() {
-        when(eventRepository.findPublishedByPublicIdWithInterests(any())).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> eventService.getPublishedEventById(EVENT_ID));
     }
 
     @Test
