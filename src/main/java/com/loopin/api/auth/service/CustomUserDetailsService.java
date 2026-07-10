@@ -1,8 +1,8 @@
 package com.loopin.api.auth.service;
 
 import com.loopin.api.common.security.CustomUserDetails;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

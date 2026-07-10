@@ -1,6 +1,6 @@
 package com.loopin.api.common.security;
 
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
