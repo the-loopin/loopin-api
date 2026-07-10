@@ -23,8 +23,6 @@ public interface EventService {
             org.springframework.data.domain.Pageable pageable
     );
 
-    EventResponse createEvent(EventCreateRequest request, String currentUsername);
-
     EventResponse updateEvent(UUID id, EventUpdateRequest request, String currentUsername);
 
     void deleteEvent(UUID id, String currentUsername);
