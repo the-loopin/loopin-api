@@ -9,9 +9,14 @@ import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.dto.request.EventCreateRequest;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.entity.EventInterest;
+import com.loopin.api.events.repository.EventInterestRepository;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.users.entity.UserProfile;
 import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.interests.entity.Interest;
+import com.loopin.api.interests.repository.InterestRepository;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +52,12 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
     private EventRepository eventRepository;
 
     @Autowired
+    private InterestRepository interestRepository;
+
+    @Autowired
+    private EventInterestRepository eventInterestRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -58,7 +69,9 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         reset(googleTokenVerifier);
+        eventInterestRepository.deleteAll();
         eventRepository.deleteAll();
+        interestRepository.deleteAll();
         userRepository.deleteAll();
 
         // Seed a regular USER
@@ -159,6 +172,23 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void getEventById_PublishedEventReturnsInterests() throws Exception {
+        String eventId = createTestEvent("Test Event", EventCategory.TECH, "Dubai", EventType.EVENT);
+        Interest interest = new Interest();
+        interest.setName("Technology");
+        interest.setSlug("technology");
+        interest.setCategory("Professional");
+        interest = interestRepository.save(interest);
+        Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(UUID.fromString(eventId)).orElseThrow();
+        eventInterestRepository.save(new EventInterest(event, interest));
+
+        mockMvc.perform(get("/v1/events/" + eventId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.interests", hasSize(1)))
+                .andExpect(jsonPath("$.interests[0].name", is("Technology")));
+    }
+
+    @Test
     void getEventById_NonexistentId_ReturnsNotFound() throws Exception {
         mockMvc.perform(get("/v1/events/" + UUID.randomUUID()))
                 .andExpect(status().isNotFound())
@@ -206,7 +236,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isNoContent());
 
-        // Since it's soft-deleted, getPublishedEventById excludes notDeleted(), meaning it throws NoSuchElementException -> 404
+        // The published detail query excludes soft-deleted events, so this remains a 404.
         mockMvc.perform(get("/v1/events/" + eventId))
                 .andExpect(status().isNotFound());
     }
