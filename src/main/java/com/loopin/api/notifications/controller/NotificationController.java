@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/v1/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 

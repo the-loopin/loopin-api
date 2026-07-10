@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/reports")
+@RequestMapping("/v1/reports")
 @RequiredArgsConstructor
 public class UserReportController {
 

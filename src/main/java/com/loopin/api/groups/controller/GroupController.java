@@ -14,7 +14,7 @@ import com.loopin.api.common.security.SecurityUtils;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/groups")
+@RequestMapping("/v1/groups")
 public class GroupController {
 
     private final GroupServiceImpl groupService;

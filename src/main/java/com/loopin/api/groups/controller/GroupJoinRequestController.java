@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping("/v1")
 @RequiredArgsConstructor
 public class GroupJoinRequestController {
 
