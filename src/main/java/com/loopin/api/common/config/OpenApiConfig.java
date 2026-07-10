@@ -30,6 +30,7 @@ public class OpenApiConfig {
                         new Server().url("http://localhost:8080/api").description("Local Server"),
                         new Server().url("https://staging-api.loopin.example/api").description("Staging Server")
                 ))
+                .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
                 .components(new Components()
                         .addSecuritySchemes("BearerAuth", new SecurityScheme()
                                 .name("BearerAuth")
