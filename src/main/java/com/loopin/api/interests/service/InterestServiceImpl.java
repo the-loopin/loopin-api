@@ -1,9 +1,9 @@
-package com.loopin.api.core.interests.service;
+package com.loopin.api.interests.service;
 
-import com.loopin.api.core.interests.dto.InterestResponse;
-import com.loopin.api.core.interests.mapper.InterestMapper;
-import com.loopin.api.core.interests.repository.InterestRepository;
-import com.loopin.api.core.interests.service.InterestService;
+import com.loopin.api.interests.dto.InterestResponse;
+import com.loopin.api.interests.mapper.InterestMapper;
+import com.loopin.api.interests.repository.InterestRepository;
+import com.loopin.api.interests.service.InterestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,10 +1,10 @@
 package com.loopin.api.moderation.controller;
 
-import com.loopin.api.core.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.moderation.dto.admin.response.DashboardStatsResponse;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.users.dto.request.UpdateUserRoleRequest;
-import com.loopin.api.core.users.dto.response.UserResponse;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.users.dto.request.UpdateUserRoleRequest;
+import com.loopin.api.users.dto.response.UserResponse;
 import com.loopin.api.moderation.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

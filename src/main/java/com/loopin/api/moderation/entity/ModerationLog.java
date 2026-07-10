@@ -1,7 +1,7 @@
 package com.loopin.api.moderation.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.moderation.enums.ModerationAction;
 import com.loopin.api.moderation.enums.ModerationContentType;
 import jakarta.persistence.Column;

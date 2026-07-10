@@ -1,11 +1,11 @@
-package com.loopin.api.core.events.controller;
+package com.loopin.api.events.controller;
 
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.events.dto.request.EventUpdateRequest;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.events.service.EventService;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.loopin.api.common.security.SecurityUtils;

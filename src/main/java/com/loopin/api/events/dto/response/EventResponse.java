@@ -1,10 +1,10 @@
-package com.loopin.api.core.events.dto.response;
+package com.loopin.api.events.dto.response;
 
-import com.loopin.api.core.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.moderation.enums.ContentModerationStatus;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.interests.dto.InterestResponse;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.interests.dto.InterestResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

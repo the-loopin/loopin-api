@@ -1,7 +1,7 @@
-package com.loopin.api.core.interests.repository;
+package com.loopin.api.interests.repository;
 
-import com.loopin.api.core.interests.entity.UserInterest;
-import com.loopin.api.core.interests.entity.UserInterestId;
+import com.loopin.api.interests.entity.UserInterest;
+import com.loopin.api.interests.entity.UserInterestId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

@@ -1,4 +1,4 @@
-package com.loopin.api.core.users.dto.request;
+package com.loopin.api.users.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

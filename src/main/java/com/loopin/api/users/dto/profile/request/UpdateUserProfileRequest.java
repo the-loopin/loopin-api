@@ -1,4 +1,4 @@
-package com.loopin.api.core.users.dto.profile.request;
+package com.loopin.api.users.dto.profile.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

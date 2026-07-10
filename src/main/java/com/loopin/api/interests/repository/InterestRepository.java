@@ -1,6 +1,6 @@
-package com.loopin.api.core.interests.repository;
+package com.loopin.api.interests.repository;
 
-import com.loopin.api.core.interests.entity.Interest;
+import com.loopin.api.interests.entity.Interest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

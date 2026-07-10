@@ -1,10 +1,10 @@
-package com.loopin.api.core.events.service;
+package com.loopin.api.events.service;
 
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.events.dto.request.EventUpdateRequest;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventType;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventType;
 
 import java.time.LocalDate;
 import java.util.List;

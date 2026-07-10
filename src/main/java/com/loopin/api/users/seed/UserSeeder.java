@@ -1,9 +1,9 @@
-package com.loopin.api.core.users.seed;
+package com.loopin.api.users.seed;
 
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;

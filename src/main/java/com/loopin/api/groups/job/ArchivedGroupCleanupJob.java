@@ -1,10 +1,10 @@
-package com.loopin.api.core.groups.job;
+package com.loopin.api.groups.job;
 
-import com.loopin.api.core.groups.enums.GroupStatus;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.groups.repository.GroupJoinRequestRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.groups.enums.GroupStatus;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.GroupJoinRequestRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.chat.repository.GroupMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.loopin.api.core.users.dto.response;
+package com.loopin.api.users.dto.response;
 
 import com.loopin.api.auth.enums.Role;
 import lombok.AllArgsConstructor;

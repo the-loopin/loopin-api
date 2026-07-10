@@ -1,6 +1,6 @@
-package com.loopin.api.core.events.repository;
+package com.loopin.api.events.repository;
 
-import com.loopin.api.core.events.entity.JobLock;
+import com.loopin.api.events.entity.JobLock;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

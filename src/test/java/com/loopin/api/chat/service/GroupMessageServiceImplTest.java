@@ -1,17 +1,17 @@
 package com.loopin.api.chat.service;
 
-import com.loopin.api.core.groups.enums.GroupStatus;
+import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.common.exception.InvalidGroupStateException;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.chat.dto.request.CreateGroupMessageRequest;
 import com.loopin.api.chat.dto.response.GroupMessageResponse;
-import com.loopin.api.core.events.entity.EventGroup;
+import com.loopin.api.events.entity.EventGroup;
 import com.loopin.api.chat.entity.GroupMessage;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.chat.repository.GroupMessageRepository;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.moderation.ContentModerationProperties;
 import com.loopin.api.moderation.ContentModerationService;
 import org.junit.jupiter.api.BeforeEach;

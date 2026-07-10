@@ -1,8 +1,8 @@
-package com.loopin.api.core.users.service;
+package com.loopin.api.users.service;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.users.dto.request.UserRegisterRequest;
-import com.loopin.api.core.users.dto.response.UserResponse;
+import com.loopin.api.users.dto.request.UserRegisterRequest;
+import com.loopin.api.users.dto.response.UserResponse;
 
 import java.util.List;
 import java.util.UUID;

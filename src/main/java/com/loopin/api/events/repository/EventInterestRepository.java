@@ -1,7 +1,7 @@
-package com.loopin.api.core.events.repository;
+package com.loopin.api.events.repository;
 
-import com.loopin.api.core.events.entity.EventInterest;
-import com.loopin.api.core.events.entity.EventInterestId;
+import com.loopin.api.events.entity.EventInterest;
+import com.loopin.api.events.entity.EventInterestId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

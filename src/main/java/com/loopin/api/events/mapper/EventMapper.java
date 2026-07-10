@@ -1,12 +1,12 @@
-package com.loopin.api.core.events.mapper;
+package com.loopin.api.events.mapper;
 
-import com.loopin.api.core.events.dto.request.EventCreateRequest;
-import com.loopin.api.core.events.dto.request.EventUpdateRequest;
-import com.loopin.api.core.events.dto.response.EventResponse;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.entity.EventInterest;
-import com.loopin.api.core.interests.mapper.InterestMapper;
+import com.loopin.api.events.dto.request.EventCreateRequest;
+import com.loopin.api.events.dto.request.EventUpdateRequest;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.entity.EventInterest;
+import com.loopin.api.interests.mapper.InterestMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -21,7 +21,7 @@ public abstract class EventMapper {
     @Autowired
     protected InterestMapper interestMapper;
 
-    @Mapping(target = "status", expression = "java(request.getStatus() != null ? request.getStatus() : com.loopin.api.core.events.enums.EventStatus.PUBLISHED)")
+    @Mapping(target = "status", expression = "java(request.getStatus() != null ? request.getStatus() : com.loopin.api.events.enums.EventStatus.PUBLISHED)")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publicId", ignore = true)
     @Mapping(target = "owner", ignore = true)
@@ -48,7 +48,7 @@ public abstract class EventMapper {
     @Mapping(target = "interests", expression = "java(mapInterests(event))")
     public abstract EventResponse toResponse(Event event);
 
-    protected List<com.loopin.api.core.interests.dto.InterestResponse> mapInterests(Event event) {
+    protected List<com.loopin.api.interests.dto.InterestResponse> mapInterests(Event event) {
         if (event.getInterests() == null) {
             return List.of();
         }

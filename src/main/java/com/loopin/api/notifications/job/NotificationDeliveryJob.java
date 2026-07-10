@@ -5,7 +5,7 @@ import com.loopin.api.common.config.N8nNotificationProperties;
 import com.loopin.api.notifications.entity.NotificationDelivery;
 import com.loopin.api.notifications.repository.NotificationDeliveryRepository;
 import com.loopin.api.notifications.service.NotificationDeliveryProcessor;
-import com.loopin.api.core.events.job.EventCompletionJobLockService;
+import com.loopin.api.events.job.EventCompletionJobLockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

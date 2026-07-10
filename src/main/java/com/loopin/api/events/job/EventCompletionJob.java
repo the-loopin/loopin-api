@@ -1,7 +1,7 @@
-package com.loopin.api.core.events.job;
+package com.loopin.api.events.job;
 
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.repository.EventRepository;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

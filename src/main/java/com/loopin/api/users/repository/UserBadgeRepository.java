@@ -1,7 +1,7 @@
-package com.loopin.api.core.users.repository;
+package com.loopin.api.users.repository;
 
-import com.loopin.api.core.users.enums.BadgeType;
-import com.loopin.api.core.users.entity.UserBadge;
+import com.loopin.api.users.enums.BadgeType;
+import com.loopin.api.users.entity.UserBadge;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {

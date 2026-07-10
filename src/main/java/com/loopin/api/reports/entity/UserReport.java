@@ -2,8 +2,8 @@ package com.loopin.api.reports.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
 import com.loopin.api.chat.entity.GroupMessage;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.reports.enums.ReportStatus;
 import com.loopin.api.reports.enums.ReportTargetType;
 import jakarta.persistence.Column;

@@ -1,7 +1,7 @@
-package com.loopin.api.core.groups.mapper;
+package com.loopin.api.groups.mapper;
 
-import com.loopin.api.core.groups.dto.response.GroupMemberResponse;
-import com.loopin.api.core.groups.entity.GroupMember;
+import com.loopin.api.groups.dto.response.GroupMemberResponse;
+import com.loopin.api.groups.entity.GroupMember;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;

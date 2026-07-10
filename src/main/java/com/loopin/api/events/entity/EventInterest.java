@@ -1,6 +1,6 @@
-package com.loopin.api.core.events.entity;
+package com.loopin.api.events.entity;
 
-import com.loopin.api.core.interests.entity.Interest;
+import com.loopin.api.interests.entity.Interest;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

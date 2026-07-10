@@ -1,17 +1,17 @@
 package com.loopin.api.moderation.service;
 
 import com.loopin.api.moderation.enums.ContentModerationStatus;
-import com.loopin.api.core.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.moderation.enums.ModerationAction;
 import com.loopin.api.moderation.enums.ModerationContentType;
 import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.moderation.dto.response.ModerationItemResponse;
-import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.events.entity.Event;
 import com.loopin.api.moderation.entity.ModerationLog;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.repository.EventRepository;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.moderation.repository.ModerationLogRepository;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.moderation.service.ModerationReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

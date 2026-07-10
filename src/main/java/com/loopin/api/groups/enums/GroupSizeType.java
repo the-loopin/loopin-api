@@ -1,4 +1,4 @@
-package com.loopin.api.core.groups.enums;
+package com.loopin.api.groups.enums;
 
 public enum GroupSizeType {
     TWO(2),

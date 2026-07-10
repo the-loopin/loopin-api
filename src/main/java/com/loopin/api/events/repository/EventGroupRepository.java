@@ -1,8 +1,8 @@
-package com.loopin.api.core.events.repository;
+package com.loopin.api.events.repository;
 
 
-import com.loopin.api.core.groups.enums.GroupStatus;
-import com.loopin.api.core.events.entity.EventGroup;
+import com.loopin.api.groups.enums.GroupStatus;
+import com.loopin.api.events.entity.EventGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

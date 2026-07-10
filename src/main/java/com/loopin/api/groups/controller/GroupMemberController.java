@@ -1,8 +1,8 @@
-package com.loopin.api.core.groups.controller;
+package com.loopin.api.groups.controller;
 
-import com.loopin.api.core.groups.dto.request.GroupMemberRequest;
-import com.loopin.api.core.groups.dto.response.GroupMemberResponse;
-import com.loopin.api.core.groups.service.GroupMemberService;
+import com.loopin.api.groups.dto.request.GroupMemberRequest;
+import com.loopin.api.groups.dto.response.GroupMemberResponse;
+import com.loopin.api.groups.service.GroupMemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

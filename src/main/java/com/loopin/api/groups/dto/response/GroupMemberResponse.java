@@ -1,6 +1,6 @@
-package com.loopin.api.core.groups.dto.response;
+package com.loopin.api.groups.dto.response;
 
-import com.loopin.api.core.groups.entity.GroupMember;
+import com.loopin.api.groups.entity.GroupMember;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package com.loopin.api.core.users.enums;
+package com.loopin.api.users.enums;
 
 public enum BadgeType {
     EVENT_ATTENDEE,

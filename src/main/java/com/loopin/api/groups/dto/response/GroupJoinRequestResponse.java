@@ -1,8 +1,8 @@
-package com.loopin.api.core.groups.dto.response;
+package com.loopin.api.groups.dto.response;
 
 
-import com.loopin.api.core.groups.enums.RequestStatus;
-import com.loopin.api.core.groups.entity.GroupJoinRequest;
+import com.loopin.api.groups.enums.RequestStatus;
+import com.loopin.api.groups.entity.GroupJoinRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

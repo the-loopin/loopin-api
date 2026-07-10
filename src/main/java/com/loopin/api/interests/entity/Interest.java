@@ -1,4 +1,4 @@
-package com.loopin.api.core.interests.entity;
+package com.loopin.api.interests.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
 import jakarta.persistence.Column;

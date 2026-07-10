@@ -1,13 +1,13 @@
 package com.loopin.api.common.seed;
 
 
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.seed.EventGroupSeeder;
-import com.loopin.api.core.events.seed.EventSeeder;
-import com.loopin.api.core.groups.seed.GroupJoinRequestSeeder;
-import com.loopin.api.core.users.seed.UserSeeder;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.seed.EventGroupSeeder;
+import com.loopin.api.events.seed.EventSeeder;
+import com.loopin.api.groups.seed.GroupJoinRequestSeeder;
+import com.loopin.api.users.seed.UserSeeder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;

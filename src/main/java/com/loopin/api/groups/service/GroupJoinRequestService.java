@@ -1,7 +1,7 @@
-package com.loopin.api.core.groups.service;
+package com.loopin.api.groups.service;
 
-import com.loopin.api.core.groups.dto.request.CreateGroupJoinRequestRequest;
-import com.loopin.api.core.groups.dto.response.GroupJoinRequestResponse;
+import com.loopin.api.groups.dto.request.CreateGroupJoinRequestRequest;
+import com.loopin.api.groups.dto.response.GroupJoinRequestResponse;
 
 import java.util.List;
 import java.util.UUID;

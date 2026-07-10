@@ -1,7 +1,7 @@
-package com.loopin.api.core.groups.dto.request;
+package com.loopin.api.groups.dto.request;
 
 
-import com.loopin.api.core.groups.enums.GroupStatus;
+import com.loopin.api.groups.enums.GroupStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;

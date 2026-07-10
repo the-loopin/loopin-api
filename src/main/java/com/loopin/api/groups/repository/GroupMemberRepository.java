@@ -1,7 +1,7 @@
-package com.loopin.api.core.groups.repository;
+package com.loopin.api.groups.repository;
 
 
-import com.loopin.api.core.groups.entity.GroupMember;
+import com.loopin.api.groups.entity.GroupMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,5 +28,5 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
                and member.user.deletedAt is null
                and member.user.isActive = true
             """)
-    List<com.loopin.api.core.users.entity.User> findDistinctActiveUsersByEventId(@Param("eventId") Long eventId);
+    List<com.loopin.api.users.entity.User> findDistinctActiveUsersByEventId(@Param("eventId") Long eventId);
 }

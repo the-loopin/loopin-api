@@ -1,11 +1,11 @@
-package com.loopin.api.core.groups.seed;
+package com.loopin.api.groups.seed;
 
 
-import com.loopin.api.core.groups.enums.RequestStatus;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.groups.entity.GroupJoinRequest;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.groups.repository.GroupJoinRequestRepository;
+import com.loopin.api.groups.enums.RequestStatus;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.GroupJoinRequest;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.groups.repository.GroupJoinRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;

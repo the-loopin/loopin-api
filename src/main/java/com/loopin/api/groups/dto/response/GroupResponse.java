@@ -1,9 +1,9 @@
-package com.loopin.api.core.groups.dto.response;
+package com.loopin.api.groups.dto.response;
 
 
 
-import com.loopin.api.core.groups.enums.GroupSizeType;
-import com.loopin.api.core.groups.enums.GroupStatus;
+import com.loopin.api.groups.enums.GroupSizeType;
+import com.loopin.api.groups.enums.GroupStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

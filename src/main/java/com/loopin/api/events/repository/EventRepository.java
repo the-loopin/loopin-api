@@ -1,8 +1,8 @@
-package com.loopin.api.core.events.repository;
+package com.loopin.api.events.repository;
 
-import com.loopin.api.core.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.moderation.enums.ContentModerationStatus;
-import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.events.entity.Event;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -58,7 +58,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
             left join fetch event.interests ei
             left join fetch ei.interest
             where event.id in :ids
-              and event.status = com.loopin.api.core.events.enums.EventStatus.PUBLISHED
+              and event.status = com.loopin.api.events.enums.EventStatus.PUBLISHED
               and event.deletedAt is null
             """)
     List<Event> findPublishedByIdInWithInterests(@Param("ids") List<Long> ids);
@@ -69,7 +69,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
             left join fetch event.interests ei
             left join fetch ei.interest
             where event.publicId = :publicId
-              and event.status = com.loopin.api.core.events.enums.EventStatus.PUBLISHED
+              and event.status = com.loopin.api.events.enums.EventStatus.PUBLISHED
               and event.deletedAt is null
             """)
     Optional<Event> findPublishedByPublicIdWithInterests(@Param("publicId") UUID publicId);

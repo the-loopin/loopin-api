@@ -1,11 +1,11 @@
-package com.loopin.api.core.events.entity;
+package com.loopin.api.events.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.enums.EventCategory;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.moderation.enums.ContentModerationStatus;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

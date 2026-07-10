@@ -1,10 +1,10 @@
-package com.loopin.api.core.groups.controller;
+package com.loopin.api.groups.controller;
 
 
 import com.loopin.api.common.security.SecurityUtils;
-import com.loopin.api.core.groups.dto.request.CreateGroupJoinRequestRequest;
-import com.loopin.api.core.groups.dto.response.GroupJoinRequestResponse;
-import com.loopin.api.core.groups.service.GroupJoinRequestService;
+import com.loopin.api.groups.dto.request.CreateGroupJoinRequestRequest;
+import com.loopin.api.groups.dto.response.GroupJoinRequestResponse;
+import com.loopin.api.groups.service.GroupJoinRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

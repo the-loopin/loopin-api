@@ -1,12 +1,12 @@
-package com.loopin.api.core.users.controller;
+package com.loopin.api.users.controller;
 
 import com.loopin.api.common.security.SecurityUtils;
-import com.loopin.api.core.interests.dto.InterestResponse;
-import com.loopin.api.core.interests.dto.UpdateUserInterestsRequest;
-import com.loopin.api.core.users.dto.profile.request.UpdateUserProfileRequest;
-import com.loopin.api.core.users.dto.profile.response.UserProfileResponse;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.service.UserProfileService;
+import com.loopin.api.interests.dto.InterestResponse;
+import com.loopin.api.interests.dto.UpdateUserInterestsRequest;
+import com.loopin.api.users.dto.profile.request.UpdateUserProfileRequest;
+import com.loopin.api.users.dto.profile.response.UserProfileResponse;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,6 @@
 package com.loopin.api.common.security;
 
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.common.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

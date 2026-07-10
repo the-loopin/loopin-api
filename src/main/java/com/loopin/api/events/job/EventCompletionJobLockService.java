@@ -1,7 +1,7 @@
-package com.loopin.api.core.events.job;
+package com.loopin.api.events.job;
 
-import com.loopin.api.core.events.entity.JobLock;
-import com.loopin.api.core.events.repository.JobLockRepository;
+import com.loopin.api.events.entity.JobLock;
+import com.loopin.api.events.repository.JobLockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

@@ -1,13 +1,13 @@
-package com.loopin.api.core.events.seed;
+package com.loopin.api.events.seed;
 
 
-import com.loopin.api.core.events.enums.EventCategory;
-import com.loopin.api.core.events.enums.EventStatus;
-import com.loopin.api.core.events.enums.EventType;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.repository.EventRepository;
-import com.loopin.api.core.users.seed.UserSeeder;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.users.seed.UserSeeder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;

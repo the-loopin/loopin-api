@@ -1,4 +1,4 @@
-package com.loopin.api.core.users.entity;
+package com.loopin.api.users.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
 import jakarta.persistence.*;
