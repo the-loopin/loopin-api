@@ -1,7 +1,7 @@
-package com.loopin.api.core.users.repository;
+package com.loopin.api.users.repository;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

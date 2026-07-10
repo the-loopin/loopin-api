@@ -1,8 +1,8 @@
-package com.loopin.api.core.users.entity;
+package com.loopin.api.users.entity;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.core.interests.entity.UserInterest;
+import com.loopin.api.interests.entity.UserInterest;
 import jakarta.persistence.*;
 import lombok.*;
 

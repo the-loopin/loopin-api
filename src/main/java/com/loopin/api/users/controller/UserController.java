@@ -1,9 +1,9 @@
-package com.loopin.api.core.users.controller;
+package com.loopin.api.users.controller;
 
-import com.loopin.api.core.users.dto.request.UpdateUserRoleRequest;
-import com.loopin.api.core.users.dto.request.UserRegisterRequest;
-import com.loopin.api.core.users.dto.response.UserResponse;
-import com.loopin.api.core.users.service.UserService;
+import com.loopin.api.users.dto.request.UpdateUserRoleRequest;
+import com.loopin.api.users.dto.request.UserRegisterRequest;
+import com.loopin.api.users.dto.response.UserResponse;
+import com.loopin.api.users.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

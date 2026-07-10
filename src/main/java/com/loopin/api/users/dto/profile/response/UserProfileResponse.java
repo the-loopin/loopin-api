@@ -1,6 +1,6 @@
-package com.loopin.api.core.users.dto.profile.response;
+package com.loopin.api.users.dto.profile.response;
 
-import com.loopin.api.core.interests.dto.InterestResponse;
+import com.loopin.api.interests.dto.InterestResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

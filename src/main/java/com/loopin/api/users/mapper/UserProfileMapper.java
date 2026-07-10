@@ -1,10 +1,10 @@
-package com.loopin.api.core.users.mapper;
+package com.loopin.api.users.mapper;
 
-import com.loopin.api.core.users.dto.profile.request.UpdateUserProfileRequest;
-import com.loopin.api.core.users.dto.profile.response.UserProfileResponse;
-import com.loopin.api.core.users.entity.UserProfile;
-import com.loopin.api.core.interests.entity.UserInterest;
-import com.loopin.api.core.interests.mapper.InterestMapper;
+import com.loopin.api.users.dto.profile.request.UpdateUserProfileRequest;
+import com.loopin.api.users.dto.profile.response.UserProfileResponse;
+import com.loopin.api.users.entity.UserProfile;
+import com.loopin.api.interests.entity.UserInterest;
+import com.loopin.api.interests.mapper.InterestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class UserProfileMapper {
         profile.setBio(request.getBio());
     }
 
-    private List<com.loopin.api.core.interests.dto.InterestResponse> mapInterests(UserProfile profile) {
+    private List<com.loopin.api.interests.dto.InterestResponse> mapInterests(UserProfile profile) {
         if (profile.getUser() == null || profile.getUser().getInterests() == null) {
             return List.of();
         }

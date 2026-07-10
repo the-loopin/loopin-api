@@ -1,4 +1,4 @@
-package com.loopin.api.core.users.dto.request;
+package com.loopin.api.users.dto.request;
 
 import com.loopin.api.auth.enums.Role;
 import jakarta.validation.constraints.NotNull;
