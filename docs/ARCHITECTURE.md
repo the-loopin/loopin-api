@@ -131,9 +131,6 @@ com.loopin.api.events
 |- update
 |  |- UpdateEventCommand.java
 |  `- UpdateEventHandler.java
-|- publish
-|  |- PublishEventCommand.java
-|  `- PublishEventHandler.java
 |- cancel
 |  |- CancelEventCommand.java
 |  `- CancelEventHandler.java
@@ -165,7 +162,18 @@ Policies are business rules shared by multiple slices, not general-purpose utili
 
 Each command handler owns one transaction boundary (`@Transactional`). Query handlers are `@Transactional(readOnly = true)` when they require a persistence context. Database writes, lifecycle changes, and required local side effects are completed in the command transaction; external or retryable work should be requested after commit rather than extending that transaction. This keeps the current PostgreSQL/JPA model intact and makes each future extraction independently testable.
 
-Normal event create and update requests never contain `status`. The backend assigns the initial status (`PUBLISHED` for automatically approved content); content requiring moderation is moved to `DRAFT`. Lifecycle changes are separate commands: `PublishEventCommand`, `CancelEventCommand`, `ApproveEventModerationCommand`, and `RejectEventModerationCommand`. The existing moderation approval/rejection endpoints already represent the latter two operations; no endpoint paths are changed in this preparation phase.
+Normal event create and update requests never contain `status`. The backend assigns the initial status (`PUBLISHED` for automatically approved content); content requiring moderation is moved to `DRAFT`. Lifecycle changes are separate commands: `CancelEventCommand`, `ApproveEventModerationCommand`, and `RejectEventModerationCommand`. The existing moderation approval/rejection endpoints already represent the latter two operations; no endpoint paths are changed in this preparation phase.
+
+**Event Lifecycle Transitions:**
+```
+DRAFT      -> PUBLISHED (moderation approval / auto-approve)
+DRAFT      -> CANCELLED (cancel command)
+PUBLISHED  -> DRAFT     (moderation rejection on update)
+PUBLISHED  -> CANCELLED (cancel command)
+PUBLISHED  -> COMPLETED (completion job)
+CANCELLED  -> (terminal)
+COMPLETED  -> (terminal)
+```
 
 ### Vertical Slices And Lightweight CQRS
 

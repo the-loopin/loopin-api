@@ -12,12 +12,12 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ListGroupMembersHandler {
     private final GroupFinder groupFinder;
     private final GroupMemberRepository memberRepository;
     private final GroupMemberMapper memberMapper;
 
-    @Transactional(readOnly = true)
     public List<GroupMemberResponse> handle(ListGroupMembersQuery query) {
         return memberMapper.toResponseList(memberRepository.findByGroupId(groupFinder.findGroup(query.groupId()).getId()));
     }

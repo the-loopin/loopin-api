@@ -8,17 +8,17 @@ import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.groups.shared.finder.GroupFinder;
 import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class GetMembershipDetailsHandler {
     private final GroupFinder groupFinder;
     private final GroupMemberRepository memberRepository;
     private final GroupMemberMapper memberMapper;
 
-    @Transactional(readOnly = true)
     public GroupMemberResponse handle(GetMembershipDetailsQuery query) {
         EventGroup group = groupFinder.findGroup(query.groupId());
         User user = groupFinder.findActiveUser(query.userId());

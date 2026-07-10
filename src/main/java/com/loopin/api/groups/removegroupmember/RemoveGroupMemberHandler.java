@@ -9,10 +9,10 @@ import com.loopin.api.groups.shared.finder.GroupFinder;
 import com.loopin.api.groups.shared.policy.GroupAdminPolicy;
 import com.loopin.api.groups.shared.policy.GroupCapacityPolicy;
 import com.loopin.api.groups.shared.policy.GroupMembershipPolicy;
+import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
-import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class RemoveGroupMemberHandler {
     private final GroupAdminPolicy adminPolicy;
     private final GroupMembershipPolicy membershipPolicy;
     private final GroupCapacityPolicy capacityPolicy;
-    private final NotificationService notificationService;
+    private final NotificationWriter notificationWriter;
 
     @Transactional
     public void handle(RemoveGroupMemberCommand command) {
@@ -42,7 +42,7 @@ public class RemoveGroupMemberHandler {
         if (capacityPolicy.refreshStatus(group, memberCount - 1)) {
             groupRepository.save(group);
         }
-        notificationService.create(new NotificationCommand(user, NotificationType.GROUP_ACTIVITY,
+        notificationWriter.write(new NotificationCommand(user, NotificationType.GROUP_ACTIVITY,
                 "Removed from group", "You were removed from \"" + group.getTitle() + "\".",
                 NotificationReferenceType.GROUP, group.getPublicId()));
     }

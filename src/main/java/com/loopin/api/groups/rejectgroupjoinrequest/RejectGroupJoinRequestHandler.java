@@ -6,10 +6,10 @@ import com.loopin.api.groups.enums.RequestStatus;
 import com.loopin.api.groups.repository.GroupJoinRequestRepository;
 import com.loopin.api.groups.shared.joinrequest.GroupJoinRequestFinder;
 import com.loopin.api.groups.shared.policy.GroupAdminPolicy;
+import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
-import com.loopin.api.notifications.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class RejectGroupJoinRequestHandler {
     private final GroupJoinRequestFinder requestFinder;
     private final GroupJoinRequestRepository requestRepository;
     private final GroupAdminPolicy adminPolicy;
-    private final NotificationService notificationService;
+    private final NotificationWriter notificationWriter;
 
     @Transactional
     public GroupJoinRequestResponse handle(RejectGroupJoinRequestCommand command) {
@@ -33,7 +33,7 @@ public class RejectGroupJoinRequestHandler {
         }
         request.setStatus(RequestStatus.REJECTED);
         GroupJoinRequest saved = requestRepository.save(request);
-        notificationService.create(new NotificationCommand(request.getUser(), NotificationType.GROUP_ACTIVITY,
+        notificationWriter.write(new NotificationCommand(request.getUser(), NotificationType.GROUP_ACTIVITY,
                 "Join request declined", "Your request to join \"" + request.getGroup().getTitle() + "\" was declined.",
                 NotificationReferenceType.GROUP, request.getGroup().getPublicId()));
         return GroupJoinRequestResponse.from(saved);

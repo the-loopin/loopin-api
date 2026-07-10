@@ -12,10 +12,10 @@ import com.loopin.api.groups.shared.joinrequest.GroupJoinRequestFinder;
 import com.loopin.api.groups.shared.policy.GroupAdminPolicy;
 import com.loopin.api.groups.shared.policy.GroupCapacityPolicy;
 import com.loopin.api.groups.shared.policy.GroupMembershipPolicy;
+import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
-import com.loopin.api.notifications.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ public class ApproveGroupJoinRequestHandler {
     private final GroupAdminPolicy adminPolicy;
     private final GroupMembershipPolicy membershipPolicy;
     private final GroupCapacityPolicy capacityPolicy;
-    private final NotificationService notificationService;
+    private final NotificationWriter notificationWriter;
 
     @Transactional
     public GroupJoinRequestResponse handle(ApproveGroupJoinRequestCommand command) {
@@ -52,7 +52,7 @@ public class ApproveGroupJoinRequestHandler {
         member.setUser(request.getUser());
         memberRepository.save(member);
         if (capacityPolicy.refreshStatus(group, memberCount + 1)) groupRepository.save(group);
-        notificationService.create(new NotificationCommand(request.getUser(), NotificationType.GROUP_INVITATION,
+        notificationWriter.write(new NotificationCommand(request.getUser(), NotificationType.GROUP_INVITATION,
                 "Join request approved", "Your request to join \"" + group.getTitle() + "\" was approved.",
                 NotificationReferenceType.GROUP, group.getPublicId()));
         return GroupJoinRequestResponse.from(request);

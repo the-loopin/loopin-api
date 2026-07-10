@@ -10,10 +10,10 @@ import com.loopin.api.groups.shared.finder.GroupFinder;
 import com.loopin.api.groups.shared.policy.GroupAdminPolicy;
 import com.loopin.api.groups.shared.policy.GroupCapacityPolicy;
 import com.loopin.api.groups.shared.policy.GroupMembershipPolicy;
+import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
-import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -29,7 +29,7 @@ public class AddGroupMemberHandler {
     private final GroupAdminPolicy adminPolicy;
     private final GroupMembershipPolicy membershipPolicy;
     private final GroupCapacityPolicy capacityPolicy;
-    private final NotificationService notificationService;
+    private final NotificationWriter notificationWriter;
 
     @Transactional
     public GroupMemberResponse handle(AddGroupMemberCommand command) {
@@ -50,7 +50,7 @@ public class AddGroupMemberHandler {
         if (capacityPolicy.refreshStatus(group, memberCount + 1)) {
             groupRepository.save(group);
         }
-        notificationService.create(new NotificationCommand(user, NotificationType.GROUP_INVITATION,
+        notificationWriter.write(new NotificationCommand(user, NotificationType.GROUP_INVITATION,
                 "Added to group", "You were added to \"" + group.getTitle() + "\".",
                 NotificationReferenceType.GROUP, group.getPublicId()));
         return memberMapper.toResponse(savedMember);
