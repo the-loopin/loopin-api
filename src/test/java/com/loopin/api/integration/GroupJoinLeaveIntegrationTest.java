@@ -15,7 +15,7 @@ import com.loopin.api.groups.dto.request.CreateGroupJoinRequestRequest;
 import com.loopin.api.groups.dto.request.CreateGroupRequest;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.users.entity.UserProfile;
-import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.groups.repository.GroupJoinRequestRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;

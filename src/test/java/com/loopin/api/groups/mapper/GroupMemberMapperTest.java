@@ -1,7 +1,7 @@
 package com.loopin.api.groups.mapper;
 
 import com.loopin.api.groups.dto.response.GroupMemberResponse;
-import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupMember;
 import com.loopin.api.users.entity.User;
 import org.junit.jupiter.api.BeforeEach;
