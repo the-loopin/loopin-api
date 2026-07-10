@@ -19,6 +19,7 @@ import com.loopin.api.interests.entity.Interest;
 import com.loopin.api.interests.repository.InterestRepository;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.support.AbstractIntegrationTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,9 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private EventInterestRepository eventInterestRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -180,7 +184,8 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         interest.setCategory("Professional");
         interest = interestRepository.save(interest);
         Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(UUID.fromString(eventId)).orElseThrow();
-        eventInterestRepository.save(new EventInterest(event, interest));
+        eventInterestRepository.saveAndFlush(new EventInterest(event, interest));
+        entityManager.clear();
 
         mockMvc.perform(get("/v1/events/" + eventId))
                 .andExpect(status().isOk())
