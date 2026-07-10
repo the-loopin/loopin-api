@@ -5,6 +5,8 @@ import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
+import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdQuery;
 import com.loopin.api.events.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,7 @@ import java.util.UUID;
 public class EventController {
 
     private final EventService eventService;
+    private final GetPublishedEventByIdHandler getPublishedEventByIdHandler;
 
     @GetMapping
     @Operation(summary = "Get published events", description = "Retrieve a paginated list of published events based on filter criteria.")
@@ -68,7 +71,7 @@ public class EventController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EventResponse> getPublishedEventById(@PathVariable UUID id) {
-        return ResponseEntity.ok(eventService.getPublishedEventById(id));
+        return ResponseEntity.ok(getPublishedEventByIdHandler.handle(new GetPublishedEventByIdQuery(id)));
     }
 
     @GetMapping("/recommended")

@@ -118,16 +118,6 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Cacheable(value = "eventById", key = "#id")
-    @Transactional(readOnly = true)
-    public EventResponse getPublishedEventById(UUID id) {
-        Event event = eventRepository.findPublishedByPublicIdWithInterests(id)
-                .orElseThrow(() -> new NoSuchElementException("Published event not found with id: " + id));
-
-        return eventMapper.toResponse(event);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public List<EventResponse> getRecommendedEvents(String currentUsername, int limit) {
         log.info("Fetching recommended events for user: {}, limit: {}", currentUsername, limit);

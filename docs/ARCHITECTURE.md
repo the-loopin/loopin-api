@@ -117,7 +117,7 @@ com.loopin.api.events
 |- getpublished
 |  |- GetPublishedEventsQuery.java
 |  `- GetPublishedEventsHandler.java
-|- getbyid
+|- getpublishedbyid
 |  |- GetPublishedEventByIdQuery.java
 |  `- GetPublishedEventByIdHandler.java
 |- shared
