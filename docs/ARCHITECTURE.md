@@ -66,11 +66,10 @@ com.loopin.api
 
 ```
 com.loopin.api
-|- core
-|  |- events          # controller, service, repository, entity, dto, mapper, job, seed
-|  |- groups          # controller, service, repository, entity, dto, mapper, job, seed
-|  |- users           # controller, service, repository, entity, dto, mapper, seed
-|  `- interests       # controller, service, repository, entity, dto, mapper
+|- events             # controller, service, repository, entity, dto, mapper, job, seed
+|- groups             # controller, service, repository, entity, dto, mapper, job, seed
+|- users              # controller, service, repository, entity, dto, mapper, seed
+|- interests          # controller, service, repository, entity, dto, mapper
 |- auth               # authentication controller, DTOs, role model, services
 |- chat               # REST/STOMP controllers, message persistence, DTOs, services
 |- reports            # report endpoints, persistence, mapping, and services
