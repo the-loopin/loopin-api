@@ -1,7 +1,6 @@
 package com.loopin.api.events.dto.request;
 
 import com.loopin.api.events.enums.EventCategory;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -38,7 +37,6 @@ class EventUpdateRequestTest {
         request.setEndDateTime(LocalDateTime.now().plusDays(2));
         request.setIsFree(true);
         request.setOrganizerName("Valid Organizer");
-        request.setStatus(EventStatus.PUBLISHED);
         return request;
     }
 
@@ -298,17 +296,6 @@ class EventUpdateRequestTest {
         Set<ConstraintViolation<EventUpdateRequest>> violations = validator.validate(request);
 
         assertTrue(violations.isEmpty());
-    }
-
-    @Test
-    void status_Null_ViolatesNotNullConstraint() {
-        EventUpdateRequest request = createValidRequest();
-        request.setStatus(null);
-
-        Set<ConstraintViolation<EventUpdateRequest>> violations = validator.validate(request);
-
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("status")));
     }
 
     @Test

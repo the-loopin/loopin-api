@@ -197,7 +197,7 @@ Event enum values:
 | --- | --- |
 | `type` | `EVENT`, `ACTIVITY` |
 | `category` | `TECH`, `STARTUP`, `HR`, `EDUCATION`, `TRAVEL`, `SPORT`, `SOCIAL`, `LANGUAGE`, `CREATIVE`, `OTHER` |
-| `status` | `DRAFT`, `PUBLISHED`, `COMPLETED`, `CANCELLED` |
+| response `status` | `DRAFT`, `PUBLISHED`, `COMPLETED`, `CANCELLED` |
 
 ### List Published Events
 
@@ -254,7 +254,6 @@ Request:
   "price": 0,
   "organizerName": "Loopin Community",
   "imageUrl": "https://example.test/images/founder-coffee.jpg",
-  "status": "PUBLISHED",
   "interestIds": [
     "44444444-4444-4444-8444-444444444444"
   ]
@@ -285,11 +284,15 @@ Response `201 Created`:
 }
 ```
 
+The server owns the initial lifecycle status. Automatically approved events start as `PUBLISHED`; events awaiting moderation start as `DRAFT`. Do not include `status` in create or update requests. Lifecycle changes are handled separately from normal event editing; moderation approval and rejection continue to use the existing admin moderation endpoints.
+
 ### Update Event
 
 `PUT /events/{id}`
 
 Requires authentication and ownership.
+
+The normal update request uses the same event detail fields as creation and does not accept `status`.
 
 ### Delete Event
 

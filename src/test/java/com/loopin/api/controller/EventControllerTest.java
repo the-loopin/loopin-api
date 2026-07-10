@@ -109,6 +109,17 @@ class EventControllerTest {
     }
 
     @Test
+    void createEvent_IgnoresClientControlledStatus() throws Exception {
+        mockMvc.perform(post("/v1/events")
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventPayloadWithStatus("Status Controlled Event", "CANCELLED")))
+                .andExpect(status().isCreated());
+
+        assertEquals(EventStatus.PUBLISHED, eventRepository.findAll().get(0).getStatus());
+    }
+
+    @Test
     void createEvent_AssignsInterests() throws Exception {
         Interest tech = interestRepository.save(interest("Tech", "tech", "Professional"));
         Interest music = interestRepository.save(interest("Music", "music", "Culture"));
@@ -148,6 +159,27 @@ class EventControllerTest {
         assertEquals("Admin Updated Event", updated.getTitle());
     }
 
+    @Test
+    void updateEvent_IgnoresClientControlledStatus() throws Exception {
+        Event event = eventRepository.save(event("Owned Event", owner));
+
+        mockMvc.perform(put("/v1/events/" + event.getPublicId())
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventPayloadWithStatus("Updated Event", "CANCELLED")))
+                .andExpect(status().isOk());
+
+        assertEquals(EventStatus.PUBLISHED, eventRepository.findById(event.getId()).orElseThrow().getStatus());
+    }
+
+    @Test
+    void openApi_EventWriteSchemasDoNotExposeStatus() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.schemas.EventCreateRequest.properties.status").doesNotExist())
+                .andExpect(jsonPath("$.components.schemas.EventUpdateRequest.properties.status").doesNotExist());
+    }
+
     private User saveUser(String email, String name, Role role) {
         User user = new User(email, name, null);
         user.setRole(role);
@@ -185,10 +217,16 @@ class EventControllerTest {
                   "endDateTime": "2030-01-01T12:00:00",
                   "isFree": false,
                   "price": 10.00,
-                  "organizerName": "Loopin",
-                  "status": "PUBLISHED"
+                  "organizerName": "Loopin"
                 }
                 """.formatted(title);
+    }
+
+    private String eventPayloadWithStatus(String title, String status) {
+        return eventPayload(title).replace(
+                "\"organizerName\": \"Loopin\"",
+                "\"organizerName\": \"Loopin\", \"status\": \"" + status + "\""
+        );
     }
 
     private String eventPayload(String title, Interest... interests) {
@@ -209,7 +247,6 @@ class EventControllerTest {
                   "isFree": false,
                   "price": 10.00,
                   "organizerName": "Loopin",
-                  "status": "PUBLISHED",
                   "interestIds": [%s]
                 }
                 """.formatted(title, interestIds);
