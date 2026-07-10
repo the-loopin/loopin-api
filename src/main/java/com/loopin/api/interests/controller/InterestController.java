@@ -1,7 +1,7 @@
-package com.loopin.api.core.interests.controller;
+package com.loopin.api.interests.controller;
 
-import com.loopin.api.core.interests.dto.InterestResponse;
-import com.loopin.api.core.interests.service.InterestService;
+import com.loopin.api.interests.dto.InterestResponse;
+import com.loopin.api.interests.service.InterestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

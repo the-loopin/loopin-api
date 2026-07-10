@@ -1,6 +1,6 @@
-package com.loopin.api.core.interests.entity;
+package com.loopin.api.interests.entity;
 
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

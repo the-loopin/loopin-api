@@ -1,4 +1,4 @@
-package com.loopin.api.core.interests.dto;
+package com.loopin.api.interests.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,6 +1,6 @@
-package com.loopin.api.core.interests.service;
+package com.loopin.api.interests.service;
 
-import com.loopin.api.core.interests.dto.InterestResponse;
+import com.loopin.api.interests.dto.InterestResponse;
 
 import java.util.List;
 
