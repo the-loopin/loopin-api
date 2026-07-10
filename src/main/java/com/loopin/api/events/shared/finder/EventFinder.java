@@ -5,7 +5,7 @@ import com.loopin.api.common.exception.UnauthorizedException;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.users.entity.User;
-import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.users.api.UserLookup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -18,14 +18,13 @@ import java.util.UUID;
 public class EventFinder {
 
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserLookup userLookup;
 
     public User findCurrentUser(String currentUsername) {
         if (currentUsername == null || currentUsername.isBlank()) {
             throw new UnauthorizedException("Authentication is required");
         }
-        return userRepository.findByEmailAndDeletedAtIsNull(currentUsername)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + currentUsername));
+        return userLookup.findByEmail(currentUsername);
     }
 
     public Event findActiveEventById(UUID id) {

@@ -2,15 +2,14 @@ package com.loopin.api.events.job;
 
 import com.loopin.api.users.enums.BadgeType;
 import com.loopin.api.events.enums.EventStatus;
-import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupMember;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.users.entity.UserBadge;
-import com.loopin.api.groups.repository.EventGroupRepository;
+import com.loopin.api.groups.api.GroupLifecycle;
+import com.loopin.api.groups.api.GroupMemberLookup;
 import com.loopin.api.events.repository.EventRepository;
-import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.users.repository.UserBadgeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,21 +29,21 @@ import static org.mockito.Mockito.when;
 class EventCompletionProcessorTest {
 
     private EventRepository eventRepository;
-    private EventGroupRepository eventGroupRepository;
-    private GroupMemberRepository groupMemberRepository;
+    private GroupLifecycle groupLifecycle;
+    private GroupMemberLookup groupMemberLookup;
     private UserBadgeRepository userBadgeRepository;
     private EventCompletionProcessor eventCompletionProcessor;
 
     @BeforeEach
     void setUp() {
         eventRepository = mock(EventRepository.class);
-        eventGroupRepository = mock(EventGroupRepository.class);
-        groupMemberRepository = mock(GroupMemberRepository.class);
+        groupLifecycle = mock(GroupLifecycle.class);
+        groupMemberLookup = mock(GroupMemberLookup.class);
         userBadgeRepository = mock(UserBadgeRepository.class);
         eventCompletionProcessor = new EventCompletionProcessor(
                 eventRepository,
-                eventGroupRepository,
-                groupMemberRepository,
+                groupLifecycle,
+                groupMemberLookup,
                 userBadgeRepository);
     }
 
@@ -60,12 +59,10 @@ class EventCompletionProcessorTest {
         group.setId(100L);
         group.setEvent(event);
         group.setAdmin(creator);
-        group.setStatus(GroupStatus.OPEN);
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(eventGroupRepository.findByEventIdAndStatusNot(1L, GroupStatus.ARCHIVED))
-                .thenReturn(List.of(group));
-        when(groupMemberRepository.findByGroupId(100L))
+        when(groupLifecycle.archiveActiveGroupsForEvent(1L)).thenReturn(List.of(group));
+        when(groupMemberLookup.findMembersByGroupId(100L))
                 .thenReturn(List.of(member(group, creator), member(group, attendee)));
 
         EventCompletionResult result = eventCompletionProcessor.completeEvent(1L);
@@ -73,9 +70,7 @@ class EventCompletionProcessorTest {
         assertEquals(true, result.completed());
         assertEquals(1, result.archivedGroups());
         assertEquals(EventStatus.COMPLETED, event.getStatus());
-        assertEquals(GroupStatus.ARCHIVED, group.getStatus());
         verify(eventRepository).save(event);
-        verify(eventGroupRepository).save(group);
 
         ArgumentCaptor<UserBadge> badgeCaptor = ArgumentCaptor.forClass(UserBadge.class);
         verify(userBadgeRepository, org.mockito.Mockito.times(3)).save(badgeCaptor.capture());
@@ -101,9 +96,8 @@ class EventCompletionProcessorTest {
         group.setAdmin(creator);
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(eventGroupRepository.findByEventIdAndStatusNot(1L, GroupStatus.ARCHIVED))
-                .thenReturn(List.of(group));
-        when(groupMemberRepository.findByGroupId(100L))
+        when(groupLifecycle.archiveActiveGroupsForEvent(1L)).thenReturn(List.of(group));
+        when(groupMemberLookup.findMembersByGroupId(100L))
                 .thenReturn(List.of(member(group, creator)));
         when(userBadgeRepository.existsByUserIdAndBadgeType(10L, BadgeType.GROUP_CREATOR))
                 .thenReturn(true);
@@ -127,9 +121,8 @@ class EventCompletionProcessorTest {
         group.setAdmin(creator);
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
-        when(eventGroupRepository.findByEventIdAndStatusNot(1L, GroupStatus.ARCHIVED))
-                .thenReturn(List.of(group));
-        when(groupMemberRepository.findByGroupId(100L)).thenReturn(List.of());
+        when(groupLifecycle.archiveActiveGroupsForEvent(1L)).thenReturn(List.of(group));
+        when(groupMemberLookup.findMembersByGroupId(100L)).thenReturn(List.of());
         when(userBadgeRepository.save(any(UserBadge.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate badge"));
 

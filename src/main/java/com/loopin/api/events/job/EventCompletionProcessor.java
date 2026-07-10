@@ -2,15 +2,14 @@ package com.loopin.api.events.job;
 
 import com.loopin.api.users.enums.BadgeType;
 import com.loopin.api.events.enums.EventStatus;
-import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupMember;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.users.entity.UserBadge;
-import com.loopin.api.groups.repository.EventGroupRepository;
+import com.loopin.api.groups.api.GroupLifecycle;
+import com.loopin.api.groups.api.GroupMemberLookup;
 import com.loopin.api.events.repository.EventRepository;
-import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.users.repository.UserBadgeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,8 +24,8 @@ import java.util.List;
 public class EventCompletionProcessor {
 
     private final EventRepository eventRepository;
-    private final EventGroupRepository eventGroupRepository;
-    private final GroupMemberRepository groupMemberRepository;
+    private final GroupLifecycle groupLifecycle;
+    private final GroupMemberLookup groupMemberLookup;
     private final UserBadgeRepository userBadgeRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -43,10 +42,8 @@ public class EventCompletionProcessor {
         eventRepository.save(event);
 
         int archivedGroups = 0;
-        List<EventGroup> groups = eventGroupRepository.findByEventIdAndStatusNot(eventId, GroupStatus.ARCHIVED);
+        List<EventGroup> groups = groupLifecycle.archiveActiveGroupsForEvent(eventId);
         for (EventGroup group : groups) {
-            group.setStatus(GroupStatus.ARCHIVED);
-            eventGroupRepository.save(group);
             archivedGroups++;
 
             awardBadge(group.getAdmin(), BadgeType.GROUP_CREATOR);
@@ -57,7 +54,7 @@ public class EventCompletionProcessor {
     }
 
     private void awardAttendeeBadges(EventGroup group) {
-        List<GroupMember> members = groupMemberRepository.findByGroupId(group.getId());
+        List<GroupMember> members = groupMemberLookup.findMembersByGroupId(group.getId());
 
         for (GroupMember member : members) {
             awardBadge(member.getUser(), BadgeType.EVENT_ATTENDEE);

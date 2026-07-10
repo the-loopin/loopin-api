@@ -6,8 +6,8 @@ import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.events.repository.EventRepository;
-import com.loopin.api.groups.repository.GroupMemberRepository;
-import com.loopin.api.notifications.service.NotificationService;
+import com.loopin.api.groups.api.GroupMemberLookup;
+import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.notifications.service.NotificationCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,8 +24,8 @@ public class EventReminderJob {
     private static final String LOCK_NAME = "event-reminders";
 
     private final EventRepository eventRepository;
-    private final GroupMemberRepository groupMemberRepository;
-    private final NotificationService notificationService;
+    private final GroupMemberLookup groupMemberLookup;
+    private final NotificationWriter notificationWriter;
     private final EventCompletionJobLockService jobLockService;
 
     @Scheduled(
@@ -41,10 +41,10 @@ public class EventReminderJob {
                     .findByStatusAndStartDateTimeAfterAndStartDateTimeLessThanEqualAndDeletedAtIsNull(
                             EventStatus.PUBLISHED, now, now.plusHours(24));
             for (Event event : events) {
-                for (User recipient : groupMemberRepository.findDistinctActiveUsersByEventId(event.getId())) {
+                for (User recipient : groupMemberLookup.findActiveUsersByEventId(event.getId())) {
                     String deduplicationKey = "event-reminder-24h:"
                             + event.getPublicId() + ":" + recipient.getPublicId();
-                    notificationService.create(new NotificationCommand(
+                    notificationWriter.write(new NotificationCommand(
                             recipient,
                             NotificationType.EVENT_REMINDER,
                             "Event starts soon",

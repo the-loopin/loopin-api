@@ -4,7 +4,7 @@ import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.users.entity.User;
-import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.users.api.UserLookup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.util.UUID;
 public class GroupFinder {
 
     private final EventGroupRepository eventGroupRepository;
-    private final UserRepository userRepository;
+    private final UserLookup userLookup;
 
     public EventGroup findGroup(UUID groupId) {
         return eventGroupRepository.findByPublicId(groupId)
@@ -23,12 +23,10 @@ public class GroupFinder {
     }
 
     public User findCurrentUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+        return userLookup.findByEmail(email);
     }
 
     public User findActiveUser(UUID userId) {
-        return userRepository.findByPublicIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return userLookup.findActiveByPublicId(userId);
     }
 }

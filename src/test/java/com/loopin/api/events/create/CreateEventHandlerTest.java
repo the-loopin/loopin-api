@@ -13,8 +13,8 @@ import com.loopin.api.events.shared.finder.EventFinder;
 import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.validation.EventValidator;
-import com.loopin.api.notifications.service.NotificationService;
-import com.loopin.api.recommendation.event.EventEmbeddingService;
+import com.loopin.api.notifications.api.NotificationWriter;
+import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,8 +40,8 @@ class CreateEventHandlerTest {
     private EventValidator eventValidator;
     private EventInterestManager eventInterestManager;
     private EventModerationManager eventModerationManager;
-    private EventEmbeddingService eventEmbeddingService;
-    private NotificationService notificationService;
+    private RecommendationIndexer recommendationIndexer;
+    private NotificationWriter notificationWriter;
     private CreateEventHandler handler;
 
     @BeforeEach
@@ -52,11 +52,11 @@ class CreateEventHandlerTest {
         eventValidator = mock(EventValidator.class);
         eventInterestManager = mock(EventInterestManager.class);
         eventModerationManager = mock(EventModerationManager.class);
-        eventEmbeddingService = mock(EventEmbeddingService.class);
-        notificationService = mock(NotificationService.class);
+        recommendationIndexer = mock(RecommendationIndexer.class);
+        notificationWriter = mock(NotificationWriter.class);
         handler = new CreateEventHandler(
                 eventRepository, eventMapper, eventFinder, eventValidator, eventInterestManager,
-                eventModerationManager, eventEmbeddingService, notificationService
+                eventModerationManager, recommendationIndexer, notificationWriter
         );
     }
 
@@ -83,8 +83,8 @@ class CreateEventHandlerTest {
         verify(eventValidator).validateNoDuplicate(request.getTitle(), request.getCity(), request.getStartDateTime());
         verify(eventModerationManager).apply(event, request.getTitle(), request.getDescription());
         verify(eventInterestManager).replace(event, request.getInterestIds());
-        verify(eventEmbeddingService).indexEvent(event);
-        verify(notificationService).create(any());
+        verify(recommendationIndexer).index(event);
+        verify(notificationWriter).write(any());
     }
 
     @Test
@@ -98,8 +98,8 @@ class CreateEventHandlerTest {
                 () -> handler.handle(new CreateEventCommand(request, "owner@example.test")));
 
         verify(eventRepository, never()).saveAndFlush(any());
-        verify(eventEmbeddingService, never()).indexEvent(any());
-        verify(notificationService, never()).create(any());
+        verify(recommendationIndexer, never()).index(any());
+        verify(notificationWriter, never()).write(any());
     }
 
     @Test
@@ -141,8 +141,8 @@ class CreateEventHandlerTest {
         assertThrows(IllegalArgumentException.class,
                 () -> handler.handle(new CreateEventCommand(request, "owner@example.test")));
 
-        verify(eventEmbeddingService, never()).indexEvent(any());
-        verify(notificationService, never()).create(any());
+        verify(recommendationIndexer, never()).index(any());
+        verify(notificationWriter, never()).write(any());
     }
 
     private EventCreateRequest validRequest() {
