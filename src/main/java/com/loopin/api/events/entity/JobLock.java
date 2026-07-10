@@ -1,4 +1,4 @@
-package com.loopin.api.core.events.entity;
+package com.loopin.api.events.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

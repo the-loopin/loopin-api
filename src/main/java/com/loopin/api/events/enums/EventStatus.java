@@ -1,4 +1,4 @@
-package com.loopin.api.core.events.enums;
+package com.loopin.api.events.enums;
 
 public enum EventStatus {
     DRAFT,
