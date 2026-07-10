@@ -27,6 +27,7 @@ import com.loopin.api.recommendation.user.UserEmbeddingRepository;
 import com.loopin.api.events.repository.EventInterestRepository;
 import com.loopin.api.events.repository.EventGroupRepository;
 import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.events.shared.policy.EventLifecyclePolicy;
 import com.loopin.api.interests.repository.InterestRepository;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;
@@ -183,6 +184,7 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventMapper.toEntity(request);
         event.setOwner(currentUser);
+        event.setStatus(EventLifecyclePolicy.initialStatus());
         applyModerationStatus(event, request.getTitle(), request.getDescription());
         Event savedEvent = eventRepository.saveAndFlush(event);
         replaceEventInterests(savedEvent, request.getInterestIds());
@@ -394,7 +396,7 @@ public class EventServiceImpl implements EventService {
             event.setModerationRejectionReason(null);
             // Pending content must remain outside public event queries until an
             // administrator makes an explicit moderation decision.
-            event.setStatus(EventStatus.DRAFT);
+            EventLifecyclePolicy.markPendingModeration(event);
             return;
         }
 

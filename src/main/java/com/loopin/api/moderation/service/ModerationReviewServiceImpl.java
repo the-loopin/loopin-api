@@ -1,7 +1,6 @@
 package com.loopin.api.moderation.service;
 
 import com.loopin.api.moderation.enums.ContentModerationStatus;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.moderation.enums.ModerationAction;
 import com.loopin.api.moderation.enums.ModerationContentType;
 import com.loopin.api.common.exception.ResourceNotFoundException;
@@ -10,6 +9,7 @@ import com.loopin.api.events.entity.Event;
 import com.loopin.api.moderation.entity.ModerationLog;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.events.shared.policy.EventLifecyclePolicy;
 import com.loopin.api.moderation.repository.ModerationLogRepository;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.moderation.service.ModerationReviewService;
@@ -48,7 +48,7 @@ public class ModerationReviewServiceImpl implements ModerationReviewService {
 
         event.setModerationStatus(ContentModerationStatus.APPROVED);
         event.setModerationRejectionReason(null);
-        event.setStatus(EventStatus.PUBLISHED);
+        EventLifecyclePolicy.approveModeration(event);
         Event updatedEvent = eventRepository.save(event);
         saveLog(updatedEvent, admin, ModerationAction.APPROVED, null);
 
@@ -63,7 +63,7 @@ public class ModerationReviewServiceImpl implements ModerationReviewService {
 
         event.setModerationStatus(ContentModerationStatus.REJECTED);
         event.setModerationRejectionReason(reason);
-        event.setStatus(EventStatus.DRAFT);
+        EventLifecyclePolicy.rejectModeration(event);
         Event updatedEvent = eventRepository.save(event);
         saveLog(updatedEvent, admin, ModerationAction.REJECTED, reason);
 

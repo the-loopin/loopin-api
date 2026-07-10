@@ -4,7 +4,6 @@ import com.loopin.api.events.dto.request.EventCreateRequest;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
 import com.loopin.api.events.entity.Event;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.entity.EventInterest;
 import com.loopin.api.interests.mapper.InterestMapper;
 import org.mapstruct.Mapper;
@@ -21,7 +20,7 @@ public abstract class EventMapper {
     @Autowired
     protected InterestMapper interestMapper;
 
-    @Mapping(target = "status", expression = "java(request.getStatus() != null ? request.getStatus() : com.loopin.api.events.enums.EventStatus.PUBLISHED)")
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publicId", ignore = true)
     @Mapping(target = "owner", ignore = true)
@@ -36,6 +35,7 @@ public abstract class EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publicId", ignore = true)
     @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "moderationStatus", ignore = true)
     @Mapping(target = "moderationRejectionReason", ignore = true)
     @Mapping(target = "interests", ignore = true)
