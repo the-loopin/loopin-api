@@ -12,6 +12,9 @@ import com.loopin.api.users.entity.User;
 import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.groups.repository.GroupJoinRequestRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;
+import com.loopin.api.groups.shared.policy.GroupAdminPolicy;
+import com.loopin.api.groups.shared.policy.GroupCapacityPolicy;
+import com.loopin.api.groups.shared.policy.GroupMembershipPolicy;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.moderation.ContentModerationProperties;
@@ -62,7 +65,10 @@ class GroupJoinRequestServiceImplTest {
                 userRepository,
                 groupMemberRepository,
                 notificationService,
-                new ContentModerationService(new ContentModerationProperties())
+                new ContentModerationService(new ContentModerationProperties()),
+                new GroupAdminPolicy(),
+                new GroupMembershipPolicy(),
+                new GroupCapacityPolicy()
         );
     }
 
@@ -139,7 +145,8 @@ class GroupJoinRequestServiceImplTest {
         properties.setBannedWords(List.of("scam"));
         joinRequestService = new GroupJoinRequestServiceImpl(
                 joinRequestRepository, eventGroupRepository, userRepository, groupMemberRepository,
-                notificationService, new ContentModerationService(properties));
+                notificationService, new ContentModerationService(properties),
+                new GroupAdminPolicy(), new GroupMembershipPolicy(), new GroupCapacityPolicy());
 
         when(eventGroupRepository.findByPublicId(GROUP_ID)).thenReturn(Optional.of(group));
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));

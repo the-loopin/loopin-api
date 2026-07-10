@@ -376,7 +376,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
                         .header("Authorization", "Bearer " + adminToken));
 
         // The user tries to leave by calling DELETE /groups/{groupId}/members/{userId}
-        // This fails with 403 Forbidden because GroupServiceImpl.validateGroupAdmin only allows admins
+        // This fails with 403 Forbidden because self-leave is not exposed by the current API contract.
         mockMvc.perform(delete("/v1/groups/" + groupId + "/members/" + testUser.getPublicId())
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());

@@ -14,6 +14,9 @@ import com.loopin.api.users.entity.User;
 import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.groups.repository.GroupJoinRequestRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;
+import com.loopin.api.groups.shared.policy.GroupAdminPolicy;
+import com.loopin.api.groups.shared.policy.GroupCapacityPolicy;
+import com.loopin.api.groups.shared.policy.GroupMembershipPolicy;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.groups.service.GroupJoinRequestService;
 import com.loopin.api.notifications.service.NotificationService;
@@ -38,6 +41,9 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
     private final GroupMemberRepository groupMemberRepository;
     private final NotificationService notificationService;
     private final ContentModerationService contentModerationService;
+    private final GroupAdminPolicy groupAdminPolicy;
+    private final GroupMembershipPolicy groupMembershipPolicy;
+    private final GroupCapacityPolicy groupCapacityPolicy;
 
     @Override
     @Transactional
@@ -108,22 +114,15 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
     public GroupJoinRequestResponse approve(UUID groupId, UUID requestId, Long currentUserId) {
         GroupJoinRequest request = findEntityByIdAndGroupId(requestId, groupId);
         EventGroup group = request.getGroup();
-        validateGroupAdmin(group, currentUserId);
+        groupAdminPolicy.requireAdmin(group, currentUserId);
 
         if (request.getStatus() != RequestStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Request has already been processed");
         }
-        if (group.getStatus() != GroupStatus.OPEN) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Group is not open");
-        }
-        if (groupMemberRepository.existsByGroupIdAndUserId(group.getId(), request.getUser().getId())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already a member of this group");
-        }
-
         long currentMembers = groupMemberRepository.countByGroupId(group.getId());
-        if (currentMembers >= group.getMaxMembers()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Group is full");
-        }
+        groupMembershipPolicy.requireCanAddMember(group, Math.toIntExact(currentMembers));
+        groupMembershipPolicy.requireNotMember(
+                groupMemberRepository.existsByGroupIdAndUserId(group.getId(), request.getUser().getId()));
 
         request.setStatus(RequestStatus.ACCEPTED);
         joinRequestRepository.save(request);
@@ -133,8 +132,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
         member.setUser(request.getUser());
         groupMemberRepository.save(member);
 
-        if (currentMembers + 1 >= group.getMaxMembers()) {
-            group.setStatus(GroupStatus.FULL);
+        if (groupCapacityPolicy.refreshStatus(group, Math.toIntExact(currentMembers + 1))) {
             eventGroupRepository.save(group);
         }
 
@@ -191,9 +189,7 @@ public class GroupJoinRequestServiceImpl implements GroupJoinRequestService {
     }
 
     private void validateGroupAdmin(EventGroup group, Long currentUserId) {
-        if (group.getAdmin() == null || !group.getAdmin().getId().equals(currentUserId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only group admin can manage join requests");
-        }
+        groupAdminPolicy.requireAdmin(group, currentUserId);
     }
 
     private void validateGroupAdminOrRequester(GroupJoinRequest request, Long currentUserId) {
