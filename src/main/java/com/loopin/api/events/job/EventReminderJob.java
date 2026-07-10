@@ -1,12 +1,12 @@
-package com.loopin.api.core.events.job;
+package com.loopin.api.events.job;
 
-import com.loopin.api.core.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.repository.EventRepository;
-import com.loopin.api.core.groups.repository.GroupMemberRepository;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.notifications.service.NotificationCommand;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.loopin.api.core.events.job;
+package com.loopin.api.events.job;
 
 public record EventCompletionResult(
         boolean completed,
