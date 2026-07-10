@@ -1,8 +1,8 @@
-package com.loopin.api.core.groups.repository;
+package com.loopin.api.groups.repository;
 
 
-import com.loopin.api.core.groups.enums.RequestStatus;
-import com.loopin.api.core.groups.entity.GroupJoinRequest;
+import com.loopin.api.groups.enums.RequestStatus;
+import com.loopin.api.groups.entity.GroupJoinRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
