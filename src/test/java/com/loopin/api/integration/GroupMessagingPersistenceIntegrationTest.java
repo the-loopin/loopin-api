@@ -144,7 +144,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
         createEventRequest.setOrganizerName("Tech Hub");
         createEventRequest.setStatus(EventStatus.PUBLISHED);
 
-        MvcResult result = mockMvc.perform(post("/events")
+        MvcResult result = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + user1Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createEventRequest)))
@@ -158,7 +158,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
         request.setGroupSize(GroupSizeType.FOUR);
         request.setMaxMembers(4);
 
-        mockMvc.perform(post("/groups")
+        mockMvc.perform(post("/v1/groups")
                         .header("Authorization", "Bearer " + user1Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -175,7 +175,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
 
     private String getToken(String mockToken) throws Exception {
         GoogleLoginRequest req = new GoogleLoginRequest(mockToken);
-        MvcResult res = mockMvc.perform(post("/auth/google")
+        MvcResult res = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andReturn();
@@ -189,7 +189,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
 
         long initialCount = groupMessageRepository.count();
 
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + user1Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
@@ -205,7 +205,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
         CreateGroupMessageRequest req = new CreateGroupMessageRequest();
         req.setMessageText("I am not a member");
 
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + nonMemberToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
@@ -218,19 +218,19 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
         // Send two messages
         CreateGroupMessageRequest req1 = new CreateGroupMessageRequest();
         req1.setMessageText("First message");
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + user1Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req1)));
 
         CreateGroupMessageRequest req2 = new CreateGroupMessageRequest();
         req2.setMessageText("Second message");
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + user2Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req2)));
 
-        mockMvc.perform(get("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(get("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + user1Token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(2)))
@@ -242,7 +242,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getMessages_NonMemberRequests_ReturnsConflict() throws Exception {
-        mockMvc.perform(get("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(get("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + nonMemberToken))
                 .andExpect(status().isConflict());
     }
@@ -255,7 +255,7 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
         CreateGroupMessageRequest req = new CreateGroupMessageRequest();
         req.setMessageText("Trying to message archived group");
 
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + user1Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
@@ -267,26 +267,26 @@ class GroupMessagingPersistenceIntegrationTest extends AbstractIntegrationTest {
     void multipleMessagePersistenceSurvivesAndPreservesOrder() throws Exception {
         CreateGroupMessageRequest req1 = new CreateGroupMessageRequest();
         req1.setMessageText("MSG 1");
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                 .header("Authorization", "Bearer " + user1Token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req1)));
 
         CreateGroupMessageRequest req2 = new CreateGroupMessageRequest();
         req2.setMessageText("MSG 2");
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                 .header("Authorization", "Bearer " + user2Token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req2)));
 
         CreateGroupMessageRequest req3 = new CreateGroupMessageRequest();
         req3.setMessageText("MSG 3");
-        mockMvc.perform(post("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(post("/v1/groups/" + group.getPublicId() + "/messages")
                 .header("Authorization", "Bearer " + user1Token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req3)));
 
-        mockMvc.perform(get("/groups/" + group.getPublicId() + "/messages")
+        mockMvc.perform(get("/v1/groups/" + group.getPublicId() + "/messages")
                         .header("Authorization", "Bearer " + user2Token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(3)))

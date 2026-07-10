@@ -89,7 +89,7 @@ class AdminControllerTest {
         event.setStatus(EventStatus.PUBLISHED);
         eventRepository.save(event);
 
-        mockMvc.perform(get("/admin/dashboard/stats")
+        mockMvc.perform(get("/v1/admin/dashboard/stats")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalUsers", is(2)))
@@ -99,7 +99,7 @@ class AdminControllerTest {
 
     @Test
     void getUsers_Paged_Success() throws Exception {
-        mockMvc.perform(get("/admin/users?page=0&size=10")
+        mockMvc.perform(get("/v1/admin/users?page=0&size=10")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(2)))
@@ -112,7 +112,7 @@ class AdminControllerTest {
         secondAdmin.setRole(Role.ADMIN);
         userRepository.save(secondAdmin);
 
-        mockMvc.perform(put("/admin/users/" + regularUser.getPublicId() + "/role")
+        mockMvc.perform(put("/v1/admin/users/" + regularUser.getPublicId() + "/role")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"role\":\"ADMIN\"}"))
@@ -122,7 +122,7 @@ class AdminControllerTest {
 
     @Test
     void updateUserRole_SelfDemotion_Forbidden() throws Exception {
-        mockMvc.perform(put("/admin/users/" + adminUser.getPublicId() + "/role")
+        mockMvc.perform(put("/v1/admin/users/" + adminUser.getPublicId() + "/role")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"role\":\"USER\"}"))
@@ -137,7 +137,7 @@ class AdminControllerTest {
         userRepository.save(otherAdmin);
 
         String otherAdminToken = jwtUtils.generateToken("anotherAdmin@email.com", Role.ADMIN.name());
-        mockMvc.perform(put("/admin/users/" + adminUser.getPublicId() + "/role")
+        mockMvc.perform(put("/v1/admin/users/" + adminUser.getPublicId() + "/role")
                         .header("Authorization", "Bearer " + otherAdminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"role\":\"USER\"}"))
@@ -146,7 +146,7 @@ class AdminControllerTest {
 
     @Test
     void updateUserRole_InvalidRole_BadRequest() throws Exception {
-        mockMvc.perform(put("/admin/users/" + regularUser.getPublicId() + "/role")
+        mockMvc.perform(put("/v1/admin/users/" + regularUser.getPublicId() + "/role")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"role\":\"INVALID_ROLE\"}"))
@@ -155,7 +155,7 @@ class AdminControllerTest {
 
     @Test
     void deleteUser_SoftDeletesUser() throws Exception {
-        mockMvc.perform(delete("/admin/users/" + regularUser.getPublicId())
+        mockMvc.perform(delete("/v1/admin/users/" + regularUser.getPublicId())
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
 
@@ -166,7 +166,7 @@ class AdminControllerTest {
 
     @Test
     void deleteUser_SelfDelete_Forbidden() throws Exception {
-        mockMvc.perform(delete("/admin/users/" + adminUser.getPublicId())
+        mockMvc.perform(delete("/v1/admin/users/" + adminUser.getPublicId())
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isForbidden());
     }
@@ -179,7 +179,7 @@ class AdminControllerTest {
         userRepository.save(otherAdmin);
 
         String otherAdminToken = jwtUtils.generateToken("anotherAdmin@email.com", Role.ADMIN.name());
-        mockMvc.perform(delete("/admin/users/" + adminUser.getPublicId())
+        mockMvc.perform(delete("/v1/admin/users/" + adminUser.getPublicId())
                         .header("Authorization", "Bearer " + otherAdminToken))
                 .andExpect(status().isBadRequest());
     }
@@ -199,7 +199,7 @@ class AdminControllerTest {
         event.setStatus(EventStatus.PUBLISHED);
         eventRepository.save(event);
 
-        mockMvc.perform(get("/admin/events?status=PUBLISHED")
+        mockMvc.perform(get("/v1/admin/events?status=PUBLISHED")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)));
@@ -220,7 +220,7 @@ class AdminControllerTest {
         event.setStatus(EventStatus.PUBLISHED);
         event = eventRepository.save(event);
 
-        mockMvc.perform(delete("/admin/events/" + event.getPublicId())
+        mockMvc.perform(delete("/v1/admin/events/" + event.getPublicId())
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
 
@@ -230,7 +230,7 @@ class AdminControllerTest {
 
     @Test
     void adminEndpoints_UserRole_Forbidden() throws Exception {
-        mockMvc.perform(get("/admin/dashboard/stats")
+        mockMvc.perform(get("/v1/admin/dashboard/stats")
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
     }

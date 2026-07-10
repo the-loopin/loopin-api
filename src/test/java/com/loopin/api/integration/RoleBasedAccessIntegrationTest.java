@@ -85,7 +85,7 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
 
         // Obtain JWT for regular user
         GoogleLoginRequest userRequest = new GoogleLoginRequest("valid-user-token");
-        MvcResult userLoginResult = mockMvc.perform(post("/auth/google")
+        MvcResult userLoginResult = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userRequest)))
                 .andExpect(status().isOk())
@@ -94,7 +94,7 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
 
         // Obtain JWT for admin
         GoogleLoginRequest adminRequest = new GoogleLoginRequest("valid-admin-token");
-        MvcResult adminLoginResult = mockMvc.perform(post("/auth/google")
+        MvcResult adminLoginResult = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(adminRequest)))
                 .andExpect(status().isOk())
@@ -113,38 +113,38 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         reportRequest.setStatus(ReportStatus.RESOLVED);
 
         // Dashboard stats
-        mockMvc.perform(get("/admin/dashboard/stats").header("Authorization", "Bearer " + userToken))
+        mockMvc.perform(get("/v1/admin/dashboard/stats").header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
 
         // List users
-        mockMvc.perform(get("/admin/users").header("Authorization", "Bearer " + userToken))
+        mockMvc.perform(get("/v1/admin/users").header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
 
         // Update user role
-        mockMvc.perform(put("/admin/users/" + dummyId + "/role")
+        mockMvc.perform(put("/v1/admin/users/" + dummyId + "/role")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(roleRequest)))
                 .andExpect(status().isForbidden());
 
         // Delete user
-        mockMvc.perform(delete("/admin/users/" + dummyId).header("Authorization", "Bearer " + userToken))
+        mockMvc.perform(delete("/v1/admin/users/" + dummyId).header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
 
         // List events
-        mockMvc.perform(get("/admin/events").header("Authorization", "Bearer " + userToken))
+        mockMvc.perform(get("/v1/admin/events").header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
 
         // Delete event
-        mockMvc.perform(delete("/admin/events/" + dummyId).header("Authorization", "Bearer " + userToken))
+        mockMvc.perform(delete("/v1/admin/events/" + dummyId).header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
 
         // List reports
-        mockMvc.perform(get("/admin/reports").header("Authorization", "Bearer " + userToken))
+        mockMvc.perform(get("/v1/admin/reports").header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
 
         // Update report status
-        mockMvc.perform(patch("/admin/reports/" + dummyId)
+        mockMvc.perform(patch("/v1/admin/reports/" + dummyId)
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reportRequest)))
@@ -159,32 +159,32 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         roleRequest.setRole(Role.USER);
 
         // Dashboard stats
-        mockMvc.perform(get("/admin/dashboard/stats").header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(get("/v1/admin/dashboard/stats").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         // List users
-        mockMvc.perform(get("/admin/users").header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(get("/v1/admin/users").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         // Update user role (dummy ID)
         // Depending on service logic, might return 404 if not found, but we want to ensure it's not 401/403.
         // We use testUser.getId() so it exists.
-        mockMvc.perform(put("/admin/users/" + dummyId + "/role")
+        mockMvc.perform(put("/v1/admin/users/" + dummyId + "/role")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(roleRequest)))
                 .andExpect(status().isOk());
 
         // List events
-        mockMvc.perform(get("/admin/events").header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(get("/v1/admin/events").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         // List reports
-        mockMvc.perform(get("/admin/reports").header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(get("/v1/admin/reports").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
                 
         // Delete user (we do this last so we don't break other tests depending on testUser)
-        mockMvc.perform(delete("/admin/users/" + dummyId).header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(delete("/v1/admin/users/" + dummyId).header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
     }
 
@@ -204,7 +204,7 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         createRequest.setOrganizerName("Test Organizer");
         createRequest.setStatus(EventStatus.DRAFT);
 
-        MvcResult createResult = mockMvc.perform(post("/events")
+        MvcResult createResult = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -240,28 +240,28 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
                 .thenReturn(new GoogleTokenClaims("user-b-google-id", "userB@email.com", "User B"));
 
         GoogleLoginRequest userBRequest = new GoogleLoginRequest("valid-user-b-token");
-        MvcResult userBLoginResult = mockMvc.perform(post("/auth/google")
+        MvcResult userBLoginResult = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userBRequest)))
                 .andReturn();
         String userBToken = JsonPath.read(userBLoginResult.getResponse().getContentAsString(), "$.token");
 
         // 3. User B attempts to update -> 403 Forbidden
-        mockMvc.perform(put("/events/" + eventId)
+        mockMvc.perform(put("/v1/events/" + eventId)
                         .header("Authorization", "Bearer " + userBToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isForbidden());
 
         // 4. ADMIN attempts to update -> 200 OK
-        mockMvc.perform(put("/events/" + eventId)
+        mockMvc.perform(put("/v1/events/" + eventId)
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk());
 
         // 5. User A (Owner) attempts to update -> 200 OK
-        mockMvc.perform(put("/events/" + eventId)
+        mockMvc.perform(put("/v1/events/" + eventId)
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -271,10 +271,10 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
     @Test
     void unauthenticatedRequestToProtectedEndpointReturnsUnauthorized() throws Exception {
         // No Authorization header provided -> 401
-        mockMvc.perform(get("/users/me"))
+        mockMvc.perform(get("/v1/users/me"))
                 .andExpect(status().isUnauthorized());
 
-        mockMvc.perform(get("/admin/dashboard/stats"))
+        mockMvc.perform(get("/v1/admin/dashboard/stats"))
                 .andExpect(status().isUnauthorized());
     }
 }

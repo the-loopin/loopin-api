@@ -108,7 +108,7 @@ class UserReportControllerTest {
 
     @Test
     void createReport_LoggedInUser_SavesPendingReport() throws Exception {
-        mockMvc.perform(post("/reports")
+        mockMvc.perform(post("/v1/reports")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -134,7 +134,7 @@ class UserReportControllerTest {
 
     @Test
     void createReport_AnonymousUser_Unauthorized() throws Exception {
-        mockMvc.perform(post("/reports")
+        mockMvc.perform(post("/v1/reports")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -150,14 +150,14 @@ class UserReportControllerTest {
     void getReports_AdminOnlyAndCanFilterPending() throws Exception {
         UserReport report = pendingGroupReport();
 
-        mockMvc.perform(get("/admin/reports?status=PENDING")
+        mockMvc.perform(get("/v1/admin/reports?status=PENDING")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
                 .andExpect(jsonPath("$.content[0].id", is(report.getPublicId().toString())))
                 .andExpect(jsonPath("$.content[0].status", is("PENDING")));
 
-        mockMvc.perform(get("/admin/reports")
+        mockMvc.perform(get("/v1/admin/reports")
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
     }
@@ -166,7 +166,7 @@ class UserReportControllerTest {
     void updateReport_AdminCanUpdateStatus() throws Exception {
         UserReport report = pendingGroupReport();
 
-        mockMvc.perform(patch("/admin/reports/" + report.getPublicId())
+        mockMvc.perform(patch("/v1/admin/reports/" + report.getPublicId())
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"RESOLVED\"}"))

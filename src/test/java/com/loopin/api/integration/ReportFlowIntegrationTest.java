@@ -130,7 +130,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
         createEventRequest.setOrganizerName("Tech Hub");
         createEventRequest.setStatus(EventStatus.PUBLISHED);
 
-        MvcResult result = mockMvc.perform(post("/events")
+        MvcResult result = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createEventRequest)))
@@ -145,7 +145,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
         request.setGroupSize(GroupSizeType.FOUR);
         request.setMaxMembers(4);
 
-        MvcResult groupResult = mockMvc.perform(post("/groups")
+        MvcResult groupResult = mockMvc.perform(post("/v1/groups")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -156,7 +156,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
 
     private String getToken(String mockToken) throws Exception {
         GoogleLoginRequest req = new GoogleLoginRequest(mockToken);
-        MvcResult res = mockMvc.perform(post("/auth/google")
+        MvcResult res = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andReturn();
@@ -173,7 +173,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
 
         long initialCount = userReportRepository.count();
 
-        mockMvc.perform(post("/reports")
+        mockMvc.perform(post("/v1/reports")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
@@ -193,13 +193,13 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
         req.setReason("Spam");
         req.setDetails("Too many messages");
 
-        mockMvc.perform(post("/reports")
+        mockMvc.perform(post("/v1/reports")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)));
 
         // Admin lists reports
-        mockMvc.perform(get("/admin/reports")
+        mockMvc.perform(get("/v1/admin/reports")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
@@ -209,7 +209,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void listReports_UserRole_ReturnsForbidden() throws Exception {
-        mockMvc.perform(get("/admin/reports")
+        mockMvc.perform(get("/v1/admin/reports")
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
     }
@@ -223,7 +223,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
         req.setReason("Harassment");
         req.setDetails("User is harassing me");
 
-        MvcResult createResult = mockMvc.perform(post("/reports")
+        MvcResult createResult = mockMvc.perform(post("/v1/reports")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
@@ -235,7 +235,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
         UpdateReportStatusRequest updateReq = new UpdateReportStatusRequest();
         updateReq.setStatus(ReportStatus.RESOLVED);
 
-        mockMvc.perform(patch("/admin/reports/" + reportId)
+        mockMvc.perform(patch("/v1/admin/reports/" + reportId)
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateReq)))
@@ -243,7 +243,7 @@ class ReportFlowIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.status", is("RESOLVED")));
 
         // Verify with get
-        mockMvc.perform(get("/admin/reports")
+        mockMvc.perform(get("/v1/admin/reports")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].status", is("RESOLVED")));

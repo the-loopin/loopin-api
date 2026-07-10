@@ -75,7 +75,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
                 .thenReturn(new GoogleTokenClaims("user-google-id", "user@email.com", "Test User"));
 
         GoogleLoginRequest userRequest = new GoogleLoginRequest("valid-user-token");
-        MvcResult userLoginResult = mockMvc.perform(post("/auth/google")
+        MvcResult userLoginResult = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userRequest)))
                 .andExpect(status().isOk())
@@ -101,7 +101,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
 
         long initialCount = eventRepository.count();
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -130,7 +130,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createRequest.setOrganizerName("Tech Hub");
         createRequest.setStatus(EventStatus.PUBLISHED);
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
@@ -145,7 +145,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createRequest.setTitle("Unauthorized Event");
         // ... (other fields don't matter as it should fail on auth first)
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/v1/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isUnauthorized());
@@ -155,7 +155,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
     void getEventById_ExistingEvent_ReturnsOk() throws Exception {
         String eventId = createTestEvent("Test Event", EventCategory.TECH, "Dubai", EventType.EVENT);
 
-        mockMvc.perform(get("/events/" + eventId))
+        mockMvc.perform(get("/v1/events/" + eventId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(eventId)))
                 .andExpect(jsonPath("$.title", is("Test Event")));
@@ -163,7 +163,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void getEventById_NonexistentId_ReturnsNotFound() throws Exception {
-        mockMvc.perform(get("/events/" + UUID.randomUUID()))
+        mockMvc.perform(get("/v1/events/" + UUID.randomUUID()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status", is(404)));
     }
@@ -186,7 +186,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         updateRequest.setOrganizerName("Updated Hub");
         updateRequest.setStatus(EventStatus.PUBLISHED);
 
-        mockMvc.perform(put("/events/" + eventId)
+        mockMvc.perform(put("/v1/events/" + eventId)
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -196,7 +196,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.price", is(100.0)));
 
         // Verify via a follow-up GET
-        mockMvc.perform(get("/events/" + eventId))
+        mockMvc.perform(get("/v1/events/" + eventId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", is("Updated Title")));
     }
@@ -206,12 +206,12 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         String eventId = createTestEvent("To Be Deleted", EventCategory.TECH, "Dubai", EventType.EVENT);
 
         // Delete the event
-        mockMvc.perform(delete("/events/" + eventId)
+        mockMvc.perform(delete("/v1/events/" + eventId)
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isNoContent());
 
         // Since it's soft-deleted, getPublishedEventById excludes notDeleted(), meaning it throws NoSuchElementException -> 404
-        mockMvc.perform(get("/events/" + eventId))
+        mockMvc.perform(get("/v1/events/" + eventId))
                 .andExpect(status().isNotFound());
     }
 
@@ -223,19 +223,19 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createTestEvent("Tech Activity Dubai", EventCategory.TECH, "Dubai", EventType.ACTIVITY);
 
         // Filter by category=TECH and city=Dubai
-        mockMvc.perform(get("/events?category=TECH&city=Dubai"))
+        mockMvc.perform(get("/v1/events?category=TECH&city=Dubai"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(2))) // "Tech Meetup Dubai" and "Tech Activity Dubai"
                 .andExpect(jsonPath("$.content[*].title", containsInAnyOrder("Tech Meetup Dubai", "Tech Activity Dubai")));
 
         // Filter by type=EVENT, category=TECH, city=Dubai
-        mockMvc.perform(get("/events?type=EVENT&category=TECH&city=Dubai"))
+        mockMvc.perform(get("/v1/events?type=EVENT&category=TECH&city=Dubai"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
                 .andExpect(jsonPath("$.content[0].title", is("Tech Meetup Dubai")));
 
         // Filter by search string "startup"
-        mockMvc.perform(get("/events?search=startup"))
+        mockMvc.perform(get("/v1/events?search=startup"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
                 .andExpect(jsonPath("$.content[0].title", is("Startup Pitch Dubai")));
@@ -245,7 +245,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
     void searchEvents_NoResultsMatch_ReturnsEmptyList() throws Exception {
         createTestEvent("Tech Meetup", EventCategory.TECH, "Dubai", EventType.EVENT);
 
-        mockMvc.perform(get("/events?city=Tokyo"))
+        mockMvc.perform(get("/v1/events?city=Tokyo"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(0)));
     }
@@ -267,7 +267,7 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createRequest.setOrganizerName("Organizer");
         createRequest.setStatus(EventStatus.PUBLISHED);
 
-        MvcResult result = mockMvc.perform(post("/events")
+        MvcResult result = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))

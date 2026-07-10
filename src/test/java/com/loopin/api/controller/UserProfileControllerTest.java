@@ -71,7 +71,7 @@ class UserProfileControllerTest {
 
     @Test
     void updateMyInterests_ReplacesUserInterests() throws Exception {
-        mockMvc.perform(put("/me/interests")
+        mockMvc.perform(put("/v1/me/interests")
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

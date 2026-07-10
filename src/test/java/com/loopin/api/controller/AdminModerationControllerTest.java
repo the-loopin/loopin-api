@@ -78,7 +78,7 @@ class AdminModerationControllerTest {
         eventRepository.save(pending);
         eventRepository.save(publishedEvent("Published event"));
 
-        mockMvc.perform(get("/admin/moderation/pending")
+        mockMvc.perform(get("/v1/admin/moderation/pending")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
@@ -90,7 +90,7 @@ class AdminModerationControllerTest {
     void approveEvent_AdminPublishesPendingContentAndWritesAuditLog() throws Exception {
         Event pending = eventRepository.save(pendingEvent("Approval candidate"));
 
-        mockMvc.perform(patch("/admin/moderation/events/" + pending.getPublicId() + "/approve")
+        mockMvc.perform(patch("/v1/admin/moderation/events/" + pending.getPublicId() + "/approve")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.moderationStatus", is("APPROVED")));
@@ -106,7 +106,7 @@ class AdminModerationControllerTest {
     void rejectEvent_AdminRejectsPendingContentStoresReasonAndWritesAuditLog() throws Exception {
         Event pending = eventRepository.save(pendingEvent("Rejection candidate"));
 
-        mockMvc.perform(patch("/admin/moderation/events/" + pending.getPublicId() + "/reject")
+        mockMvc.perform(patch("/v1/admin/moderation/events/" + pending.getPublicId() + "/reject")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"reason\":\"Violates community guidelines\"}"))
@@ -125,10 +125,10 @@ class AdminModerationControllerTest {
     void moderationEndpoints_RegularUserIsForbidden() throws Exception {
         Event pending = eventRepository.save(pendingEvent("Unauthorized candidate"));
 
-        mockMvc.perform(get("/admin/moderation/pending")
+        mockMvc.perform(get("/v1/admin/moderation/pending")
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(patch("/admin/moderation/events/" + pending.getPublicId() + "/approve")
+        mockMvc.perform(patch("/v1/admin/moderation/events/" + pending.getPublicId() + "/approve")
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
     }
@@ -137,7 +137,7 @@ class AdminModerationControllerTest {
     void approveEvent_NonPendingContentReturnsConflictWithoutAuditLog() throws Exception {
         Event published = eventRepository.save(publishedEvent("Already published"));
 
-        mockMvc.perform(patch("/admin/moderation/events/" + published.getPublicId() + "/approve")
+        mockMvc.perform(patch("/v1/admin/moderation/events/" + published.getPublicId() + "/approve")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isConflict());
 
@@ -146,7 +146,7 @@ class AdminModerationControllerTest {
 
     @Test
     void approveEvent_UnknownContentReturnsNotFoundWithoutAuditLog() throws Exception {
-        mockMvc.perform(patch("/admin/moderation/events/" + UUID.randomUUID() + "/approve")
+        mockMvc.perform(patch("/v1/admin/moderation/events/" + UUID.randomUUID() + "/approve")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNotFound());
 

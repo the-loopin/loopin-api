@@ -59,7 +59,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
         GoogleLoginRequest request = new GoogleLoginRequest("valid-new-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -87,7 +87,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
         GoogleLoginRequest request = new GoogleLoginRequest("valid-existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -105,7 +105,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
         GoogleLoginRequest request = new GoogleLoginRequest("invalid-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
@@ -117,7 +117,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         // Missing idToken
         String requestBody = "{}";
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
@@ -131,7 +131,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
         GoogleLoginRequest request = new GoogleLoginRequest("valid-new-token");
 
-        MvcResult loginResult = mockMvc.perform(post("/auth/google")
+        MvcResult loginResult = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -140,7 +140,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
         String responseBody = loginResult.getResponse().getContentAsString();
         String token = JsonPath.read(responseBody, "$.token");
 
-        mockMvc.perform(get("/users/me")
+        mockMvc.perform(get("/v1/users/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("auth@email.com")))
@@ -149,7 +149,7 @@ class AuthFlowIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void expiredOrTamperedJwtOnProtectedEndpointReturnsUnauthorized() throws Exception {
-        mockMvc.perform(get("/users/me")
+        mockMvc.perform(get("/v1/users/me")
                         .header("Authorization", "Bearer invalid.tampered.jwt"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status", is(401)));

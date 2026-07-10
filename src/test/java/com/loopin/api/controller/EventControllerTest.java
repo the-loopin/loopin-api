@@ -98,7 +98,7 @@ class EventControllerTest {
 
     @Test
     void createEvent_AssignsAuthenticatedUserAsOwner() throws Exception {
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + ownerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Owned Event")))
@@ -113,7 +113,7 @@ class EventControllerTest {
         Interest tech = interestRepository.save(interest("Tech", "tech", "Professional"));
         Interest music = interestRepository.save(interest("Music", "music", "Culture"));
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + ownerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Event With Interests", tech, music)))
@@ -127,7 +127,7 @@ class EventControllerTest {
     void updateEvent_NonOwnerIsForbidden() throws Exception {
         Event event = eventRepository.save(event("Owned Event", owner));
 
-        mockMvc.perform(put("/events/" + event.getPublicId())
+        mockMvc.perform(put("/v1/events/" + event.getPublicId())
                         .header("Authorization", "Bearer " + otherUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Hijacked Event")))
@@ -138,7 +138,7 @@ class EventControllerTest {
     void updateEvent_AdminCanUpdateAnyEvent() throws Exception {
         Event event = eventRepository.save(event("Owned Event", owner));
 
-        mockMvc.perform(put("/events/" + event.getPublicId())
+        mockMvc.perform(put("/v1/events/" + event.getPublicId())
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Admin Updated Event")))
@@ -225,13 +225,13 @@ class EventControllerTest {
         deletedEvent.markAsDeleted();
         eventRepository.save(deletedEvent);
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + otherUserToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(eventPayload("Another Event")))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/events/recommended")
+        mockMvc.perform(get("/v1/events/recommended")
                         .header("Authorization", "Bearer " + otherUserToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -252,7 +252,7 @@ class EventControllerTest {
         eventRepository.save(event("Published Event 1", owner));
         eventRepository.save(event("Published Event 2", owner));
 
-        mockMvc.perform(get("/events")
+        mockMvc.perform(get("/v1/events")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
@@ -310,7 +310,7 @@ class EventControllerTest {
         entityManager.flush();
         entityManager.clear();
 
-        mockMvc.perform(get("/events/" + event.getPublicId()))
+        mockMvc.perform(get("/v1/events/" + event.getPublicId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", is("Published Event")))
                 .andExpect(jsonPath("$.interests", hasSize(1)))
@@ -326,10 +326,10 @@ class EventControllerTest {
         deletedEvent.markAsDeleted();
         eventRepository.save(deletedEvent);
 
-        mockMvc.perform(get("/events/" + draftEvent.getPublicId()))
+        mockMvc.perform(get("/v1/events/" + draftEvent.getPublicId()))
                 .andExpect(status().isNotFound());
 
-        mockMvc.perform(get("/events/" + deletedEvent.getPublicId()))
+        mockMvc.perform(get("/v1/events/" + deletedEvent.getPublicId()))
                 .andExpect(status().isNotFound());
     }
 
