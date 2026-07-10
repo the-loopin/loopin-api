@@ -1,9 +1,9 @@
-package com.loopin.api.core.users.service;
+package com.loopin.api.users.service;
 
-import com.loopin.api.core.interests.dto.InterestResponse;
-import com.loopin.api.core.interests.dto.UpdateUserInterestsRequest;
-import com.loopin.api.core.users.dto.profile.response.UserProfileResponse;
-import com.loopin.api.core.users.dto.profile.request.UpdateUserProfileRequest;
+import com.loopin.api.interests.dto.InterestResponse;
+import com.loopin.api.interests.dto.UpdateUserInterestsRequest;
+import com.loopin.api.users.dto.profile.response.UserProfileResponse;
+import com.loopin.api.users.dto.profile.request.UpdateUserProfileRequest;
 
 import java.util.List;
 

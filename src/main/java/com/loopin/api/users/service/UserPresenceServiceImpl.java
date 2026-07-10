@@ -1,8 +1,8 @@
-package com.loopin.api.core.users.service;
+package com.loopin.api.users.service;
 
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.repository.UserRepository;
-import com.loopin.api.core.users.service.UserPresenceService;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.users.service.UserPresenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
