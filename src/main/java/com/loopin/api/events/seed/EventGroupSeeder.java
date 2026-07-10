@@ -1,12 +1,12 @@
-package com.loopin.api.core.events.seed;
+package com.loopin.api.events.seed;
 
-import com.loopin.api.core.groups.enums.GroupSizeType;
-import com.loopin.api.core.groups.enums.GroupStatus;
-import com.loopin.api.core.events.entity.Event;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.events.repository.EventGroupRepository;
-import com.loopin.api.core.users.seed.UserSeeder;
+import com.loopin.api.groups.enums.GroupSizeType;
+import com.loopin.api.groups.enums.GroupStatus;
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.users.seed.UserSeeder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
