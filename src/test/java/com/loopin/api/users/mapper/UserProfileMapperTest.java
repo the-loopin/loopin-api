@@ -1,13 +1,13 @@
-package com.loopin.api.core.users.mapper;
+package com.loopin.api.users.mapper;
 
-import com.loopin.api.core.users.dto.profile.request.UpdateUserProfileRequest;
-import com.loopin.api.core.users.dto.profile.response.UserProfileResponse;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.entity.UserProfile;
+import com.loopin.api.users.dto.profile.request.UpdateUserProfileRequest;
+import com.loopin.api.users.dto.profile.response.UserProfileResponse;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.entity.UserProfile;
 import org.junit.jupiter.api.BeforeEach;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mockito;
-import com.loopin.api.core.interests.mapper.InterestMapper;
+import com.loopin.api.interests.mapper.InterestMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -21,7 +21,7 @@ class UserProfileMapperTest {
 
     @BeforeEach
     void setUp() {
-        userProfileMapper = new UserProfileMapper(org.mockito.Mockito.mock(com.loopin.api.core.interests.mapper.InterestMapper.class));
+        userProfileMapper = new UserProfileMapper(org.mockito.Mockito.mock(com.loopin.api.interests.mapper.InterestMapper.class));
     }
 
     @Test

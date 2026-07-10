@@ -1,7 +1,7 @@
-package com.loopin.api.core.users.mapper;
+package com.loopin.api.users.mapper;
 
-import com.loopin.api.core.users.dto.response.UserResponse;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.users.dto.response.UserResponse;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.auth.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.mapstruct.factory.Mappers;

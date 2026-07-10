@@ -1,13 +1,13 @@
-package com.loopin.api.core.users.service;
+package com.loopin.api.users.service;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.common.exception.DuplicateResourceException;
-import com.loopin.api.core.users.dto.request.UserRegisterRequest;
-import com.loopin.api.core.users.dto.response.UserResponse;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.mapper.UserMapper;
-import com.loopin.api.core.users.repository.UserRepository;
-import com.loopin.api.core.interests.repository.UserInterestRepository;
+import com.loopin.api.users.dto.request.UserRegisterRequest;
+import com.loopin.api.users.dto.response.UserResponse;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.mapper.UserMapper;
+import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.interests.repository.UserInterestRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
