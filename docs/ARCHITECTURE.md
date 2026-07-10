@@ -98,6 +98,24 @@ existing columns and foreign keys are unchanged. Events, Chat, Notifications, Mo
 other modules reference the Groups-owned aggregate rather than defining their own group
 persistence types.
 
+### Module Application APIs
+
+Repositories are internal implementation details of their owning module. Cross-module business
+orchestration uses small application APIs instead of foreign repositories:
+
+- `users.api.UserLookup` supplies required user lookups.
+- `events.api.EventLookup` supplies active-event lookup for Groups.
+- `groups.api.GroupLifecycle` and `GroupMemberLookup` expose event-related group lifecycle and
+  membership reads to Events.
+- `notifications.api.NotificationWriter` is the write boundary for notifications.
+- `recommendation.api.RecommendationIndexer` is the event-indexing boundary.
+
+Allowed dependencies follow the direction of these APIs: Events may depend on Groups,
+Notifications, Recommendation, and Users through their `api` packages; Groups may depend on
+Events and Users through their `api` packages. Modules must not import another business module's
+`repository` package in application handlers. Shared persistence entities may be used only where
+the relationship itself requires it; no HTTP or separate service boundary is introduced.
+
 ### Events Incremental Vertical Slices And Lightweight CQRS
 
 The Events module will move incrementally from its current service-oriented implementation to vertical slices. This is a package and naming convention, not a command bus, mediator, event-sourcing, or separate read/write database design. Existing REST paths, PostgreSQL storage, JPA entities, and repositories stay in place while each use case is migrated.
