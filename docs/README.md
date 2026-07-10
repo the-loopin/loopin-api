@@ -87,7 +87,8 @@ Run the Spring Boot application using the `local` profile:
 ```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
-The application will start, by default listening on `http://localhost:8080/api`.
+The application will start, by default listening on `http://localhost:8080/api/v1`.
+The interactive Swagger UI is available at `http://localhost:8080/api/swagger-ui.html`.
 
 ---
 

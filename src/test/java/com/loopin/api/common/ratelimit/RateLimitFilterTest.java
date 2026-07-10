@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "rate-limit.policies[0].requests=1",
         "rate-limit.policies[0].window=1m",
         "rate-limit.policies[0].methods[0]=POST",
-        "rate-limit.policies[0].paths[0]=/auth/**"
+        "rate-limit.policies[0].paths[0]=/v1/auth/**"
 })
 @AutoConfigureMockMvc
 @Transactional
@@ -86,7 +86,7 @@ class RateLimitFilterTest {
     void requestsWithinConfiguredLimitKeepExistingBehavior() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .with(servletRequest -> {
                             servletRequest.setRemoteAddr("192.0.2.10");
                             return servletRequest;
@@ -101,7 +101,7 @@ class RateLimitFilterTest {
     void requestsExceedingConfiguredLimitReturnTooManyRequests() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .with(servletRequest -> {
                             servletRequest.setRemoteAddr("192.0.2.20");
                             return servletRequest;
@@ -110,7 +110,7 @@ class RateLimitFilterTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .with(servletRequest -> {
                             servletRequest.setRemoteAddr("192.0.2.20");
                             return servletRequest;
@@ -127,7 +127,7 @@ class RateLimitFilterTest {
     void untrustedForwardedForHeaderDoesNotBypassLimit() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .with(servletRequest -> {
                             servletRequest.setRemoteAddr("192.0.2.30");
                             return servletRequest;
@@ -137,7 +137,7 @@ class RateLimitFilterTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .with(servletRequest -> {
                             servletRequest.setRemoteAddr("192.0.2.30");
                             return servletRequest;

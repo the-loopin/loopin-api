@@ -142,7 +142,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         createEventRequest.setOrganizerName("Tech Hub");
         createEventRequest.setStatus(EventStatus.PUBLISHED);
 
-        MvcResult result = mockMvc.perform(post("/events")
+        MvcResult result = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createEventRequest)))
@@ -154,7 +154,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
 
     private String getToken(String mockToken) throws Exception {
         GoogleLoginRequest req = new GoogleLoginRequest(mockToken);
-        MvcResult res = mockMvc.perform(post("/auth/google")
+        MvcResult res = mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andReturn();
@@ -169,7 +169,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         request.setMaxMembers(sizeType.getMaxMembers());
         request.setGroupNote("Note");
 
-        MvcResult result = mockMvc.perform(post("/groups")
+        MvcResult result = mockMvc.perform(post("/v1/groups")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -190,7 +190,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         // The creator is automatically added as a member
         assertEquals(initialMemberCount + 1, groupMemberRepository.count());
 
-        mockMvc.perform(get("/groups/" + groupId))
+        mockMvc.perform(get("/v1/groups/" + groupId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title", is("Test Group")))
                 .andExpect(jsonPath("$.status", is("OPEN")));
@@ -203,7 +203,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
 
-        mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
@@ -222,14 +222,14 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         joinRequest.setMessage("First request");
 
         // First request succeeds
-        mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
                 .andExpect(status().isCreated());
 
         // Second request from same user fails with 409 Conflict
-        mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
@@ -243,7 +243,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
 
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
@@ -253,7 +253,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         long initialMemberCount = groupMemberRepository.count();
 
         // Admin approves request
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/approve")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/approve")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("ACCEPTED")));
@@ -269,7 +269,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
 
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
@@ -279,7 +279,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         long initialMemberCount = groupMemberRepository.count();
 
         // Admin rejects request
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/reject")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/reject")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("REJECTED")));
@@ -295,7 +295,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
 
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
@@ -303,7 +303,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         String requestId = JsonPath.read(joinResult.getResponse().getContentAsString(), "$.id");
 
         // Non-admin (User 2) tries to approve -> 403
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/approve")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/approve")
                         .header("Authorization", "Bearer " + user2Token))
                 .andExpect(status().isForbidden());
     }
@@ -316,7 +316,7 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
 
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
@@ -324,12 +324,12 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         String requestId = JsonPath.read(joinResult.getResponse().getContentAsString(), "$.id");
 
         // Admin approves request (this makes it 2 members: admin + userToken)
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/approve")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/approve")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         // Verify group status is now FULL
-        mockMvc.perform(get("/groups/" + groupId))
+        mockMvc.perform(get("/v1/groups/" + groupId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("FULL")));
     }
@@ -342,19 +342,19 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         // First user joins and is approved (group becomes FULL)
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
                 .andReturn();
         String requestId = JsonPath.read(joinResult.getResponse().getContentAsString(), "$.id");
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/approve")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/approve")
                         .header("Authorization", "Bearer " + adminToken));
 
         // Second user tries to join FULL group -> 409 Conflict
         CreateGroupJoinRequestRequest joinRequest2 = new CreateGroupJoinRequestRequest();
         joinRequest2.setMessage("Me too!");
-        mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + user2Token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest2)))
@@ -368,18 +368,18 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         // Add user token as a member first via admin approval
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
                 .andReturn();
         String requestId = JsonPath.read(joinResult.getResponse().getContentAsString(), "$.id");
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/approve")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/approve")
                         .header("Authorization", "Bearer " + adminToken));
 
         // The user tries to leave by calling DELETE /groups/{groupId}/members/{userId}
         // This fails with 403 Forbidden because GroupServiceImpl.validateGroupAdmin only allows admins
-        mockMvc.perform(delete("/groups/" + groupId + "/members/" + testUser.getPublicId())
+        mockMvc.perform(delete("/v1/groups/" + groupId + "/members/" + testUser.getPublicId())
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isForbidden());
     }
@@ -391,22 +391,22 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         // Add user
         CreateGroupJoinRequestRequest joinRequest = new CreateGroupJoinRequestRequest();
         joinRequest.setMessage("Let me in!");
-        MvcResult joinResult = mockMvc.perform(post("/groups/" + groupId + "/join-requests")
+        MvcResult joinResult = mockMvc.perform(post("/v1/groups/" + groupId + "/join-requests")
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(joinRequest)))
                 .andReturn();
         String requestId = JsonPath.read(joinResult.getResponse().getContentAsString(), "$.id");
-        mockMvc.perform(patch("/groups/" + groupId + "/join-requests/" + requestId + "/approve")
+        mockMvc.perform(patch("/v1/groups/" + groupId + "/join-requests/" + requestId + "/approve")
                         .header("Authorization", "Bearer " + adminToken));
 
         // Admin removes the user
-        mockMvc.perform(delete("/groups/" + groupId + "/members/" + testUser.getPublicId())
+        mockMvc.perform(delete("/v1/groups/" + groupId + "/members/" + testUser.getPublicId())
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNoContent());
 
         // Check user is removed via GET /members
-        mockMvc.perform(get("/groups/" + groupId + "/members"))
+        mockMvc.perform(get("/v1/groups/" + groupId + "/members"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()", is(1))); // only admin is left
     }

@@ -1,6 +1,9 @@
-# API Endpoint Reference
+Loopin serves versioned HTTP endpoints under the `/api/v1` context path. Examples in this document omit the host and show paths relative to `/api/v1`.
 
-Loopin serves HTTP endpoints under the `/api` context path. Examples in this document omit the host and show paths relative to `/api`.
+Interactive OpenAPI documentation (Swagger UI) is available at `/api/swagger-ui.html` to inspect and test endpoints. To authenticate requests in Swagger UI:
+1. Click the **Authorize** button.
+2. Enter your JWT Bearer token in the input field.
+3. Protected endpoints will automatically include the `Authorization: Bearer <token>` header.
 
 Use JSON for request and response bodies unless noted otherwise:
 

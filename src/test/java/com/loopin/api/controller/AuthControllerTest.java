@@ -104,7 +104,7 @@ class AuthControllerTest {
     void authenticateGoogleUser_NewUser_Success() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("new-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -120,7 +120,7 @@ class AuthControllerTest {
     void authenticateGoogleUser_ExistingUser_Success() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -143,7 +143,7 @@ class AuthControllerTest {
 
         GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -170,7 +170,7 @@ class AuthControllerTest {
 
         GoogleLoginRequest request = new GoogleLoginRequest("link-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -185,7 +185,7 @@ class AuthControllerTest {
     void authenticateGoogleUser_InvalidRequest_BadRequest() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -195,7 +195,7 @@ class AuthControllerTest {
     void authenticateGoogleUser_InvalidGoogleToken_Unauthorized() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("invalid-google-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
@@ -205,7 +205,7 @@ class AuthControllerTest {
     void accessMeProfile_WithValidToken_Success() throws Exception {
         String token = jwtUtils.generateToken(existingUser.getEmail(), existingUser.getRole().name());
 
-        mockMvc.perform(get("/users/me")
+        mockMvc.perform(get("/v1/users/me")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("user@email.com")))
@@ -214,7 +214,7 @@ class AuthControllerTest {
 
     @Test
     void accessMeProfile_WithoutToken_ThrowsUnauthorized() throws Exception {
-        mockMvc.perform(get("/users/me"))
+        mockMvc.perform(get("/v1/users/me"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -222,7 +222,7 @@ class AuthControllerTest {
     void accessUsersList_Admin_Success() throws Exception {
         String adminToken = jwtUtils.generateToken(existingAdmin.getEmail(), existingAdmin.getRole().name());
 
-        mockMvc.perform(get("/users")
+        mockMvc.perform(get("/v1/users")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
                 .andExpect(status().isOk());
     }
@@ -231,7 +231,7 @@ class AuthControllerTest {
     void accessUsersList_NormalUser_ThrowsForbidden() throws Exception {
         String userToken = jwtUtils.generateToken(existingUser.getEmail(), existingUser.getRole().name());
 
-        mockMvc.perform(get("/users")
+        mockMvc.perform(get("/v1/users")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + userToken))
                 .andExpect(status().isForbidden());
     }
@@ -240,7 +240,7 @@ class AuthControllerTest {
     void authenticateGoogleUser_WithInvalidTokenHeader_Success() throws Exception {
         GoogleLoginRequest request = new GoogleLoginRequest("existing-token");
 
-        mockMvc.perform(post("/auth/google")
+        mockMvc.perform(post("/v1/auth/google")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer invalid-or-expired-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

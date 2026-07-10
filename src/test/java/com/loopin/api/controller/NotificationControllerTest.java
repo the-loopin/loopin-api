@@ -62,7 +62,7 @@ class NotificationControllerTest {
         saveNotification(owner, "Mine");
         saveNotification(otherUser, "Not mine");
 
-        mockMvc.perform(get("/notifications")
+        mockMvc.perform(get("/v1/notifications")
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
@@ -74,25 +74,25 @@ class NotificationControllerTest {
         Notification mine = saveNotification(owner, "Mine");
         Notification theirs = saveNotification(otherUser, "Theirs");
 
-        mockMvc.perform(patch("/notifications/{id}/read", theirs.getPublicId())
+        mockMvc.perform(patch("/v1/notifications/{id}/read", theirs.getPublicId())
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isNotFound());
 
-        mockMvc.perform(patch("/notifications/{id}/read", mine.getPublicId())
+        mockMvc.perform(patch("/v1/notifications/{id}/read", mine.getPublicId())
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("READ"));
 
-        mockMvc.perform(delete("/notifications/{id}", mine.getPublicId())
+        mockMvc.perform(delete("/v1/notifications/{id}", mine.getPublicId())
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/notifications")
+        mockMvc.perform(get("/v1/notifications")
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
 
-        mockMvc.perform(get("/notifications")
+        mockMvc.perform(get("/v1/notifications")
                         .param("status", NotificationStatus.ARCHIVED.name())
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk())
@@ -105,11 +105,11 @@ class NotificationControllerTest {
         saveNotification(owner, "Second");
         saveNotification(otherUser, "Other");
 
-        mockMvc.perform(patch("/notifications/read-all")
+        mockMvc.perform(patch("/v1/notifications/read-all")
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/notifications")
+        mockMvc.perform(get("/v1/notifications")
                         .param("status", NotificationStatus.UNREAD.name())
                         .header("Authorization", "Bearer " + ownerToken))
                 .andExpect(status().isOk())

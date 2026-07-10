@@ -16,4 +16,6 @@ docker compose up --build -d
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-The API serves requests at `http://localhost:8080/api` by default.
+The API serves requests at `http://localhost:8080/api/v1` by default.
+
+Interactive OpenAPI documentation (Swagger UI) is available at `http://localhost:8080/api/swagger-ui.html` when running locally. To test authenticated endpoints in Swagger UI, generate a JWT token via the auth endpoints and use the "Authorize" button to enter it as a Bearer token.

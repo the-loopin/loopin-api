@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/interests")
+@RequestMapping("/v1/interests")
 @RequiredArgsConstructor
 public class InterestController {
 

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/groups/{groupId}/members")
+@RequestMapping("/v1/groups/{groupId}/members")
 @RequiredArgsConstructor
 public class GroupMemberController {
 

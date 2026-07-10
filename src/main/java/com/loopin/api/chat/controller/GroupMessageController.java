@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/groups/{groupId}/messages")
+@RequestMapping("/v1/groups/{groupId}/messages")
 @RequiredArgsConstructor
 public class GroupMessageController {
 
