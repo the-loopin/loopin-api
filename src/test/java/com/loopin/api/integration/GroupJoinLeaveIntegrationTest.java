@@ -6,7 +6,6 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.auth.service.GoogleTokenClaims;
 import com.loopin.api.auth.service.GoogleTokenVerifier;
 import com.loopin.api.events.enums.EventCategory;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.groups.enums.GroupSizeType;
 import com.loopin.api.groups.enums.GroupStatus;
@@ -140,7 +139,6 @@ class GroupJoinLeaveIntegrationTest extends AbstractIntegrationTest {
         createEventRequest.setIsFree(true);
         createEventRequest.setPrice(BigDecimal.ZERO);
         createEventRequest.setOrganizerName("Tech Hub");
-        createEventRequest.setStatus(EventStatus.PUBLISHED);
 
         MvcResult result = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + adminToken)

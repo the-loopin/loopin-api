@@ -6,7 +6,6 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.auth.service.GoogleTokenClaims;
 import com.loopin.api.auth.service.GoogleTokenVerifier;
 import com.loopin.api.events.enums.EventCategory;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.dto.request.EventCreateRequest;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
@@ -97,7 +96,6 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createRequest.setIsFree(true);
         createRequest.setPrice(BigDecimal.ZERO);
         createRequest.setOrganizerName("Tech Hub");
-        createRequest.setStatus(EventStatus.PUBLISHED);
 
         long initialCount = eventRepository.count();
 
@@ -128,7 +126,6 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createRequest.setIsFree(true);
         createRequest.setPrice(BigDecimal.ZERO);
         createRequest.setOrganizerName("Tech Hub");
-        createRequest.setStatus(EventStatus.PUBLISHED);
 
         mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)
@@ -184,7 +181,6 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         updateRequest.setIsFree(false);
         updateRequest.setPrice(new BigDecimal("100.00"));
         updateRequest.setOrganizerName("Updated Hub");
-        updateRequest.setStatus(EventStatus.PUBLISHED);
 
         mockMvc.perform(put("/v1/events/" + eventId)
                         .header("Authorization", "Bearer " + userToken)
@@ -265,7 +261,6 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         createRequest.setIsFree(true);
         createRequest.setPrice(BigDecimal.ZERO);
         createRequest.setOrganizerName("Organizer");
-        createRequest.setStatus(EventStatus.PUBLISHED);
 
         MvcResult result = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)

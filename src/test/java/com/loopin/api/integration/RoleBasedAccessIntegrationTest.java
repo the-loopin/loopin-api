@@ -6,7 +6,6 @@ import com.loopin.api.auth.enums.Role;
 import com.loopin.api.auth.service.GoogleTokenClaims;
 import com.loopin.api.auth.service.GoogleTokenVerifier;
 import com.loopin.api.events.enums.EventCategory;
-import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.dto.request.EventCreateRequest;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
@@ -202,7 +201,6 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         createRequest.setIsFree(true);
         createRequest.setPrice(BigDecimal.ZERO);
         createRequest.setOrganizerName("Test Organizer");
-        createRequest.setStatus(EventStatus.DRAFT);
 
         MvcResult createResult = mockMvc.perform(post("/v1/events")
                         .header("Authorization", "Bearer " + userToken)
@@ -225,7 +223,6 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         updateRequest.setIsFree(true);
         updateRequest.setPrice(BigDecimal.ZERO);
         updateRequest.setOrganizerName("Test Organizer");
-        updateRequest.setStatus(EventStatus.DRAFT);
 
         // 2. Setup User B (non-owner, non-admin)
         User userB = new User("userB@email.com", "User B", "user-b-google-id");
