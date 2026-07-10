@@ -86,7 +86,55 @@ com.loopin.api
    `- seed            # cross-module development-data orchestration
 ```
 
-Each business module owns its layer-specific types, preserving the current service behavior while removing the global `controller`, `service`, `repository`, `entity`, `dto`, and `mapper` packages. This is intentionally not a VSA/CQRS migration: endpoint paths, API contracts, JPA mappings, and service behavior remain unchanged. Command/query handlers can be introduced selectively inside modules in a later phase.
+Each business module owns its layer-specific types, preserving the current service behavior while removing the global `controller`, `service`, `repository`, `entity`, `dto`, and `mapper` packages.
+
+### Events Incremental Vertical Slices And Lightweight CQRS
+
+The Events module will move incrementally from its current service-oriented implementation to vertical slices. This is a package and naming convention, not a command bus, mediator, event-sourcing, or separate read/write database design. Existing REST paths, PostgreSQL storage, JPA entities, and repositories stay in place while each use case is migrated.
+
+New Events work belongs to a use-case package rather than a shared technical layer. The target shape is:
+
+```
+com.loopin.api.events
+|- api                         # existing REST adapter: controller and HTTP DTOs
+|- create
+|  |- CreateEventCommand.java
+|  `- CreateEventHandler.java
+|- update
+|  |- UpdateEventCommand.java
+|  `- UpdateEventHandler.java
+|- publish
+|  |- PublishEventCommand.java
+|  `- PublishEventHandler.java
+|- cancel
+|  |- CancelEventCommand.java
+|  `- CancelEventHandler.java
+|- moderation
+|  |- ApproveEventModerationCommand.java
+|  |- ApproveEventModerationHandler.java
+|  |- RejectEventModerationCommand.java
+|  `- RejectEventModerationHandler.java
+|- getpublished
+|  |- GetPublishedEventsQuery.java
+|  `- GetPublishedEventsHandler.java
+|- getbyid
+|  |- GetPublishedEventByIdQuery.java
+|  `- GetPublishedEventByIdHandler.java
+|- shared
+|  |- policy                  # reusable event rules, such as lifecycle decisions
+|  `- validation              # reusable domain validation used by more than one slice
+|- entity                      # existing JPA entities during migration
+|- repository                  # existing Spring Data JPA repositories during migration
+`- mapper                      # existing persistence/response mapping during migration
+```
+
+Package names are lowercase use-case names; types use an imperative action plus `Command` or `Query`, with the corresponding `Handler`. A command changes state and a query does not. Controllers remain thin HTTP adapters: they validate the HTTP request, construct one command or query, and translate its result to the existing response contract. A handler may call the existing repositories, mappers, notifications, and integrations directly while that slice is being extracted; no mediator is introduced.
+
+Policies are business rules shared by multiple slices, not general-purpose utility classes. For example, `events.shared.policy.EventLifecyclePolicy` owns the backend's initial status and moderation lifecycle decisions. Validators that only apply to one use case stay with that slice; reusable validation belongs in `events.shared.validation`. Jakarta request validation remains at the API boundary, while handlers enforce authorization, lifecycle, and persistence invariants.
+
+Each command handler owns one transaction boundary (`@Transactional`). Query handlers are `@Transactional(readOnly = true)` when they require a persistence context. Database writes, lifecycle changes, and required local side effects are completed in the command transaction; external or retryable work should be requested after commit rather than extending that transaction. This keeps the current PostgreSQL/JPA model intact and makes each future extraction independently testable.
+
+Normal event create and update requests never contain `status`. The backend assigns the initial status (`PUBLISHED` for automatically approved content); content requiring moderation is moved to `DRAFT`. Lifecycle changes are separate commands: `PublishEventCommand`, `CancelEventCommand`, `ApproveEventModerationCommand`, and `RejectEventModerationCommand`. The existing moderation approval/rejection endpoints already represent the latter two operations; no endpoint paths are changed in this preparation phase.
 
 ### 1. Presentation Layer (Controllers)
 Receives incoming HTTP requests, validates input payloads using Jakarta Validation annotations (`@Valid`, `@NotNull`, etc.), delegates execution to the appropriate service, and returns standardized `ResponseEntity` models.
