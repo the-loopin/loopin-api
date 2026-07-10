@@ -61,16 +61,16 @@ rate-limit:
       methods:
         - POST
       paths:
-        - /auth/**
-        - /users/register
+        - /v1/auth/**
+        - /v1/users/register
     - name: public-read
       requests: ${RATE_LIMIT_PUBLIC_READ_REQUESTS:120}
       window: ${RATE_LIMIT_PUBLIC_READ_WINDOW:1m}
       methods:
         - GET
       paths:
-        - /events/**
-        - /groups/**
+        - /v1/events/**
+        - /v1/groups/**
     - name: authenticated-write
       requests: ${RATE_LIMIT_AUTHENTICATED_WRITE_REQUESTS:60}
       window: ${RATE_LIMIT_AUTHENTICATED_WRITE_WINDOW:1m}
@@ -80,8 +80,8 @@ rate-limit:
         - PATCH
         - DELETE
       paths:
-        - /events/**
-        - /groups/**
+        - /v1/events/**
+        - /v1/groups/**
 
 jwt:
   secret: ${JWT_SECRET}
