@@ -22,6 +22,15 @@ class ModuleBoundaryArchitectureTest {
                         () -> path + " must use com.loopin.api.groups.api instead of a Groups repository");
             }
         }
+        try (var paths = Files.walk(Path.of("src/main/java/com/loopin/api/groups"))) {
+            for (Path path : paths.filter(path -> path.toString().endsWith(".java"))
+                    .filter(path -> !path.toString().contains("\\seed\\") && !path.toString().contains("/seed/"))
+                    .toList()) {
+                String source = Files.readString(path);
+                assertFalse(source.contains("com.loopin.api.notifications.service.NotificationService"),
+                        () -> path + " must use com.loopin.api.notifications.api instead of notifications.service");
+            }
+        }
     }
 
     @Test
