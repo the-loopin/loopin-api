@@ -1,6 +1,6 @@
 package com.loopin.api.recommendation.event;
 
-import com.loopin.api.core.events.entity.Event;
+import com.loopin.api.events.entity.Event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package com.loopin.api.recommendation.user;
 
-import com.loopin.api.core.interests.entity.Interest;
+import com.loopin.api.interests.entity.Interest;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
