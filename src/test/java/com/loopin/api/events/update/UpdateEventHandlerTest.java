@@ -1,5 +1,6 @@
 package com.loopin.api.events.update;
 
+import com.loopin.api.common.exception.InvalidEventStateException;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
 import com.loopin.api.events.entity.Event;
@@ -21,7 +22,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -81,5 +84,40 @@ class UpdateEventHandlerTest {
         request.setIsFree(true);
         request.setPrice(BigDecimal.ZERO);
         return request;
+    }
+    @Test
+    void handle_rejectsCancelledEventUpdate() {
+        EventFinder finder = mock(EventFinder.class);
+        EventRepository repository = mock(EventRepository.class);
+        UpdateEventHandler handler = new UpdateEventHandler(repository, mock(EventMapper.class), finder,
+                mock(EventAccessPolicy.class), mock(EventValidator.class), mock(EventInterestManager.class),
+                mock(EventModerationManager.class), mock(RecommendationIndexer.class), mock(EventMemberNotifier.class));
+
+        UUID id = UUID.randomUUID();
+        Event event = event(id, "Old title", "Old description");
+        event.setStatus(EventStatus.CANCELLED);
+        when(finder.findActiveEventById(id)).thenReturn(event);
+
+        assertThrows(InvalidEventStateException.class, () ->
+                handler.handle(new UpdateEventCommand(id, request("t", "d"), "user")));
+        verify(repository, never()).save(event);
+    }
+
+    @Test
+    void handle_rejectsCompletedEventUpdate() {
+        EventFinder finder = mock(EventFinder.class);
+        EventRepository repository = mock(EventRepository.class);
+        UpdateEventHandler handler = new UpdateEventHandler(repository, mock(EventMapper.class), finder,
+                mock(EventAccessPolicy.class), mock(EventValidator.class), mock(EventInterestManager.class),
+                mock(EventModerationManager.class), mock(RecommendationIndexer.class), mock(EventMemberNotifier.class));
+
+        UUID id = UUID.randomUUID();
+        Event event = event(id, "Old title", "Old description");
+        event.setStatus(EventStatus.COMPLETED);
+        when(finder.findActiveEventById(id)).thenReturn(event);
+
+        assertThrows(InvalidEventStateException.class, () ->
+                handler.handle(new UpdateEventCommand(id, request("t", "d"), "user")));
+        verify(repository, never()).save(event);
     }
 }

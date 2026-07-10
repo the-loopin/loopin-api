@@ -6,6 +6,7 @@ import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.mapper.EventMapper;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.events.shared.access.EventAccessPolicy;
+import com.loopin.api.events.shared.policy.EventLifecyclePolicy;
 import com.loopin.api.events.shared.finder.EventFinder;
 import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
@@ -47,6 +48,7 @@ public class UpdateEventHandler {
         eventValidator.validatePrice(request.getIsFree(), request.getPrice());
 
         Event event = eventFinder.findActiveEventById(command.id());
+        EventLifecyclePolicy.requireEditable(event);
         eventAccessPolicy.requireOwnerOrAdmin(event, currentUser);
         boolean moderationRequired = !Objects.equals(event.getTitle(), request.getTitle())
                 || !Objects.equals(event.getDescription(), request.getDescription());
