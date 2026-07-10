@@ -1,10 +1,10 @@
 package com.loopin.api.controller;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.core.users.dto.request.UpdateUserRoleRequest;
-import com.loopin.api.core.users.dto.request.UserRegisterRequest;
-import com.loopin.api.core.users.entity.User;
-import com.loopin.api.core.users.repository.UserRepository;
+import com.loopin.api.users.dto.request.UpdateUserRoleRequest;
+import com.loopin.api.users.dto.request.UserRegisterRequest;
+import com.loopin.api.users.entity.User;
+import com.loopin.api.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
