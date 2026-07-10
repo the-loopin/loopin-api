@@ -29,4 +29,14 @@ public final class EventLifecyclePolicy {
     public static void rejectModeration(Event event) {
         event.setStatus(EventStatus.DRAFT);
     }
+
+    public static void cancel(Event event) {
+        if (event.getStatus() == EventStatus.CANCELLED) {
+            throw new IllegalArgumentException("Event is already cancelled");
+        }
+        if (event.getStatus() == EventStatus.COMPLETED) {
+            throw new IllegalArgumentException("Completed events cannot be cancelled");
+        }
+        event.setStatus(EventStatus.CANCELLED);
+    }
 }

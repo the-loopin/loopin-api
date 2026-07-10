@@ -5,6 +5,10 @@ import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
 import com.loopin.api.events.create.CreateEventCommand;
 import com.loopin.api.events.create.CreateEventHandler;
+import com.loopin.api.events.cancel.CancelEventCommand;
+import com.loopin.api.events.cancel.CancelEventHandler;
+import com.loopin.api.events.delete.DeleteEventCommand;
+import com.loopin.api.events.delete.DeleteEventHandler;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
@@ -13,7 +17,8 @@ import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsHandler;
 import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsQuery;
 import com.loopin.api.events.listpublishedevents.ListPublishedEventsHandler;
 import com.loopin.api.events.listpublishedevents.ListPublishedEventsQuery;
-import com.loopin.api.events.service.EventService;
+import com.loopin.api.events.update.UpdateEventCommand;
+import com.loopin.api.events.update.UpdateEventHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.loopin.api.common.security.SecurityUtils;
@@ -29,6 +34,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,11 +52,13 @@ import java.util.UUID;
 @Tag(name = "Event Management", description = "Endpoints for managing and querying events")
 public class EventController {
 
-    private final EventService eventService;
     private final CreateEventHandler createEventHandler;
     private final GetPublishedEventByIdHandler getPublishedEventByIdHandler;
     private final ListPublishedEventsHandler listPublishedEventsHandler;
     private final GetRecommendedEventsHandler getRecommendedEventsHandler;
+    private final UpdateEventHandler updateEventHandler;
+    private final CancelEventHandler cancelEventHandler;
+    private final DeleteEventHandler deleteEventHandler;
 
     @GetMapping
     @Operation(summary = "Get published events", description = "Retrieve a paginated list of published events based on filter criteria.")
@@ -114,7 +122,17 @@ public class EventController {
             @PathVariable UUID id,
             @Valid @RequestBody EventUpdateRequest request
     ) {
-        return ResponseEntity.ok(eventService.updateEvent(id, request, SecurityUtils.getRequiredCurrentUserEmail()));
+        return ResponseEntity.ok(updateEventHandler.handle(
+                new UpdateEventCommand(id, request, SecurityUtils.getRequiredCurrentUserEmail())
+        ));
+    }
+
+    @RequestMapping(value = "/{id}/cancel", method = {RequestMethod.POST, RequestMethod.PATCH})
+    @Operation(summary = "Cancel an event", description = "Cancel an event. Requires authentication.")
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<Void> cancelEvent(@PathVariable UUID id) {
+        cancelEventHandler.handle(new CancelEventCommand(id, SecurityUtils.getRequiredCurrentUserEmail()));
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
@@ -123,7 +141,7 @@ public class EventController {
     public ResponseEntity<Void> deleteEvent(
             @PathVariable UUID id
     ) {
-        eventService.deleteEvent(id, SecurityUtils.getRequiredCurrentUserEmail());
+        deleteEventHandler.handle(new DeleteEventCommand(id, SecurityUtils.getRequiredCurrentUserEmail()));
         return ResponseEntity.noContent().build();
     }
 }
