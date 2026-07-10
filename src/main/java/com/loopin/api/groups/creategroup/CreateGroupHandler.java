@@ -1,8 +1,7 @@
 package com.loopin.api.groups.creategroup;
 
-import com.loopin.api.common.exception.ResourceNotFoundException;
+import com.loopin.api.events.api.EventLookup;
 import com.loopin.api.events.entity.Event;
-import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.groups.dto.response.GroupResponse;
 import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupMember;
@@ -22,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CreateGroupHandler {
     private final EventGroupRepository groupRepository;
     private final GroupMemberRepository memberRepository;
-    private final EventRepository eventRepository;
+    private final EventLookup eventLookup;
     private final GroupMapper groupMapper;
     private final GroupFinder groupFinder;
     private final GroupCapacityPolicy capacityPolicy;
@@ -35,8 +34,7 @@ public class CreateGroupHandler {
             throw new IllegalArgumentException("Content contains blocked language and cannot be published");
         }
         User creator = groupFinder.findCurrentUser(command.currentUsername());
-        Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(request.getEventId())
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + request.getEventId()));
+        Event event = eventLookup.findActiveByPublicId(request.getEventId());
         EventGroup group = groupMapper.toEntity(request, creator, event);
         capacityPolicy.applyMaximumFromSize(group);
         EventGroup savedGroup = groupRepository.save(group);

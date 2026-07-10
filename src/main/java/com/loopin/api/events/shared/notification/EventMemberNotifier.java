@@ -1,11 +1,11 @@
 package com.loopin.api.events.shared.notification;
 
 import com.loopin.api.events.entity.Event;
-import com.loopin.api.groups.repository.GroupMemberRepository;
+import com.loopin.api.groups.api.GroupMemberLookup;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
-import com.loopin.api.notifications.service.NotificationService;
+import com.loopin.api.notifications.api.NotificationWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventMemberNotifier {
 
-    private final GroupMemberRepository groupMemberRepository;
-    private final NotificationService notificationService;
+    private final GroupMemberLookup groupMemberLookup;
+    private final NotificationWriter notificationWriter;
 
     public void notifyMembers(Event event, String title, String message) {
-        notificationService.createAll(groupMemberRepository.findDistinctActiveUsersByEventId(event.getId())
+        notificationWriter.writeAll(groupMemberLookup.findActiveUsersByEventId(event.getId())
                 .stream()
                 .map(recipient -> new NotificationCommand(
                         recipient,

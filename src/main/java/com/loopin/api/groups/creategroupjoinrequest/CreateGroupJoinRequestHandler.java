@@ -1,6 +1,5 @@
 package com.loopin.api.groups.creategroupjoinrequest;
 
-import com.loopin.api.common.exception.ResourceNotFoundException;
 import com.loopin.api.groups.dto.response.GroupJoinRequestResponse;
 import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupJoinRequest;
@@ -16,7 +15,7 @@ import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
 import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.users.entity.User;
-import com.loopin.api.users.repository.UserRepository;
+import com.loopin.api.users.api.UserLookup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -29,7 +28,7 @@ public class CreateGroupJoinRequestHandler {
     private final GroupJoinRequestFinder requestFinder;
     private final GroupJoinRequestRepository requestRepository;
     private final GroupMemberRepository memberRepository;
-    private final UserRepository userRepository;
+    private final UserLookup userLookup;
     private final GroupMembershipPolicy membershipPolicy;
     private final ContentModerationService moderationService;
     private final NotificationService notificationService;
@@ -37,8 +36,7 @@ public class CreateGroupJoinRequestHandler {
     @Transactional
     public GroupJoinRequestResponse handle(CreateGroupJoinRequestCommand command) {
         EventGroup group = requestFinder.findGroup(command.groupId());
-        User user = userRepository.findById(command.currentUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + command.currentUserId()));
+        User user = userLookup.findById(command.currentUserId());
         if (group.getStatus() != GroupStatus.OPEN) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Group is not open, join request cannot be sent");
         }

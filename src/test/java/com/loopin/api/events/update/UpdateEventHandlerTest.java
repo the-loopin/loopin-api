@@ -12,7 +12,7 @@ import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.notification.EventMemberNotifier;
 import com.loopin.api.events.shared.validation.EventValidator;
-import com.loopin.api.recommendation.event.EventEmbeddingService;
+import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
 import org.junit.jupiter.api.Test;
 
@@ -36,10 +36,10 @@ class UpdateEventHandlerTest {
         EventValidator validator = mock(EventValidator.class);
         EventInterestManager interestManager = mock(EventInterestManager.class);
         EventModerationManager moderationManager = mock(EventModerationManager.class);
-        EventEmbeddingService embeddingService = mock(EventEmbeddingService.class);
+        RecommendationIndexer recommendationIndexer = mock(RecommendationIndexer.class);
         EventMemberNotifier memberNotifier = mock(EventMemberNotifier.class);
         UpdateEventHandler handler = new UpdateEventHandler(repository, mapper, finder, accessPolicy, validator,
-                interestManager, moderationManager, embeddingService, memberNotifier);
+                interestManager, moderationManager, recommendationIndexer, memberNotifier);
         UUID id = UUID.randomUUID();
         Event event = event(id, "Old title", "Old description");
         EventUpdateRequest request = request("New title", "New description");
@@ -59,7 +59,7 @@ class UpdateEventHandlerTest {
         verify(mapper).updateEntity(event, request);
         verify(moderationManager).apply(event, "New title", "New description");
         verify(interestManager).replace(event, request.getInterestIds());
-        verify(embeddingService).indexEvent(event);
+        verify(recommendationIndexer).index(event);
         verify(memberNotifier).notifyMembers(event, "Event updated", "\"Old title\" has been updated.");
     }
 

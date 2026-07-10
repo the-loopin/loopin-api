@@ -11,7 +11,7 @@ import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.notification.EventMemberNotifier;
 import com.loopin.api.events.shared.validation.EventValidator;
-import com.loopin.api.recommendation.event.EventEmbeddingService;
+import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -32,7 +32,7 @@ public class UpdateEventHandler {
     private final EventValidator eventValidator;
     private final EventInterestManager eventInterestManager;
     private final EventModerationManager eventModerationManager;
-    private final EventEmbeddingService eventEmbeddingService;
+    private final RecommendationIndexer recommendationIndexer;
     private final EventMemberNotifier eventMemberNotifier;
 
     @Caching(evict = {
@@ -58,7 +58,7 @@ public class UpdateEventHandler {
         eventInterestManager.replace(event, request.getInterestIds());
 
         Event savedEvent = eventRepository.save(event);
-        eventEmbeddingService.indexEvent(savedEvent);
+        recommendationIndexer.index(savedEvent);
         eventMemberNotifier.notifyMembers(
                 savedEvent,
                 "Event updated",

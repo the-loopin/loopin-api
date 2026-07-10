@@ -13,8 +13,8 @@ import com.loopin.api.events.shared.validation.EventValidator;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
-import com.loopin.api.notifications.service.NotificationService;
-import com.loopin.api.recommendation.event.EventEmbeddingService;
+import com.loopin.api.notifications.api.NotificationWriter;
+import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,8 +31,8 @@ public class CreateEventHandler {
     private final EventValidator eventValidator;
     private final EventInterestManager eventInterestManager;
     private final EventModerationManager eventModerationManager;
-    private final EventEmbeddingService eventEmbeddingService;
-    private final NotificationService notificationService;
+    private final RecommendationIndexer recommendationIndexer;
+    private final NotificationWriter notificationWriter;
 
     @CacheEvict(value = "publishedEvents", allEntries = true)
     @Transactional
@@ -50,8 +50,8 @@ public class CreateEventHandler {
 
         Event savedEvent = eventRepository.saveAndFlush(event);
         eventInterestManager.replace(savedEvent, request.getInterestIds());
-        eventEmbeddingService.indexEvent(savedEvent);
-        notificationService.create(new NotificationCommand(
+        recommendationIndexer.index(savedEvent);
+        notificationWriter.write(new NotificationCommand(
                 currentUser,
                 NotificationType.EVENT_UPDATE,
                 "Event created",
