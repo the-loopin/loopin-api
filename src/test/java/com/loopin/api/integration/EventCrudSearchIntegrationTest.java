@@ -281,6 +281,28 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.content.length()", is(0)));
     }
 
+    @Test
+    void searchEvents_FreeAndDateFilters_ReturnOnlyMatchingPublishedEvents() throws Exception {
+        String freeEventId = createTestEvent("Free Tomorrow", EventCategory.TECH, "Dubai", EventType.EVENT);
+        String paidEventId = createTestEvent("Paid Next Week", EventCategory.TECH, "Dubai", EventType.EVENT);
+        Event paidEvent = eventRepository.findByPublicIdAndDeletedAtIsNull(UUID.fromString(paidEventId)).orElseThrow();
+        paidEvent.setIsFree(false);
+        paidEvent.setPrice(BigDecimal.TEN);
+        paidEvent.setStartDateTime(LocalDateTime.now().plusDays(7).withNano(0));
+        paidEvent.setEndDateTime(LocalDateTime.now().plusDays(8).withNano(0));
+        eventRepository.saveAndFlush(paidEvent);
+
+        mockMvc.perform(get("/v1/events?isFree=true&startDate={date}&endDate={date}", LocalDateTime.now().plusDays(1).toLocalDate()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.content[0].id", is(freeEventId)));
+
+        mockMvc.perform(get("/v1/events?isFree=false&startDate={date}", LocalDateTime.now().plusDays(7).toLocalDate()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()", is(1)))
+                .andExpect(jsonPath("$.content[0].id", is(paidEventId)));
+    }
+
     /**
      * Helper to create events via API, as instructed: "create events THROUGH the API (POST /events) within each test method"
      */
