@@ -2,6 +2,8 @@ package com.loopin.api.controller;
 
 import com.loopin.api.auth.enums.Role;
 import com.loopin.api.events.create.CreateEventHandler;
+import com.loopin.api.events.cancel.CancelEventCommand;
+import com.loopin.api.events.cancel.CancelEventHandler;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
@@ -81,6 +83,9 @@ class EventControllerTest {
 
     @MockitoSpyBean
     private GetRecommendedEventsHandler getRecommendedEventsHandler;
+
+    @MockitoSpyBean
+    private CancelEventHandler cancelEventHandler;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -202,6 +207,18 @@ class EventControllerTest {
                 .andExpect(status().isOk());
 
         assertEquals(EventStatus.PUBLISHED, eventRepository.findById(event.getId()).orElseThrow().getStatus());
+    }
+
+    @Test
+    void cancelEvent_DelegatesToDedicatedCommandHandler() throws Exception {
+        Event event = eventRepository.save(event("Cancellable Event", owner));
+
+        mockMvc.perform(post("/v1/events/" + event.getPublicId() + "/cancel")
+                        .header("Authorization", "Bearer " + ownerToken))
+                .andExpect(status().isNoContent());
+
+        assertEquals(EventStatus.CANCELLED, eventRepository.findById(event.getId()).orElseThrow().getStatus());
+        verify(cancelEventHandler).handle(new CancelEventCommand(event.getPublicId(), owner.getEmail()));
     }
 
     @Test
