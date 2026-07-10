@@ -9,6 +9,10 @@ import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdQuery;
+import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsHandler;
+import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsQuery;
+import com.loopin.api.events.listpublishedevents.ListPublishedEventsHandler;
+import com.loopin.api.events.listpublishedevents.ListPublishedEventsQuery;
 import com.loopin.api.events.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +49,8 @@ public class EventController {
     private final EventService eventService;
     private final CreateEventHandler createEventHandler;
     private final GetPublishedEventByIdHandler getPublishedEventByIdHandler;
+    private final ListPublishedEventsHandler listPublishedEventsHandler;
+    private final GetRecommendedEventsHandler getRecommendedEventsHandler;
 
     @GetMapping
     @Operation(summary = "Get published events", description = "Retrieve a paginated list of published events based on filter criteria.")
@@ -58,7 +64,7 @@ public class EventController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @ParameterObject Pageable pageable
     ) {
-        Page<EventResponse> events = eventService.getPublishedEvents(
+        Page<EventResponse> events = listPublishedEventsHandler.handle(new ListPublishedEventsQuery(
                 type,
                 category,
                 city,
@@ -67,7 +73,7 @@ public class EventController {
                 startDate,
                 endDate,
                 pageable
-        );
+        ));
 
         return ResponseEntity.ok(events);
     }
@@ -83,7 +89,9 @@ public class EventController {
     public ResponseEntity<List<EventResponse>> getRecommendedEvents(
             @RequestParam(defaultValue = "10") int limit
     ) {
-        List<EventResponse> events = eventService.getRecommendedEvents(SecurityUtils.getRequiredCurrentUserEmail(), limit);
+        List<EventResponse> events = getRecommendedEventsHandler.handle(
+                new GetRecommendedEventsQuery(SecurityUtils.getRequiredCurrentUserEmail(), limit)
+        );
         return ResponseEntity.ok(events);
     }
 

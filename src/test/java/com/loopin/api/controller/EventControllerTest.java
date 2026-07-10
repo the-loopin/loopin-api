@@ -7,6 +7,10 @@ import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdQuery;
+import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsHandler;
+import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsQuery;
+import com.loopin.api.events.listpublishedevents.ListPublishedEventsHandler;
+import com.loopin.api.events.listpublishedevents.ListPublishedEventsQuery;
 import com.loopin.api.common.security.JwtUtils;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.entity.EventInterest;
@@ -16,7 +20,6 @@ import com.loopin.api.events.repository.EventInterestRepository;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.interests.repository.InterestRepository;
 import com.loopin.api.users.repository.UserRepository;
-import com.loopin.api.events.service.EventService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
@@ -67,14 +70,17 @@ class EventControllerTest {
     @Autowired
     private EventInterestRepository eventInterestRepository;
 
-    @Autowired
-    private EventService eventService;
+    @MockitoSpyBean
+    private ListPublishedEventsHandler listPublishedEventsHandler;
 
     @MockitoSpyBean
     private GetPublishedEventByIdHandler getPublishedEventByIdHandler;
 
     @MockitoSpyBean
     private CreateEventHandler createEventHandler;
+
+    @MockitoSpyBean
+    private GetRecommendedEventsHandler getRecommendedEventsHandler;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -310,6 +316,8 @@ class EventControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].title", is("Another Event")))
                 .andExpect(jsonPath("$[1].title", is("Published Event")));
+
+        verify(getRecommendedEventsHandler).handle(new GetRecommendedEventsQuery(otherUser.getEmail(), 10));
     }
 
     private Interest interest(String name, String slug, String category) {
@@ -353,16 +361,9 @@ class EventControllerTest {
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.clear();
 
-        var response = eventService.getPublishedEvents(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                PageRequest.of(0, 10)
-        );
+        var response = listPublishedEventsHandler.handle(new ListPublishedEventsQuery(
+                null, null, null, null, null, null, null, PageRequest.of(0, 10)
+        ));
 
         assertEquals(3, response.getContent().size());
         assertEquals(2, response.getContent().get(0).getInterests().size());
@@ -373,6 +374,16 @@ class EventControllerTest {
                 "Expected fixed query count for page, count, and interest fetch, but executed "
                         + statistics.getPrepareStatementCount()
         );
+    }
+
+    @Test
+    void getPublishedEvents_DelegatesToQueryHandler() throws Exception {
+        mockMvc.perform(get("/v1/events"))
+                .andExpect(status().isOk());
+
+        verify(listPublishedEventsHandler).handle(argThat(query -> query.type() == null
+                && query.category() == null
+                && query.pageable().getPageNumber() == 0));
     }
 
     @Test
