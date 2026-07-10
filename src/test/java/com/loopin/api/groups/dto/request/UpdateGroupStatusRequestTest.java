@@ -1,5 +1,6 @@
-package com.loopin.api.core.groups.dto.request;
+package com.loopin.api.groups.dto.request;
 
+import com.loopin.api.groups.enums.GroupStatus;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -12,7 +13,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class CreateGroupJoinRequestRequestTest {
+class UpdateGroupStatusRequestTest {
 
     private static Validator validator;
 
@@ -23,22 +24,22 @@ class CreateGroupJoinRequestRequestTest {
     }
 
     @Test
-    void message_ExceedsMaxLength_ViolatesSizeConstraint() {
-        CreateGroupJoinRequestRequest request = new CreateGroupJoinRequestRequest();
-        request.setMessage("a".repeat(501));
+    void status_Null_ViolatesNotNullConstraint() {
+        UpdateGroupStatusRequest request = new UpdateGroupStatusRequest();
+        request.setStatus(null);
 
-        Set<ConstraintViolation<CreateGroupJoinRequestRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<UpdateGroupStatusRequest>> violations = validator.validate(request);
 
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("message")));
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("status")));
     }
 
     @Test
     void validRequest_NoViolations() {
-        CreateGroupJoinRequestRequest request = new CreateGroupJoinRequestRequest();
-        request.setMessage("a".repeat(500));
+        UpdateGroupStatusRequest request = new UpdateGroupStatusRequest();
+        request.setStatus(GroupStatus.OPEN);
 
-        Set<ConstraintViolation<CreateGroupJoinRequestRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<UpdateGroupStatusRequest>> violations = validator.validate(request);
 
         assertTrue(violations.isEmpty());
     }

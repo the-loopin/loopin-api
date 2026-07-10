@@ -1,9 +1,9 @@
-package com.loopin.api.core.groups.mapper;
+package com.loopin.api.groups.mapper;
 
-import com.loopin.api.core.groups.dto.response.GroupMemberResponse;
-import com.loopin.api.core.events.entity.EventGroup;
-import com.loopin.api.core.groups.entity.GroupMember;
-import com.loopin.api.core.users.entity.User;
+import com.loopin.api.groups.dto.response.GroupMemberResponse;
+import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.GroupMember;
+import com.loopin.api.users.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

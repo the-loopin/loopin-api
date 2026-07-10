@@ -1,4 +1,4 @@
-package com.loopin.api.core.groups.dto.request;
+package com.loopin.api.groups.dto.request;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

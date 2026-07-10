@@ -1,4 +1,4 @@
-package com.loopin.api.core.groups.dto.request;
+package com.loopin.api.groups.dto.request;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -8,12 +8,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class GroupMemberRequestTest {
+class UpdateGroupRequestTest {
 
     private static Validator validator;
 
@@ -24,22 +23,22 @@ class GroupMemberRequestTest {
     }
 
     @Test
-    void userId_Null_ViolatesNotNullConstraint() {
-        GroupMemberRequest request = new GroupMemberRequest();
-        request.setUserId(null);
+    void maxMembers_BelowMin_ViolatesMinConstraint() {
+        UpdateGroupRequest request = new UpdateGroupRequest();
+        request.setMaxMembers(0);
 
-        Set<ConstraintViolation<GroupMemberRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<UpdateGroupRequest>> violations = validator.validate(request);
 
         assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("userId")));
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("maxMembers")));
     }
 
     @Test
     void validRequest_NoViolations() {
-        GroupMemberRequest request = new GroupMemberRequest();
-        request.setUserId(UUID.randomUUID());
+        UpdateGroupRequest request = new UpdateGroupRequest();
+        request.setMaxMembers(1);
 
-        Set<ConstraintViolation<GroupMemberRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<UpdateGroupRequest>> violations = validator.validate(request);
 
         assertTrue(violations.isEmpty());
     }
