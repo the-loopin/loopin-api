@@ -292,12 +292,18 @@ class EventCrudSearchIntegrationTest extends AbstractIntegrationTest {
         paidEvent.setEndDateTime(LocalDateTime.now().plusDays(8).withNano(0));
         eventRepository.saveAndFlush(paidEvent);
 
-        mockMvc.perform(get("/v1/events?isFree=true&startDate={date}&endDate={date}", LocalDateTime.now().plusDays(1).toLocalDate()))
+        String tomorrow = LocalDateTime.now().plusDays(1).toLocalDate().toString();
+        mockMvc.perform(get("/v1/events")
+                        .param("isFree", "true")
+                        .param("startDate", tomorrow)
+                        .param("endDate", tomorrow))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
                 .andExpect(jsonPath("$.content[0].id", is(freeEventId)));
 
-        mockMvc.perform(get("/v1/events?isFree=false&startDate={date}", LocalDateTime.now().plusDays(7).toLocalDate()))
+        mockMvc.perform(get("/v1/events")
+                        .param("isFree", "false")
+                        .param("startDate", LocalDateTime.now().plusDays(7).toLocalDate().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()", is(1)))
                 .andExpect(jsonPath("$.content[0].id", is(paidEventId)));
