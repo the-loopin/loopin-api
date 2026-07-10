@@ -3,7 +3,7 @@ package com.loopin.api.reports.mapper;
 import com.loopin.api.reports.enums.ReportStatus;
 import com.loopin.api.reports.enums.ReportTargetType;
 import com.loopin.api.reports.dto.response.ReportResponse;
-import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.chat.entity.GroupMessage;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.reports.entity.UserReport;

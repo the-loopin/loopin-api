@@ -1,8 +1,8 @@
 package com.loopin.api.groups.job;
 
 import com.loopin.api.groups.enums.GroupStatus;
-import com.loopin.api.events.entity.EventGroup;
-import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.entity.EventGroup;
+import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.groups.repository.GroupJoinRequestRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.chat.repository.GroupMessageRepository;

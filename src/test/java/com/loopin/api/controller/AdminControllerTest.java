@@ -6,7 +6,7 @@ import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.users.entity.User;
-import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;

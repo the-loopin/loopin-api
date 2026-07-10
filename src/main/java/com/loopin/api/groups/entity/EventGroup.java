@@ -1,11 +1,20 @@
-package com.loopin.api.events.entity;
+package com.loopin.api.groups.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.users.entity.User;
+import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.enums.GroupSizeType;
 import com.loopin.api.groups.enums.GroupStatus;
-import jakarta.persistence.*;
-import lombok.*;
+import com.loopin.api.users.entity.User;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "event_groups")

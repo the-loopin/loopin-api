@@ -4,7 +4,7 @@ package com.loopin.api.groups.mapper;
 import com.loopin.api.groups.dto.request.CreateGroupRequest;
 import com.loopin.api.groups.dto.response.GroupResponse;
 import com.loopin.api.events.entity.Event;
-import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.groups.repository.GroupMemberRepository;

@@ -2,7 +2,7 @@ package com.loopin.api.groups.seed;
 
 
 import com.loopin.api.groups.enums.RequestStatus;
-import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupJoinRequest;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.groups.repository.GroupJoinRequestRepository;

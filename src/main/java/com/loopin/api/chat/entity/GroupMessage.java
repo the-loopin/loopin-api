@@ -1,7 +1,7 @@
 package com.loopin.api.chat.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.users.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

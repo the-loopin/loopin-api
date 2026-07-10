@@ -2,7 +2,7 @@ package com.loopin.api.common.seed;
 
 
 import com.loopin.api.events.entity.Event;
-import com.loopin.api.events.entity.EventGroup;
+import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.events.seed.EventGroupSeeder;
 import com.loopin.api.events.seed.EventSeeder;

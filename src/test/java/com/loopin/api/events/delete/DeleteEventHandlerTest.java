@@ -1,8 +1,8 @@
 package com.loopin.api.events.delete;
 
 import com.loopin.api.events.entity.Event;
-import com.loopin.api.events.entity.EventGroup;
-import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.entity.EventGroup;
+import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.events.repository.EventInterestRepository;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.events.shared.access.EventAccessPolicy;

@@ -66,8 +66,8 @@ com.loopin.api
 
 ```
 com.loopin.api
-|- events             # controller, service, repository, entity, dto, mapper, job, seed
-|- groups             # controller, service, repository, entity, dto, mapper, job, seed
+|- events             # event controller, commands, queries, repository, entity, dto, mapper, job, seed
+|- groups             # group aggregate, controller, service, repository, entity, dto, mapper, job, seed
 |- users              # controller, service, repository, entity, dto, mapper, seed
 |- interests          # controller, service, repository, entity, dto, mapper
 |- auth               # authentication controller, DTOs, role model, services
@@ -87,6 +87,16 @@ com.loopin.api
 ```
 
 Each business module owns its layer-specific types, preserving the current service behavior while removing the global `controller`, `service`, `repository`, `entity`, `dto`, and `mapper` packages.
+
+### Group Aggregate Ownership
+
+`EventGroup` is owned by the Groups module and is located at
+`com.loopin.api.groups.entity.EventGroup`, with persistence access at
+`com.loopin.api.groups.repository.EventGroupRepository`. Its `event_id` relationship remains
+an association to the Events module's `Event` entity; the physical `event_groups` table and all
+existing columns and foreign keys are unchanged. Events, Chat, Notifications, Moderation, and
+other modules reference the Groups-owned aggregate rather than defining their own group
+persistence types.
 
 ### Events Incremental Vertical Slices And Lightweight CQRS
 
