@@ -167,6 +167,61 @@ Each command handler owns one transaction boundary (`@Transactional`). Query han
 
 Normal event create and update requests never contain `status`. The backend assigns the initial status (`PUBLISHED` for automatically approved content); content requiring moderation is moved to `DRAFT`. Lifecycle changes are separate commands: `PublishEventCommand`, `CancelEventCommand`, `ApproveEventModerationCommand`, and `RejectEventModerationCommand`. The existing moderation approval/rejection endpoints already represent the latter two operations; no endpoint paths are changed in this preparation phase.
 
+### Vertical Slices And Lightweight CQRS
+
+Events and Groups use vertical slices for business operations that have distinct authorization,
+lifecycle, persistence, or performance concerns. This is **lightweight CQRS**: commands and
+queries have separate handler classes, but share the same Spring application, PostgreSQL database,
+JPA model, and REST endpoints. There is no command bus, mediator, event sourcing, read database,
+or microservice boundary.
+
+- A **command** changes state. It is named `VerbNounCommand` and handled by
+  `VerbNounHandler`; the handler owns the write `@Transactional` boundary.
+- A **query** returns data. It is named `Get/List...Query` and handled by a matching handler;
+  it uses `@Transactional(readOnly = true)` when a persistence context is needed.
+- Controllers are HTTP adapters only: validate input, construct one command/query, call one
+  handler, and preserve the existing endpoint/response contract.
+- Shared policies own reusable rules such as event lifecycle, group administration, group
+  membership, and capacity. Do not reimplement those checks in individual handlers.
+
+Current package examples:
+
+```text
+com.loopin.api.events
+|- create/CreateEventCommand + CreateEventHandler
+|- listpublishedevents/ListPublishedEventsQuery + ListPublishedEventsHandler
+|- update, cancel, delete
+`- shared/{access, finder, interest, moderation, notification, policy, validation}
+
+com.loopin.api.groups
+|- creategroup, updategroup, changegroupstatus
+|- addgroupmember, removegroupmember
+|- creategroupjoinrequest, approvegroupjoinrequest, rejectgroupjoinrequest
+|- getgroupdetails, listgroupmembers, getmembershipdetails
+`- shared/{finder, joinrequest, policy}
+```
+
+#### Creating A New Use Case
+
+1. Keep the existing controller route and DTO when the HTTP contract already exists.
+2. Create a lowercase use-case package with an explicit command/query record and handler.
+3. Put authorization, validation, and transaction ownership in the handler; reuse an existing
+   shared policy before creating a new one.
+4. Keep repositories inside their owning module. For cross-module behavior, depend on a narrow
+   application API (for example `UserLookup`, `GroupLifecycle`, `NotificationWriter`, or
+   `RecommendationIndexer`) rather than a foreign repository.
+5. Add a handler unit test and route/integration coverage. Commands should test their state and
+   local side effects; queries should test authorization, ordering, and response shape.
+
+#### When A Traditional Service Is Acceptable
+
+A small service remains appropriate when it is module-local, has cohesive shared behavior, and
+does not blend unrelated commands and queries—for example a delivery processor, scheduled-job
+helper, mapper support, or a simple CRUD module without meaningful business branches. Do not add
+a handler merely to wrap one repository call when it makes the code less clear. Conversely, split
+a broad service once it combines independent reads, writes, authorization, lifecycle transitions,
+or external side effects.
+
 ### 1. Presentation Layer (Controllers)
 Receives incoming HTTP requests, validates input payloads using Jakarta Validation annotations (`@Valid`, `@NotNull`, etc.), delegates execution to the appropriate service, and returns standardized `ResponseEntity` models.
 

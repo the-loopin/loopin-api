@@ -9,7 +9,7 @@ This directory contains the developer documentation for the Loopin API.
 ##  Table of Contents
 
 * **System Design & Flowcharts**
-  * [System Architecture](ARCHITECTURE.md) - Layered architecture, rate limiting, and component block diagrams.
+  * [System Architecture](ARCHITECTURE.md) - Modules, vertical slices, CQRS conventions, rate limiting, and component diagrams.
   * [Authentication Flow](AUTH_FLOW.md) - Sequence diagrams detailing JWT authentication & Google OAuth.
   * [Real-Time Chat](REALTIME_CHAT.md) - WebSocket gateway protocol, message persistence, and broadcast sequence.
   * [Product Logic & User Flows](PRODUCT_LOGIC.md) - Logical flowcharts illustrating event discovery, group join approval, and coordination.
@@ -38,6 +38,8 @@ This directory contains the developer documentation for the Loopin API.
   * [ADR 0008: Use REST Plus STOMP WebSocket Chat](ADR/0008-use-rest-plus-stomp-chat.md)
   * [ADR 0009: Use Environment-Driven Container Deployment](ADR/0009-use-environment-driven-container-deployment.md)
   * [ADR 0010: Use Async AI Recommendation Boundary](ADR/0010-use-async-ai-recommendation-boundary.md)
+  * [ADR 0011: Incremental Events Vertical Slices](ADR/0011-incremental-events-vertical-slices.md)
+  * [ADR 0012: Lightweight CQRS And Module APIs](ADR/0012-lightweight-cqrs-and-module-apis.md)
 
 ---
 
