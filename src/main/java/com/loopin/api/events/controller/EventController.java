@@ -3,6 +3,8 @@ package com.loopin.api.events.controller;
 import com.loopin.api.events.dto.request.EventCreateRequest;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.create.CreateEventCommand;
+import com.loopin.api.events.create.CreateEventHandler;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
@@ -41,6 +43,7 @@ import java.util.UUID;
 public class EventController {
 
     private final EventService eventService;
+    private final CreateEventHandler createEventHandler;
     private final GetPublishedEventByIdHandler getPublishedEventByIdHandler;
 
     @GetMapping
@@ -90,7 +93,9 @@ public class EventController {
     public ResponseEntity<EventResponse> createEvent(
             @Valid @RequestBody EventCreateRequest request
     ) {
-        EventResponse createdEvent = eventService.createEvent(request, SecurityUtils.getRequiredCurrentUserEmail());
+        EventResponse createdEvent = createEventHandler.handle(
+                new CreateEventCommand(request, SecurityUtils.getRequiredCurrentUserEmail())
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
     }
 

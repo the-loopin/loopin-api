@@ -1,6 +1,7 @@
 package com.loopin.api.controller;
 
 import com.loopin.api.auth.enums.Role;
+import com.loopin.api.events.create.CreateEventHandler;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
@@ -37,6 +38,7 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -70,6 +72,9 @@ class EventControllerTest {
 
     @MockitoSpyBean
     private GetPublishedEventByIdHandler getPublishedEventByIdHandler;
+
+    @MockitoSpyBean
+    private CreateEventHandler createEventHandler;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -113,6 +118,20 @@ class EventControllerTest {
 
         Event event = eventRepository.findAll().get(0);
         assertEquals(owner.getId(), event.getOwner().getId());
+    }
+
+    @Test
+    void createEvent_DelegatesToCommandHandler() throws Exception {
+        mockMvc.perform(post("/v1/events")
+                        .header("Authorization", "Bearer " + ownerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventPayload("Delegated Event")))
+                .andExpect(status().isCreated());
+
+        verify(createEventHandler).handle(argThat(command ->
+                owner.getEmail().equals(command.currentUsername())
+                        && "Delegated Event".equals(command.request().getTitle())
+        ));
     }
 
     @Test
