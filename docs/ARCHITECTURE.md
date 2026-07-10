@@ -121,8 +121,11 @@ com.loopin.api.events
 |  |- GetPublishedEventByIdQuery.java
 |  `- GetPublishedEventByIdHandler.java
 |- shared
+|  |- finder                  # reusable event and current-user lookups
+|  |- interest                # event-interest replacement and identifier resolution
+|  |- moderation              # moderation decision application to event visibility
 |  |- policy                  # reusable event rules, such as lifecycle decisions
-|  `- validation              # reusable domain validation used by more than one slice
+|  `- validation              # reusable domain validation, including EventValidator
 |- entity                      # existing JPA entities during migration
 |- repository                  # existing Spring Data JPA repositories during migration
 `- mapper                      # existing persistence/response mapping during migration
