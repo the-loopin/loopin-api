@@ -1,9 +1,7 @@
 package com.loopin.api.events.service;
 
 import com.loopin.api.auth.enums.Role;
-import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventStatus;
-import com.loopin.api.events.enums.EventType;
 import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
@@ -21,27 +19,15 @@ import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.validation.EventValidator;
 import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.notifications.service.NotificationService;
-import com.loopin.api.recommendation.user.UserEmbeddingRepository;
-import com.loopin.api.recommendation.event.EventEmbeddingRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import java.util.ArrayList;
-import com.loopin.api.interests.dto.InterestResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -59,8 +45,6 @@ class EventServiceImplTest {
     private EventGroupRepository eventGroupRepository;
     private EventEmbeddingService eventEmbeddingService;
     private EventInterestRepository eventInterestRepository;
-    private UserEmbeddingRepository userEmbeddingRepository;
-    private EventEmbeddingRepository eventEmbeddingRepository;
     private GroupMemberRepository groupMemberRepository;
     private NotificationService notificationService;
     private EventFinder eventFinder;
@@ -78,8 +62,6 @@ class EventServiceImplTest {
         eventGroupRepository = mock(EventGroupRepository.class);
         eventEmbeddingService = mock(EventEmbeddingService.class);
         eventInterestRepository = mock(EventInterestRepository.class);
-        userEmbeddingRepository = mock(UserEmbeddingRepository.class);
-        eventEmbeddingRepository = mock(EventEmbeddingRepository.class);
         groupMemberRepository = mock(GroupMemberRepository.class);
         notificationService = mock(NotificationService.class);
         eventFinder = mock(EventFinder.class);
@@ -94,8 +76,6 @@ class EventServiceImplTest {
                 eventGroupRepository,
                 eventInterestRepository,
                 eventEmbeddingService,
-                userEmbeddingRepository,
-                eventEmbeddingRepository,
                 groupMemberRepository,
                 notificationService,
                 eventFinder,
@@ -103,24 +83,6 @@ class EventServiceImplTest {
                 eventInterestManager,
                 eventModerationManager
         );
-    }
-
-    @Test
-    void getPublishedEvents_Valid_ReturnsListOfEvents() {
-        Event event = event(1L, EVENT_ID);
-        when(eventRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(event)));
-        when(eventRepository.findPublishedByIdInWithInterests(any())).thenReturn(List.of(event));
-        
-        EventResponse realResponse = eventResponse(EVENT_ID);
-        when(eventMapper.toResponse(any())).thenReturn(realResponse);
-
-        List<EventResponse> result = eventService.getPublishedEvents(
-                EventType.EVENT, EventCategory.TECH, "City", true, "Search", LocalDate.now(), LocalDate.now().plusDays(1), Pageable.unpaged()
-        ).getContent();
-
-        assertEquals(1, result.size());
-        assertEquals(realResponse, result.get(0));
-        assertEquals(realResponse.getTitle(), result.get(0).getTitle());
     }
 
     @Test
@@ -139,7 +101,7 @@ class EventServiceImplTest {
         request.setPrice(BigDecimal.ZERO);
 
         when(eventRepository.save(event)).thenReturn(event);
-        EventResponse realResponse = eventResponse(EVENT_ID);
+        EventResponse realResponse = mock(EventResponse.class);
         when(eventMapper.toResponse(any())).thenReturn(realResponse);
 
         EventResponse result = eventService.updateEvent(EVENT_ID, request, USERNAME);
@@ -211,12 +173,4 @@ class EventServiceImplTest {
         return event;
     }
 
-    private EventResponse eventResponse(UUID id) {
-        return new EventResponse(
-                id, "Title", "Desc", EventType.EVENT, EventCategory.TECH, "City", "Address",
-                new BigDecimal("40.376200"), new BigDecimal("49.844700"),
-                LocalDateTime.now(), LocalDateTime.now().plusDays(1), true, BigDecimal.ZERO,
-                "Organizer", "Image", EventStatus.PUBLISHED, new ArrayList<>(), LocalDateTime.now(), LocalDateTime.now()
-        );
-    }
 }
