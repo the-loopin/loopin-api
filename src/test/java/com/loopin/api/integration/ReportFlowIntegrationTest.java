@@ -16,7 +16,7 @@ import com.loopin.api.reports.dto.request.CreateReportRequest;
 import com.loopin.api.reports.dto.request.UpdateReportStatusRequest;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.users.entity.UserProfile;
-import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.reports.repository.UserReportRepository;
