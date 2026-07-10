@@ -5,7 +5,7 @@ import com.loopin.api.groups.dto.request.GroupMemberRequest;
 import com.loopin.api.groups.dto.response.GroupMemberResponse;
 import com.loopin.api.groups.entity.GroupMember;
 import com.loopin.api.groups.mapper.GroupMemberMapper;
-import com.loopin.api.events.repository.EventGroupRepository;
+import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.groups.service.GroupMemberService;
