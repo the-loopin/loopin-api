@@ -45,8 +45,6 @@ class EventMapperTest {
         request.setPrice(BigDecimal.ZERO);
         request.setOrganizerName("Test Org");
         request.setImageUrl("http://image.com");
-        request.setStatus(EventStatus.DRAFT);
-
         Event event = eventMapper.toEntity(request);
 
         assertEquals("Test Title", event.getTitle());
@@ -63,13 +61,12 @@ class EventMapperTest {
         assertEquals(BigDecimal.ZERO, event.getPrice());
         assertEquals("Test Org", event.getOrganizerName());
         assertEquals("http://image.com", event.getImageUrl());
-        assertEquals(EventStatus.DRAFT, event.getStatus());
+        assertEquals(EventStatus.PUBLISHED, event.getStatus());
     }
 
     @Test
-    void toEntity_NullStatus_DefaultsToPublished() {
+    void toEntity_DoesNotAcceptALifecycleStatus() {
         EventCreateRequest request = new EventCreateRequest();
-        request.setStatus(null);
 
         Event event = eventMapper.toEntity(request);
 
@@ -94,7 +91,7 @@ class EventMapperTest {
         request.setPrice(BigDecimal.TEN);
         request.setOrganizerName("Updated Org");
         request.setImageUrl("http://updated.com");
-        request.setStatus(EventStatus.CANCELLED);
+        event.setStatus(EventStatus.PUBLISHED);
 
         eventMapper.updateEntity(event, request);
 
@@ -112,7 +109,7 @@ class EventMapperTest {
         assertEquals(BigDecimal.TEN, event.getPrice());
         assertEquals("Updated Org", event.getOrganizerName());
         assertEquals("http://updated.com", event.getImageUrl());
-        assertEquals(EventStatus.CANCELLED, event.getStatus());
+        assertEquals(EventStatus.PUBLISHED, event.getStatus());
     }
 
     @Test
