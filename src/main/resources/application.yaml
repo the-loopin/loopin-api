@@ -93,6 +93,15 @@ google:
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
 loopin:
+  storage:
+    endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+    presign-endpoint: ${STORAGE_PRESIGN_ENDPOINT:${STORAGE_ENDPOINT:http://localhost:9000}}
+    region: ${STORAGE_REGION:us-east-1}
+    bucket: ${STORAGE_BUCKET:loopin-media}
+    access-key: ${STORAGE_ACCESS_KEY:}
+    secret-key: ${STORAGE_SECRET_KEY:}
+    path-style-access: ${STORAGE_PATH_STYLE_ACCESS:true}
+    upload-url-ttl: ${STORAGE_UPLOAD_URL_TTL:10m}
   seed:
     enabled: ${SEED_DATA_ENABLED:false}
   group-retention:
