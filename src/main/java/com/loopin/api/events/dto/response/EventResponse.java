@@ -40,6 +40,7 @@ public class EventResponse {
     private ContentModerationStatus moderationStatus;
     private String moderationRejectionReason;
     private List<InterestResponse> interests;
+    private Long loopedCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -71,7 +72,7 @@ public class EventResponse {
         this(
                 id, title, description, type, category, city, address, latitude, longitude,
                 startDateTime, endDateTime, isFree, price, organizerName, imageUrl, status,
-                ContentModerationStatus.APPROVED, null, interests, createdAt, updatedAt
+                ContentModerationStatus.APPROVED, null, interests, 0L, createdAt, updatedAt
         );
     }
 }
