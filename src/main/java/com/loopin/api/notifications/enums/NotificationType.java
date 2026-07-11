@@ -2,6 +2,7 @@ package com.loopin.api.notifications.enums;
 
 public enum NotificationType {
     EVENT_UPDATE,
+    EVENT_INTEREST,
     GROUP_INVITATION,
     GROUP_ACTIVITY,
     MODERATION_UPDATE,
