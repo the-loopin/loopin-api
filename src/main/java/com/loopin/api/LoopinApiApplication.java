@@ -1,5 +1,6 @@
 package com.loopin.api;
 
+import com.loopin.api.media.storage.StorageProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -9,7 +10,7 @@ import com.loopin.api.moderation.ai.AiModerationProperties;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableConfigurationProperties({ContentModerationProperties.class, AiModerationProperties.class})
+@EnableConfigurationProperties({ContentModerationProperties.class, AiModerationProperties.class, StorageProperties.class})
 public class LoopinApiApplication {
 
 	public static void main(String[] args) {

@@ -1,6 +1,7 @@
 spring:
   cache:
     type: simple
+
   datasource:
     url: jdbc:h2:mem:loopin_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
@@ -24,4 +25,15 @@ google:
 
 cors:
   allowed-origins: "*"
+
+loopin:
+  storage:
+    endpoint: http://localhost:9000
+    presign-endpoint: http://localhost:9000
+    region: us-east-1
+    bucket: loopin-media-test
+    access-key: test-access-key
+    secret-key: test-secret-key
+    path-style-access: true
+    upload-url-ttl: 10m
 

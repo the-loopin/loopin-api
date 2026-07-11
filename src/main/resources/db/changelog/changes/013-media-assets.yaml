@@ -1,0 +1,124 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-create-media-assets
+      author: loopin
+
+      changes:
+        - createTable:
+            tableName: media_assets
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_media_assets
+                    nullable: false
+
+              - column:
+                  name: public_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: owner_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: object_key
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: original_filename
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: declared_content_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: verified_content_type
+                  type: VARCHAR(100)
+
+              - column:
+                  name: declared_file_size
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: verified_file_size
+                  type: BIGINT
+
+              - column:
+                  name: purpose
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: media_assets
+            columnNames: public_id
+            constraintName: uk_media_assets_public_id
+
+        - addUniqueConstraint:
+            tableName: media_assets
+            columnNames: object_key
+            constraintName: uk_media_assets_object_key
+
+        - addForeignKeyConstraint:
+            baseTableName: media_assets
+            baseColumnNames: owner_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_media_assets_owner
+
+        - createIndex:
+            tableName: media_assets
+            indexName: idx_media_assets_owner_id
+            columns:
+              - column:
+                  name: owner_id
+
+        - createIndex:
+            tableName: media_assets
+            indexName: idx_media_assets_status
+            columns:
+              - column:
+                  name: status
+
+      rollback:
+        - dropTable:
+            tableName: media_assets
