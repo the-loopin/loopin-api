@@ -387,8 +387,8 @@ class EventControllerTest {
         assertEquals("Music", response.getContent().get(0).getInterests().get(0).getName());
         assertEquals("Tech", response.getContent().get(0).getInterests().get(1).getName());
         assertTrue(
-                statistics.getPrepareStatementCount() <= 3,
-                "Expected fixed query count for page, count, and interest fetch, but executed "
+                statistics.getPrepareStatementCount() <= 4,
+                "Expected fixed query count for page, count, interest fetch, and looped count fetch, but executed "
                         + statistics.getPrepareStatementCount()
         );
     }
