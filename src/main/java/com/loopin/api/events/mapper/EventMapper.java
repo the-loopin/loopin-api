@@ -46,6 +46,7 @@ public abstract class EventMapper {
 
     @Mapping(target = "id", source = "publicId")
     @Mapping(target = "interests", expression = "java(mapInterests(event))")
+    @Mapping(target = "loopedCount", ignore = true)
     public abstract EventResponse toResponse(Event event);
 
     protected List<com.loopin.api.interests.dto.InterestResponse> mapInterests(Event event) {
