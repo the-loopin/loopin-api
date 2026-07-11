@@ -2,6 +2,7 @@ package com.loopin.api.common.exception;
 
 import com.loopin.api.common.exception.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -14,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -217,6 +219,46 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(exception.getStatusCode()).body(response);
+    }
+
+    @ExceptionHandler(InvalidMediaStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidMediaState(
+        InvalidMediaStateException exception,
+        HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+            HttpStatus.CONFLICT,
+            exception.getMessage(),
+            request.getRequestURI(),
+            null
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(response);
+    }
+
+    @ExceptionHandler(MediaStorageException.class)
+    public ResponseEntity<ErrorResponse> handleMediaStorageFailure(
+        MediaStorageException exception,
+        HttpServletRequest request
+    ) {
+        log.error(
+            "Media storage operation failed for path={}",
+            request.getRequestURI(),
+            exception
+        );
+
+        ErrorResponse response = buildErrorResponse(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Media storage is temporarily unavailable",
+            request.getRequestURI(),
+            null
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(response);
     }
 
 }
