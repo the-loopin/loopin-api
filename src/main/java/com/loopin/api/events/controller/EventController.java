@@ -9,6 +9,7 @@ import com.loopin.api.events.cancel.CancelEventCommand;
 import com.loopin.api.events.cancel.CancelEventHandler;
 import com.loopin.api.events.delete.DeleteEventCommand;
 import com.loopin.api.events.delete.DeleteEventHandler;
+import com.loopin.api.events.dto.response.LoopedEventResponse;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventType;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
@@ -17,6 +18,10 @@ import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsHandler;
 import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsQuery;
 import com.loopin.api.events.listpublishedevents.ListPublishedEventsHandler;
 import com.loopin.api.events.listpublishedevents.ListPublishedEventsQuery;
+import com.loopin.api.events.loopinevent.LoopInEventCommand;
+import com.loopin.api.events.loopinevent.LoopInEventHandler;
+import com.loopin.api.events.removeloopin.RemoveLoopInCommand;
+import com.loopin.api.events.removeloopin.RemoveLoopInHandler;
 import com.loopin.api.events.update.UpdateEventCommand;
 import com.loopin.api.events.update.UpdateEventHandler;
 import jakarta.validation.Valid;
@@ -59,6 +64,8 @@ public class EventController {
     private final UpdateEventHandler updateEventHandler;
     private final CancelEventHandler cancelEventHandler;
     private final DeleteEventHandler deleteEventHandler;
+    private final LoopInEventHandler loopInEventHandler;
+    private final RemoveLoopInHandler removeLoopInHandler;
 
     @GetMapping
     @Operation(summary = "Get published events", description = "Retrieve a paginated list of published events based on filter criteria.")
@@ -142,6 +149,44 @@ public class EventController {
             @PathVariable UUID id
     ) {
         deleteEventHandler.handle(new DeleteEventCommand(id, SecurityUtils.getRequiredCurrentUserEmail()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/loop-in")
+    @Operation(
+        summary = "Loop into an event",
+        description = "Register the current user's interest in an event."
+    )
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<LoopedEventResponse> loopIn(
+        @PathVariable UUID id
+    ) {
+        return ResponseEntity.ok(
+            loopInEventHandler.handle(
+                new LoopInEventCommand(
+                    id,
+                    SecurityUtils.getRequiredCurrentUserEmail()
+                )
+            )
+        );
+    }
+
+    @DeleteMapping("/{id}/loop-in")
+    @Operation(
+        summary = "Remove event loop-in",
+        description = "Remove the current user's loop-in from an event."
+    )
+    @SecurityRequirement(name = "BearerAuth")
+    public ResponseEntity<Void> removeLoopIn(
+        @PathVariable UUID id
+    ) {
+        removeLoopInHandler.handle(
+            new RemoveLoopInCommand(
+                id,
+                SecurityUtils.getRequiredCurrentUserEmail()
+            )
+        );
+
         return ResponseEntity.noContent().build();
     }
 }
