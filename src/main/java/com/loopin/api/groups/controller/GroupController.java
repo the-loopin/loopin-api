@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.loopin.api.common.security.SecurityUtils;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -48,6 +49,11 @@ public class GroupController {
     @GetMapping("/{groupId}")
     public ResponseEntity<GroupResponse> getGroup(@PathVariable UUID groupId) {
         return ResponseEntity.ok(getGroupDetailsHandler.handle(new GetGroupDetailsQuery(groupId)));
+    }
+
+    @GetMapping("/by-event/{eventId}")
+    public ResponseEntity<List<GroupResponse>> getGroupsByEvent(@PathVariable UUID eventId) {
+        return ResponseEntity.ok(groupService.getGroupsByEvent(eventId));
     }
 
     @PutMapping("/{groupId}")
