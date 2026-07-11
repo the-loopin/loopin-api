@@ -23,3 +23,5 @@ databaseChangeLog:
       file: db/changelog/changes/011-moderation-review.yaml
   - include:
       file: db/changelog/changes/012-user-looped-events.yaml
+  - include:
+      file: db/changelog/changes/013-media-assets.yaml
