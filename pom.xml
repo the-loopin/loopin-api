@@ -20,6 +20,9 @@
 		<testcontainers.version>2.0.5</testcontainers.version>
 		<google-api-client.version>2.9.0</google-api-client.version>
 		<aws.sdk.version>2.44.14</aws.sdk.version>
+		<!-- Security overrides for Spring Boot-managed runtime dependencies. -->
+		<postgresql.version>42.7.12</postgresql.version>
+		<tomcat.version>11.0.23</tomcat.version>
 		<jacoco.version>0.8.13</jacoco.version>
 		<dependency-check.version>12.2.2</dependency-check.version>
 	</properties>
@@ -316,6 +319,9 @@
 						<format>HTML</format>
 						<format>JSON</format>
 					</formats>
+					<suppressionFiles>
+						<suppressionFile>config/dependency-check-suppressions.xml</suppressionFile>
+					</suppressionFiles>
 					<failBuildOnCVSS>7</failBuildOnCVSS>
 					<failOnError>true</failOnError>
 				</configuration>
