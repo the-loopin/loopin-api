@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.5.xsd">
+    <suppress>
+        <notes><![CDATA[
+spring-boot-devtools is an optional local-development dependency. Spring Boot's repackaging
+excludes it from the production executable archive, so this finding does not apply to the
+deployed Loopin API. Reassess this suppression if devtools is ever packaged for production.
+        ]]></notes>
+        <gav regex="true">^org\.springframework\.boot:spring-boot-devtools:4\.1\.0$</gav>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+The Maven component org.apache.httpcomponents:httpcore:4.4.16 is Apache HttpCore, not
+Apache HTTP Server. This suppresses only the incorrect Apache HTTP Server CPE match; it
+does not suppress a finding associated with HttpCore's own CPE or any other component.
+        ]]></notes>
+        <gav regex="true">^org\.apache\.httpcomponents:httpcore:4\.4\.16$</gav>
+        <cpe regex="true">^cpe:2\.3:a:apache:http_server:.*$</cpe>
+    </suppress>
+</suppressions>
