@@ -12,6 +12,8 @@ import com.loopin.api.groups.api.GroupMemberLookup;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.users.repository.UserBadgeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -28,6 +30,14 @@ public class EventCompletionProcessor {
     private final GroupMemberLookup groupMemberLookup;
     private final UserBadgeRepository userBadgeRepository;
 
+    /**
+     * The scheduled job only receives the internal id, while public-detail entries are keyed by
+     * UUID. Completion is infrequent, so clearing that cache is safer than risking a stale detail.
+     */
+    @Caching(evict = {
+            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = "eventById", allEntries = true)
+    })
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public EventCompletionResult completeEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)

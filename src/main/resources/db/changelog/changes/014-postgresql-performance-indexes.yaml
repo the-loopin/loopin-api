@@ -1,0 +1,56 @@
+databaseChangeLog:
+  # pg_trgm must be installable by the migration role (or pre-installed by the database administrator).
+  # Its rollback deliberately does not drop the shared extension: other database objects may depend on it.
+  - changeSet:
+      id: 014-enable-pg-trgm
+      author: loopin
+      dbms: postgresql
+      changes:
+        - sql:
+            sql: CREATE EXTENSION IF NOT EXISTS pg_trgm
+      rollback:
+        - sql:
+            sql: SELECT 1
+
+  - changeSet:
+      id: 014-add-postgresql-performance-indexes
+      author: loopin
+      dbms: postgresql
+      changes:
+        - sql:
+            splitStatements: true
+            sql: |
+              CREATE INDEX idx_events_status_deleted_start
+              ON events (status, deleted_at, start_date_time);
+              CREATE INDEX idx_events_status_deleted_category
+              ON events (status, deleted_at, category);
+              CREATE INDEX idx_events_status_deleted_type
+              ON events (status, deleted_at, type);
+              CREATE INDEX idx_events_city_trgm_lower
+              ON events USING gin (LOWER(city) gin_trgm_ops);
+              CREATE INDEX idx_events_title_trgm_lower
+              ON events USING gin (LOWER(title) gin_trgm_ops);
+              CREATE INDEX idx_events_description_trgm_lower
+              ON events USING gin (LOWER(description) gin_trgm_ops);
+              CREATE INDEX idx_group_messages_group_created
+              ON group_messages (group_id, created_at);
+              CREATE INDEX idx_group_members_group_user
+              ON group_members (group_id, user_id);
+              CREATE INDEX idx_group_join_requests_group_status
+              ON group_join_requests (group_id, status);
+              CREATE INDEX idx_group_join_requests_group_user_status
+              ON group_join_requests (group_id, user_id, status);
+      rollback:
+        - sql:
+            splitStatements: true
+            sql: |
+              DROP INDEX IF EXISTS idx_group_join_requests_group_user_status;
+              DROP INDEX IF EXISTS idx_group_join_requests_group_status;
+              DROP INDEX IF EXISTS idx_group_members_group_user;
+              DROP INDEX IF EXISTS idx_group_messages_group_created;
+              DROP INDEX IF EXISTS idx_events_description_trgm_lower;
+              DROP INDEX IF EXISTS idx_events_title_trgm_lower;
+              DROP INDEX IF EXISTS idx_events_city_trgm_lower;
+              DROP INDEX IF EXISTS idx_events_status_deleted_type;
+              DROP INDEX IF EXISTS idx_events_status_deleted_category;
+              DROP INDEX IF EXISTS idx_events_status_deleted_start;
