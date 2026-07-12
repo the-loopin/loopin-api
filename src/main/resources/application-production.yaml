@@ -13,5 +13,12 @@ spring:
       hibernate:
         format_sql: false
 
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState,db,redis
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}

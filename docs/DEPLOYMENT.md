@@ -43,6 +43,17 @@ Use a managed PostgreSQL database reachable from Cloud Run, commonly Cloud SQL f
 
 The container listens on `SERVER_PORT=8080`. Liquibase runs on startup when `LIQUIBASE_ENABLED=true`, so deploy only one migration-capable revision at a time or run migrations separately for high-availability production releases.
 
+## Health Probes
+
+Configure the deployment platform to call these unauthenticated endpoints on the application port:
+
+- Liveness: `GET /api/actuator/health/liveness`
+- Readiness: `GET /api/actuator/health/readiness`
+
+Both return an Actuator health response such as `{"status":"UP"}` when healthy. Liveness checks only the application process lifecycle, so a temporary database, cache, or network failure does not trigger a restart. Readiness checks the database in every environment and also Redis in staging and production, where Redis-backed rate limiting is required; it returns a non-2xx response when a required dependency is unavailable.
+
+Only these two health probe URLs are public. The aggregate health endpoint and all other Actuator endpoints require authentication; non-health Actuator endpoints are not exposed over HTTP.
+
 Example manual deployment after an image has been pushed:
 
 ```bash

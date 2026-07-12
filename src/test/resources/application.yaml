@@ -16,6 +16,22 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+
 jwt:
   secret: aVerySecretKeyThatIsAtLeast32BytesLongForHS256SignatureVerification!
   expiration: 86400000

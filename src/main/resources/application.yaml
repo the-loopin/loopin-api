@@ -39,6 +39,26 @@ spring:
         format_sql: ${JPA_FORMAT_SQL:false}
         default_batch_fetch_size: 20
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      # Keep health responses safe for the publicly reachable probe endpoints.
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        # Liveness is process-only so transient database, cache, or network failures
+        # never cause the deployment platform to restart a healthy JVM.
+        liveness:
+          include: livenessState
+        # The database is required for the API to serve its core requests.
+        readiness:
+          include: readinessState,db
+
 # Local Content Check Rule Targets
 moderation:
   banned-words: ${BANNED_WORDS_LIST:scam,spam,offensiveword1,offensiveword2}
