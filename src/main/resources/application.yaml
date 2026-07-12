@@ -98,8 +98,8 @@ loopin:
     presign-endpoint: ${STORAGE_PRESIGN_ENDPOINT:${STORAGE_ENDPOINT:http://localhost:9000}}
     region: ${STORAGE_REGION:us-east-1}
     bucket: ${STORAGE_BUCKET:loopin-media}
-    access-key: ${STORAGE_ACCESS_KEY:}
-    secret-key: ${STORAGE_SECRET_KEY:}
+    access-key: ${STORAGE_ACCESS_KEY:loopin-minio}
+    secret-key: ${STORAGE_SECRET_KEY:loopin-minio-local-password}
     path-style-access: ${STORAGE_PATH_STYLE_ACCESS:true}
     upload-url-ttl: ${STORAGE_UPLOAD_URL_TTL:10m}
   seed:
