@@ -1,4 +1,4 @@
-﻿# Deployment Guide
+# Deployment Guide
 
 The Loopin API is packaged as a Docker image and is ready for Cloud Run deployment. CI validates the Java build and Docker image on pull requests and pushes.
 
@@ -35,8 +35,7 @@ The workflow expects the runtime configuration values to exist in Google Secret 
 - `JWT_SECRET`
 - `GOOGLE_CLIENT_ID`
 - `CORS_ALLOWED_ORIGINS`
-- `SPRING_DATA_REDIS_HOST`
-- `SPRING_DATA_REDIS_PORT`
+- `SPRING_DATA_REDIS_URL` (For Redis connection string, e.g., redis://user:pass@host:port)
 
 ## Cloud Run Notes
 
@@ -53,7 +52,7 @@ gcloud run deploy loopin-api \
   --platform managed \
   --allow-unauthenticated \
   --set-env-vars SPRING_PROFILES_ACTIVE=production,SERVER_PORT=8080,LIQUIBASE_ENABLED=true,RATE_LIMIT_STORAGE=redis \
-  --set-secrets DATABASE_URL=DATABASE_URL:latest,DATABASE_USERNAME=DATABASE_USERNAME:latest,DATABASE_PASSWORD=DATABASE_PASSWORD:latest,JWT_SECRET=JWT_SECRET:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,CORS_ALLOWED_ORIGINS=CORS_ALLOWED_ORIGINS:latest,SPRING_DATA_REDIS_HOST=SPRING_DATA_REDIS_HOST:latest,SPRING_DATA_REDIS_PORT=SPRING_DATA_REDIS_PORT:latest
+  --set-secrets DATABASE_URL=DATABASE_URL:latest,DATABASE_USERNAME=DATABASE_USERNAME:latest,DATABASE_PASSWORD=DATABASE_PASSWORD:latest,JWT_SECRET=JWT_SECRET:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,CORS_ALLOWED_ORIGINS=CORS_ALLOWED_ORIGINS:latest,SPRING_DATA_REDIS_URL=SPRING_DATA_REDIS_URL:latest
 ```
 
 Do not commit secrets. Use Secret Manager, GitHub Actions secrets, or your deployment platform secret store.
