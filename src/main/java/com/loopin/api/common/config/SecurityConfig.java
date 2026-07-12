@@ -45,7 +45,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
-        ObjectProvider<Customizer<HttpSecurity>> devLoginAccess
+        @Qualifier("devLoginAccessCustomizer") ObjectProvider<Customizer<HttpSecurity>> devLoginAccess
     ) throws Exception {
         devLoginAccess.ifAvailable(customizer -> customizer.customize(http));
 
