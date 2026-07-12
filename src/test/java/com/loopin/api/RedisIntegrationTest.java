@@ -3,7 +3,7 @@ package com.loopin.api;
 import com.loopin.api.common.config.RateLimitProperties;
 import com.loopin.api.common.ratelimit.RateLimiterService;
 import com.loopin.api.common.ratelimit.RedisBucket4jRateLimiter;
-import com.loopin.api.support.AbstractIntegrationTest;
+import com.loopin.api.support.AbstractRedisIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "rate-limit.policies[0].methods[0]=POST",
         "rate-limit.policies[0].paths[0]=/v1/auth/**"
 })
-class RedisIntegrationTest extends AbstractIntegrationTest {
+class RedisIntegrationTest extends AbstractRedisIntegrationTest {
 
     @Autowired private RateLimiterService rateLimiterService;
     @Autowired private RateLimitProperties rateLimitProperties;
@@ -43,7 +43,9 @@ class RedisIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void clearRedis() {
-        redisConnectionFactory.getConnection().serverCommands().flushDb();
+        try (var connection = redisConnectionFactory.getConnection()) {
+            connection.serverCommands().flushDb();
+        }
     }
 
     @Test
@@ -60,9 +62,9 @@ class RedisIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void redisPubSubDeliversRealtimeMessageToSubscriber() throws Exception {
-        String channel = "chat-realtime-" + UUID.randomUUID();
-        String payload = "group-message";
+    void redisPubSubDeliversInfrastructureMessageToSubscriber() throws Exception {
+        String channel = "integration-pubsub-" + UUID.randomUUID();
+        String payload = "redis-message";
         CountDownLatch received = new CountDownLatch(1);
         AtomicReference<String> actualPayload = new AtomicReference<>();
         RedisMessageListenerContainer listenerContainer = new RedisMessageListenerContainer();
