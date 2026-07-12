@@ -25,6 +25,7 @@ public class DeleteEventHandler {
     private final EventAccessPolicy eventAccessPolicy;
     private final EventMemberNotifier eventMemberNotifier;
 
+    /** Clears all filtered/pageable list variants because a deleted event may be present in any one. */
     @Caching(evict = {
         @CacheEvict(value = "publishedEvents", allEntries = true),
         @CacheEvict(value = "eventById", key = "#command.id")

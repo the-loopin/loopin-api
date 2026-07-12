@@ -36,6 +36,7 @@ public class UpdateEventHandler {
     private final RecommendationIndexer recommendationIndexer;
     private final EventMemberNotifier eventMemberNotifier;
 
+    /** Clears all filtered/pageable list variants; the command can change any discovery field. */
     @Caching(evict = {
         @CacheEvict(value = "publishedEvents", allEntries = true),
         @CacheEvict(value = "eventById", key = "#command.id")

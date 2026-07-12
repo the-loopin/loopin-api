@@ -34,6 +34,10 @@ public class CreateEventHandler {
     private final RecommendationIndexer recommendationIndexer;
     private final NotificationWriter notificationWriter;
 
+    /**
+     * List cache keys include arbitrary filters, sort orders, and page values, so a precise key
+     * cannot be derived safely from this command. Clear all public-list variants after a write.
+     */
     @CacheEvict(value = "publishedEvents", allEntries = true)
     @Transactional
     public EventResponse handle(CreateEventCommand command) {

@@ -22,6 +22,7 @@ public class CancelEventHandler {
     private final EventAccessPolicy eventAccessPolicy;
     private final EventMemberNotifier eventMemberNotifier;
 
+    /** Clears all filtered/pageable list variants because a cancellation removes public visibility. */
     @Caching(evict = {
         @CacheEvict(value = "publishedEvents", allEntries = true),
         @CacheEvict(value = "eventById", key = "#command.id")
