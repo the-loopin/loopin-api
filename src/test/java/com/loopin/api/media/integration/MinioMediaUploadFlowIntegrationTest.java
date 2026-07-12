@@ -4,7 +4,7 @@ import com.loopin.api.media.entity.MediaAsset;
 import com.loopin.api.media.enums.MediaStatus;
 import com.loopin.api.media.repository.MediaAssetRepository;
 import com.loopin.api.media.storage.ObjectStorage;
-import com.loopin.api.support.AbstractIntegrationTest;
+import com.loopin.api.support.AbstractMinioIntegrationTest;
 import com.loopin.api.users.entity.User;
 import com.loopin.api.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class MinioMediaUploadFlowIntegrationTest extends AbstractIntegrationTest {
+class MinioMediaUploadFlowIntegrationTest extends AbstractMinioIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private JsonMapper jsonMapper;
@@ -94,6 +94,47 @@ class MinioMediaUploadFlowIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(mediaAssetRepository.findByPublicId(mediaId).orElseThrow().getStatus())
                 .isEqualTo(MediaStatus.DELETED);
+        assertThat(objectStorage.exists(pending.getObjectKey())).isFalse();
+    }
+
+    @Test
+    void completionWithMismatchedMinioMetadataIsRejectedWithoutPersistingVerifiedFields() throws Exception {
+        MvcResult requestResult = mockMvc.perform(post("/v1/media/uploads")
+                        .with(user(owner.getEmail()).roles("USER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "purpose": "EVENT_IMAGE",
+                                  "fileName": "declared.webp",
+                                  "contentType": "image/webp",
+                                  "sizeBytes": 18
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        JsonNode response = jsonMapper.readTree(requestResult.getResponse().getContentAsString());
+        UUID mediaId = UUID.fromString(response.get("mediaId").stringValue());
+        MediaAsset pending = mediaAssetRepository.findByPublicId(mediaId).orElseThrow();
+        byte[] wrongSizeContent = "too-short".getBytes(StandardCharsets.UTF_8);
+
+        HttpResponse<Void> putResponse = httpClient.send(
+                HttpRequest.newBuilder(URI.create(response.get("uploadUrl").stringValue()))
+                        .header("Content-Type", "image/webp")
+                        .PUT(HttpRequest.BodyPublishers.ofByteArray(wrongSizeContent))
+                        .build(),
+                HttpResponse.BodyHandlers.discarding()
+        );
+        assertThat(putResponse.statusCode()).isBetween(200, 299);
+
+        mockMvc.perform(post("/v1/media/uploads/{mediaId}/complete", mediaId)
+                        .with(user(owner.getEmail()).roles("USER")))
+                .andExpect(status().isConflict());
+
+        MediaAsset rejected = mediaAssetRepository.findByPublicId(mediaId).orElseThrow();
+        assertThat(rejected.getStatus()).isEqualTo(MediaStatus.PENDING_UPLOAD);
+        assertThat(rejected.getVerifiedFileSize()).isNull();
+        assertThat(rejected.getVerifiedContentType()).isNull();
         assertThat(objectStorage.exists(pending.getObjectKey())).isFalse();
     }
 }
