@@ -50,7 +50,7 @@ Configure the deployment platform to call these unauthenticated endpoints on the
 - Liveness: `GET /api/actuator/health/liveness`
 - Readiness: `GET /api/actuator/health/readiness`
 
-Both return an Actuator health response such as `{"status":"UP"}` when healthy. Liveness checks only the application process lifecycle, so a temporary database, cache, or network failure does not trigger a restart. Readiness also checks the database and returns a non-2xx response when the API cannot serve its core requests.
+Both return an Actuator health response such as `{"status":"UP"}` when healthy. Liveness checks only the application process lifecycle, so a temporary database, cache, or network failure does not trigger a restart. Readiness checks the database in every environment and also Redis in staging and production, where Redis-backed rate limiting is required; it returns a non-2xx response when a required dependency is unavailable.
 
 Only these two health probe URLs are public. The aggregate health endpoint and all other Actuator endpoints require authentication; non-health Actuator endpoints are not exposed over HTTP.
 
