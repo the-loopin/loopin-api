@@ -15,7 +15,9 @@ See `docs/DOCKER.md` for the full local workflow and environment variable list.
 
 ## GitHub Actions
 
-`CI` runs on pull requests and pushes. It checks out the repository, sets up Java 21, caches Maven dependencies, runs `mvn -B test`, and builds the Docker image.
+`CI` runs on pull requests and pushes. It uses the Maven Wrapper to run `./mvnw -B clean verify`, which includes compilation, unit/integration tests, JaCoCo report generation, and the bundle-level line coverage gate. The current 75% coverage threshold is deliberately set below the measured 77.55% baseline (2026-07-13), after excluding generated mapper/builder code and configuration-only classes; raise it gradually as coverage improves.
+
+The workflow always uploads JUnit XML and JaCoCo HTML/XML artifacts, even when verification fails. It also runs OWASP Dependency-Check (failing at CVSS 7.0 or higher), reviews newly introduced pull-request dependencies at high severity or above, builds `loopin-api:ci`, and scans that exact image with Trivy for high and critical vulnerabilities. Dependency-Check and Trivy reports are retained as CI artifacts; Trivy SARIF results are also uploaded to GitHub code scanning. No deployment secrets are available to this workflow, and newer runs cancel outdated runs for the same branch or pull request.
 
 `Deploy to Cloud Run` is a manual workflow. Configure these GitHub repository variables:
 
