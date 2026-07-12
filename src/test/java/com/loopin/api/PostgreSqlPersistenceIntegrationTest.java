@@ -29,6 +29,7 @@ import com.loopin.api.users.entity.User;
 import com.loopin.api.users.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
+import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -111,7 +112,7 @@ class PostgreSqlPersistenceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void chatPaginationIsChronologicalAndExplicitCleanupAllowsGroupDeletion() {
+    void chatPaginationIsChronologicalAndRepositoryCleanupAllowsGroupDeletion() {
         User admin = saveUser("admin-chat@example.test");
         EventGroup group = saveGroup(
                 saveEvent("Chat event", admin, EventStatus.PUBLISHED, LocalDateTime.now().plusDays(2)), admin
@@ -145,7 +146,10 @@ class PostgreSqlPersistenceIntegrationTest extends AbstractIntegrationTest {
         assertThatThrownBy(() -> jdbcTemplate.update(
                 "insert into users (public_id, created_at, updated_at, name, email, role, is_active) values (gen_random_uuid(), now(), now(), ?, ?, ?, ?)",
                 "Duplicate", user.getEmail(), Role.USER.name(), true
-        )).isInstanceOf(DataIntegrityViolationException.class);
+        )).isInstanceOf(DataIntegrityViolationException.class)
+                .satisfies(throwable -> assertPostgreSqlConstraint(
+                        throwable, "23505", "uk_users_email"
+                ));
     }
 
     @Test
@@ -155,7 +159,10 @@ class PostgreSqlPersistenceIntegrationTest extends AbstractIntegrationTest {
         assertThatThrownBy(() -> jdbcTemplate.update(
                 "insert into event_groups (public_id, created_at, updated_at, event_id, admin_id, max_members) values (gen_random_uuid(), now(), now(), ?, ?, ?)",
                 Long.MAX_VALUE, user.getId(), 2
-        )).isInstanceOf(DataIntegrityViolationException.class);
+        )).isInstanceOf(DataIntegrityViolationException.class)
+                .satisfies(throwable -> assertPostgreSqlConstraint(
+                        throwable, "23503", "fk_event_groups_event_id"
+                ));
     }
 
     @Test
@@ -255,5 +262,24 @@ class PostgreSqlPersistenceIntegrationTest extends AbstractIntegrationTest {
             vector.add(0.0);
         }
         return vector;
+    }
+
+    private void assertPostgreSqlConstraint(Throwable throwable, String sqlState, String constraintName) {
+        PSQLException postgresException = findPostgreSqlException(throwable);
+        assertThat((Object) postgresException).isNotNull();
+        assertThat(postgresException.getSQLState()).isEqualTo(sqlState);
+        assertThat(postgresException.getServerErrorMessage()).isNotNull();
+        assertThat(postgresException.getServerErrorMessage().getConstraint()).isEqualTo(constraintName);
+    }
+
+    private PSQLException findPostgreSqlException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof PSQLException postgresException) {
+                return postgresException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 }
