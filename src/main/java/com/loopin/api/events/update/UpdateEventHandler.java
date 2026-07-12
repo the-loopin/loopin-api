@@ -11,7 +11,7 @@ import com.loopin.api.events.shared.finder.EventFinder;
 import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.notification.EventMemberNotifier;
-import com.loopin.api.events.shared.validation.EventValidator;
+import com.loopin.api.events.shared.validation.EventRequestValidator;
 import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class UpdateEventHandler {
     private final EventMapper eventMapper;
     private final EventFinder eventFinder;
     private final EventAccessPolicy eventAccessPolicy;
-    private final EventValidator eventValidator;
+    private final EventRequestValidator eventRequestValidator;
     private final EventInterestManager eventInterestManager;
     private final EventModerationManager eventModerationManager;
     private final RecommendationIndexer recommendationIndexer;
@@ -44,9 +44,8 @@ public class UpdateEventHandler {
     @Transactional
     public EventResponse handle(UpdateEventCommand command) {
         EventUpdateRequest request = command.request();
+        eventRequestValidator.validate(request);
         User currentUser = eventFinder.findCurrentUser(command.currentUsername());
-        eventValidator.validateDateRange(request.getStartDateTime(), request.getEndDateTime());
-        eventValidator.validatePrice(request.getIsFree(), request.getPrice());
 
         Event event = eventFinder.findActiveEventById(command.id());
         EventLifecyclePolicy.requireEditable(event);

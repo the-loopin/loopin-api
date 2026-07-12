@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class EventUpdateRequest {
+public class EventUpdateRequest implements EventRequest {
 
     @NotBlank(message = "Title is required")
     @Size(max = 120, message = "Title must not exceed 120 characters")

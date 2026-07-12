@@ -12,7 +12,7 @@ import com.loopin.api.events.shared.finder.EventFinder;
 import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.notification.EventMemberNotifier;
-import com.loopin.api.events.shared.validation.EventValidator;
+import com.loopin.api.events.shared.validation.EventRequestValidator;
 import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
 import org.junit.jupiter.api.Test;
@@ -36,12 +36,12 @@ class UpdateEventHandlerTest {
         EventMapper mapper = mock(EventMapper.class);
         EventFinder finder = mock(EventFinder.class);
         EventAccessPolicy accessPolicy = mock(EventAccessPolicy.class);
-        EventValidator validator = mock(EventValidator.class);
+        EventRequestValidator requestValidator = mock(EventRequestValidator.class);
         EventInterestManager interestManager = mock(EventInterestManager.class);
         EventModerationManager moderationManager = mock(EventModerationManager.class);
         RecommendationIndexer recommendationIndexer = mock(RecommendationIndexer.class);
         EventMemberNotifier memberNotifier = mock(EventMemberNotifier.class);
-        UpdateEventHandler handler = new UpdateEventHandler(repository, mapper, finder, accessPolicy, validator,
+        UpdateEventHandler handler = new UpdateEventHandler(repository, mapper, finder, accessPolicy, requestValidator,
                 interestManager, moderationManager, recommendationIndexer, memberNotifier);
         UUID id = UUID.randomUUID();
         Event event = event(id, "Old title", "Old description");
@@ -57,8 +57,7 @@ class UpdateEventHandlerTest {
 
         assertEquals(response, result);
         verify(accessPolicy).requireOwnerOrAdmin(event, user);
-        verify(validator).validateDateRange(request.getStartDateTime(), request.getEndDateTime());
-        verify(validator).validatePrice(true, BigDecimal.ZERO);
+        verify(requestValidator).validate(request);
         verify(mapper).updateEntity(event, request);
         verify(moderationManager).apply(event, "New title", "New description");
         verify(interestManager).replace(event, request.getInterestIds());
@@ -90,7 +89,7 @@ class UpdateEventHandlerTest {
         EventFinder finder = mock(EventFinder.class);
         EventRepository repository = mock(EventRepository.class);
         UpdateEventHandler handler = new UpdateEventHandler(repository, mock(EventMapper.class), finder,
-                mock(EventAccessPolicy.class), mock(EventValidator.class), mock(EventInterestManager.class),
+                mock(EventAccessPolicy.class), mock(EventRequestValidator.class), mock(EventInterestManager.class),
                 mock(EventModerationManager.class), mock(RecommendationIndexer.class), mock(EventMemberNotifier.class));
 
         UUID id = UUID.randomUUID();
@@ -108,7 +107,7 @@ class UpdateEventHandlerTest {
         EventFinder finder = mock(EventFinder.class);
         EventRepository repository = mock(EventRepository.class);
         UpdateEventHandler handler = new UpdateEventHandler(repository, mock(EventMapper.class), finder,
-                mock(EventAccessPolicy.class), mock(EventValidator.class), mock(EventInterestManager.class),
+                mock(EventAccessPolicy.class), mock(EventRequestValidator.class), mock(EventInterestManager.class),
                 mock(EventModerationManager.class), mock(RecommendationIndexer.class), mock(EventMemberNotifier.class));
 
         UUID id = UUID.randomUUID();

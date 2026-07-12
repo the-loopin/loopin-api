@@ -13,6 +13,8 @@ import com.loopin.api.events.shared.finder.EventFinder;
 import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.validation.EventValidator;
+import com.loopin.api.events.shared.validation.EventRequestValidator;
+import com.loopin.api.events.shared.validation.EventRequestValidationException;
 import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,6 +41,7 @@ class CreateEventHandlerTest {
     private EventMapper eventMapper;
     private EventFinder eventFinder;
     private EventValidator eventValidator;
+    private EventRequestValidator eventRequestValidator;
     private EventInterestManager eventInterestManager;
     private EventModerationManager eventModerationManager;
     private RecommendationIndexer recommendationIndexer;
@@ -50,12 +54,13 @@ class CreateEventHandlerTest {
         eventMapper = mock(EventMapper.class);
         eventFinder = mock(EventFinder.class);
         eventValidator = mock(EventValidator.class);
+        eventRequestValidator = mock(EventRequestValidator.class);
         eventInterestManager = mock(EventInterestManager.class);
         eventModerationManager = mock(EventModerationManager.class);
         recommendationIndexer = mock(RecommendationIndexer.class);
         notificationWriter = mock(NotificationWriter.class);
         handler = new CreateEventHandler(
-                eventRepository, eventMapper, eventFinder, eventValidator, eventInterestManager,
+                eventRepository, eventMapper, eventFinder, eventValidator, eventRequestValidator, eventInterestManager,
                 eventModerationManager, recommendationIndexer, notificationWriter
         );
     }
@@ -78,8 +83,7 @@ class CreateEventHandlerTest {
         assertEquals(response, result);
         assertEquals(owner, event.getOwner());
         assertEquals(EventStatus.PUBLISHED, event.getStatus());
-        verify(eventValidator).validateDateRange(request.getStartDateTime(), request.getEndDateTime());
-        verify(eventValidator).validatePrice(request.getIsFree(), request.getPrice());
+        verify(eventRequestValidator).validate(request);
         verify(eventValidator).validateNoDuplicate(request.getTitle(), request.getCity(), request.getStartDateTime());
         verify(eventModerationManager).apply(event, request.getTitle(), request.getDescription());
         verify(eventInterestManager).replace(event, request.getInterestIds());
@@ -103,26 +107,12 @@ class CreateEventHandlerTest {
     }
 
     @Test
-    void handle_InvalidDateRange_StopsBeforePersistence() {
+    void handle_InvalidRequest_StopsBeforePersistence() {
         EventCreateRequest request = validRequest();
-        when(eventFinder.findCurrentUser("owner@example.test")).thenReturn(new User());
-        doThrow(new IllegalArgumentException("End date and time must be after start date and time"))
-                .when(eventValidator).validateDateRange(request.getStartDateTime(), request.getEndDateTime());
+        doThrow(new EventRequestValidationException(Map.of("endDateTime", "invalid")))
+                .when(eventRequestValidator).validate(request);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> handler.handle(new CreateEventCommand(request, "owner@example.test")));
-
-        verify(eventRepository, never()).saveAndFlush(any());
-    }
-
-    @Test
-    void handle_InvalidPrice_StopsBeforePersistence() {
-        EventCreateRequest request = validRequest();
-        when(eventFinder.findCurrentUser("owner@example.test")).thenReturn(new User());
-        doThrow(new IllegalArgumentException("Paid events must have price greater than 0"))
-                .when(eventValidator).validatePrice(request.getIsFree(), request.getPrice());
-
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(EventRequestValidationException.class,
                 () -> handler.handle(new CreateEventCommand(request, "owner@example.test")));
 
         verify(eventRepository, never()).saveAndFlush(any());
