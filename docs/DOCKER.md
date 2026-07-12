@@ -1,4 +1,4 @@
-﻿# Docker and Local Runtime
+# Docker and Local Runtime
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ Required variables for the API:
 - `GOOGLE_CLIENT_ID`
 - `CORS_ALLOWED_ORIGINS`
 - `RATE_LIMIT_STORAGE`
-- `SPRING_DATA_REDIS_HOST`
+- `SPRING_DATA_REDIS_HOST` (or `SPRING_DATA_REDIS_URL`)
 - `SPRING_DATA_REDIS_PORT`
 - `RATE_LIMIT_KEY_PREFIX`
 - `RATE_LIMIT_*_REQUESTS` and `RATE_LIMIT_*_WINDOW` values when overriding defaults
