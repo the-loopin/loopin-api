@@ -79,6 +79,19 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Development login is deliberately available only in non-production profiles.
+     * Security matchers exclude the servlet context path (/api).
+     */
+    @Bean
+    @Profile({"local", "dev", "test"})
+    public Customizer<HttpSecurity> devLoginAccess() {
+        return http -> http.authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.POST, "/v1/dev/auth/login").permitAll()
+        );
+    }
+
+
 
     @Bean
     public FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration() {
