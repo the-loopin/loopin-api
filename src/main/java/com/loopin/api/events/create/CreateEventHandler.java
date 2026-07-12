@@ -46,8 +46,6 @@ public class CreateEventHandler {
         EventCreateRequest request = command.request();
         eventRequestValidator.validate(request);
         User currentUser = eventFinder.findCurrentUser(command.currentUsername());
-        eventValidator.validateDateRange(request.getStartDateTime(), request.getEndDateTime());
-        eventValidator.validatePrice(request.getIsFree(), request.getPrice());
         eventValidator.validateNoDuplicate(request.getTitle(), request.getCity(), request.getStartDateTime());
 
         Event event = eventMapper.toEntity(request);
