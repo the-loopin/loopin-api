@@ -19,7 +19,11 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({NoSuchElementException.class, ResourceNotFoundException.class})
+    @ExceptionHandler({
+        NoSuchElementException.class,
+        ResourceNotFoundException.class,
+        org.springframework.web.servlet.resource.NoResourceFoundException.class
+    })
     public ResponseEntity<ErrorResponse> handleNotFound(
             Exception exception,
             HttpServletRequest request
