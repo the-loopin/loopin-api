@@ -19,7 +19,6 @@ public abstract class AbstractIntegrationTest {
 
     private static final DockerImageName PGVECTOR_IMAGE =
             DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres");
-
     protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(PGVECTOR_IMAGE)
             .withDatabaseName("loopin_test")
             .withUsername("loopin")
