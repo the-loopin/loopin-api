@@ -71,4 +71,11 @@ class ActuatorHealthEndpointTest {
             return () -> Health.down().withDetail("reason", "temporary failure").build();
         }
     }
+
+    private String readinessMembers(String resourceName) {
+        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+        yaml.setResources(new ClassPathResource(resourceName));
+        Properties properties = yaml.getObject();
+        return properties.getProperty("management.endpoint.health.group.readiness.include");
+    }
 }
