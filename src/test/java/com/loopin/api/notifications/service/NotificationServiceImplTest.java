@@ -1,5 +1,6 @@
 package com.loopin.api.notifications.service;
 
+import com.loopin.api.common.metrics.LoopinMetrics;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationStatus;
 import com.loopin.api.notifications.enums.NotificationType;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -36,6 +39,7 @@ class NotificationServiceImplTest {
     private NotificationRepository notificationRepository;
     private NotificationDeliveryRepository deliveryRepository;
     private UserRepository userRepository;
+    private LoopinMetrics loopinMetrics;
     private NotificationServiceImpl service;
 
     @BeforeEach
@@ -43,8 +47,9 @@ class NotificationServiceImplTest {
         notificationRepository = mock(NotificationRepository.class);
         deliveryRepository = mock(NotificationDeliveryRepository.class);
         userRepository = mock(UserRepository.class);
+        loopinMetrics = mock(LoopinMetrics.class);
         service = new NotificationServiceImpl(
-                notificationRepository, deliveryRepository, userRepository);
+                notificationRepository, deliveryRepository, userRepository, loopinMetrics);
     }
 
     @Test
@@ -85,6 +90,24 @@ class NotificationServiceImplTest {
         assertEquals(null, result);
         verify(notificationRepository, never()).saveAndFlush(any());
         verify(deliveryRepository, never()).save(any());
+    }
+
+    @Test
+    void createAll_RecordsEveryPersistedNotificationWhenSelfInvocationBypassesAop() {
+        User recipient = user(10L);
+        when(notificationRepository.saveAndFlush(any(Notification.class)))
+                .thenReturn(notification(recipient, NotificationStatus.UNREAD));
+
+        List<Notification> created = service.createAll(List.of(
+                new NotificationCommand(recipient, NotificationType.EVENT_UPDATE, "One", "First",
+                        NotificationReferenceType.EVENT, UUID.randomUUID()),
+                new NotificationCommand(recipient, NotificationType.EVENT_REMINDER, "Two", "Second",
+                        NotificationReferenceType.EVENT, UUID.randomUUID())
+        ));
+
+        assertEquals(2, created.size());
+        verify(loopinMetrics).recordOperations(
+                eq("notifications"), eq("create"), eq(true), eq(2L), any(Duration.class));
     }
 
     @Test
