@@ -20,6 +20,11 @@
 		<testcontainers.version>2.0.5</testcontainers.version>
 		<google-api-client.version>2.9.0</google-api-client.version>
 		<aws.sdk.version>2.44.14</aws.sdk.version>
+		<!-- Security overrides for Spring Boot-managed runtime dependencies. -->
+		<postgresql.version>42.7.12</postgresql.version>
+		<tomcat.version>11.0.23</tomcat.version>
+		<jacoco.version>0.8.13</jacoco.version>
+		<dependency-check.version>12.2.2</dependency-check.version>
 	</properties>
 
 	<dependencyManagement>
@@ -254,6 +259,72 @@
 						<version>${postgresql.version}</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<configuration>
+					<!-- Generated and configuration-only code is not a meaningful test-coverage target. -->
+					<excludes>
+						<exclude>**/*MapperImpl.class</exclude>
+						<exclude>**/*Builder.class</exclude>
+						<exclude>**/config/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<!-- 75% is below the measured 77.55% baseline (2026-07-13), allowing gradual increases. -->
+											<minimum>0.75</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>${dependency-check.version}</version>
+				<configuration>
+					<formats>
+						<format>HTML</format>
+						<format>JSON</format>
+					</formats>
+					<suppressionFiles>
+						<suppressionFile>config/dependency-check-suppressions.xml</suppressionFile>
+					</suppressionFiles>
+					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<failOnError>true</failOnError>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

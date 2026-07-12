@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions
+	xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.4.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.4.xsd
+        https://dependency-check.github.io/DependencyCheck/dependency-suppression.1.4.xsd">
+
+	<suppress>
+		<notes><![CDATA[
+CVE-2022-31691 applies to Spring Tools IDE extensions, not the
+spring-boot-devtools Maven dependency.
+        ]]></notes>
+		<gav regex="true">
+			^org\.springframework\.boot:spring-boot-devtools:4\.1\.0$
+		</gav>
+		<cve>CVE-2022-31691</cve>
+	</suppress>
+
+	<suppress>
+		<notes><![CDATA[
+These findings are associated with the HttpComponents Core 5.x advisory.
+The project receives HttpCore 4.4.16 transitively through google-api-client.
+Suppress only these reviewed CVEs, not the entire component.
+        ]]></notes>
+		<gav regex="true">
+			^org\.apache\.httpcomponents:httpcore:4\.4\.16$
+		</gav>
+		<cve>CVE-2026-54399</cve>
+		<cve>CVE-2026-54428</cve>
+	</suppress>
+
+</suppressions>
