@@ -84,7 +84,7 @@ jobs:
         id: dependency-check
         if: success()
         continue-on-error: true
-        run: ./mvnw -B dependency-check:check
+        run: ./mvnw -B dependency-check:check -DnvdApiKey="${{ secrets.NVD_API_KEY }}"
 
       - name: Upload Dependency-Check report
         if: always()
