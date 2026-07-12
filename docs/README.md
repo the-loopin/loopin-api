@@ -16,6 +16,7 @@ This directory contains the developer documentation for the Loopin API.
 
 * **Configuration & Reference**
   * [Database Design & Schema](DATABASE.md) - Entity Relationship (ER) diagram, table descriptions, indices, and constraints.
+  * [PostgreSQL Performance Validation](PERFORMANCE.md) - Discovery indexes, cache invalidation, query plans, and k6 staging runs.
   * [Environment Configuration](ENVIRONMENT.md) - Environment variables checklist for local, staging, and production environments.
   * [API Endpoint Reference](API_OVERVIEW.md) - Comprehensive API specifications, request payloads, and response structures.
   * [API Testing With Bruno](API_TESTING.md) - Git-friendly Bruno collection setup for local and staging backend validation.
