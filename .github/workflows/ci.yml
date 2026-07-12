@@ -22,6 +22,7 @@ jobs:
   verify:
     name: Verify, test, and scan dependencies
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -84,7 +85,9 @@ jobs:
         id: dependency-check
         if: success()
         continue-on-error: true
-        run: ./mvnw -B dependency-check:check -DnvdApiKey="${{ secrets.NVD_API_KEY }}"
+        run: >
+          ./mvnw -B dependency-check:check
+          -DnvdApiKey="${{ secrets.NVD_API_KEY }}"
 
       - name: Upload Dependency-Check report
         if: always()
@@ -103,6 +106,7 @@ jobs:
     name: Review pull request dependencies
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+
     steps:
       - name: Review newly introduced dependencies
         uses: actions/dependency-review-action@v4
@@ -113,20 +117,13 @@ jobs:
     name: Build and scan container image
     needs: verify
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Restore Trivy vulnerability database
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/trivy
-          key: trivy-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            trivy-${{ runner.os }}-
-
       - name: Build production Docker image
-        run: docker build -t loopin-api:ci .
+        run: docker build --pull -t loopin-api:ci .
 
       - name: Scan Docker image with Trivy
         id: trivy
@@ -137,6 +134,7 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
+          limit-severities-for-sarif: true
           ignore-unfixed: true
           exit-code: '1'
 
