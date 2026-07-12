@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EventRequestValidatorTest {
 
@@ -114,6 +114,34 @@ class EventRequestValidatorTest {
         assertDoesNotThrow(() -> validator.validate(update));
     }
 
+    @Test
+    void acceptsExactTimeBoundaries() {
+        EventCreateRequest minimumLeadTime = validCreateRequest();
+        minimumLeadTime.setStartDateTime(NOW.plusMinutes(30));
+        minimumLeadTime.setEndDateTime(NOW.plusHours(2));
+        assertDoesNotThrow(() -> validator.validate(minimumLeadTime));
+
+        EventCreateRequest maximumDuration = validCreateRequest();
+        maximumDuration.setEndDateTime(maximumDuration.getStartDateTime().plusHours(24));
+        assertDoesNotThrow(() -> validator.validate(maximumDuration));
+    }
+
+    @Test
+    void acceptsExactPriceAndInterestBoundaries() {
+        for (BigDecimal price : List.of(new BigDecimal("0.01"), new BigDecimal("1000000.00"))) {
+            EventCreateRequest request = validCreateRequest();
+            request.setIsFree(false);
+            request.setPrice(price);
+            assertDoesNotThrow(() -> validator.validate(request));
+        }
+
+        EventCreateRequest tenInterests = validCreateRequest();
+        tenInterests.setInterestIds(java.util.stream.IntStream.range(0, 10)
+                .mapToObj(index -> UUID.randomUUID())
+                .toList());
+        assertDoesNotThrow(() -> validator.validate(tenInterests));
+    }
+
     private EventCreateRequest validCreateRequest() {
         EventCreateRequest request = new EventCreateRequest();
         request.setStartDateTime(NOW.plusHours(1));
@@ -128,6 +156,6 @@ class EventRequestValidatorTest {
         EventRequestValidationException exception = assertThrows(
                 EventRequestValidationException.class,
                 () -> validator.validate(request));
-        assertEquals(true, exception.getFieldErrors().containsKey(field));
+        assertTrue(exception.getFieldErrors().containsKey(field));
     }
 }
