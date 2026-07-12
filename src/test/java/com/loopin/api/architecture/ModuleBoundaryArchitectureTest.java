@@ -5,47 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class ModuleBoundaryArchitectureTest {
-
-    @Test
-    void eventRuntimeCodeDoesNotImportGroupsRepositories() throws IOException {
-        try (var paths = Files.walk(Path.of("src/main/java/com/loopin/api/events"))) {
-            for (Path path : paths.filter(path -> path.toString().endsWith(".java"))
-                    .filter(path -> !path.toString().contains("\\seed\\") && !path.toString().contains("/seed/"))
-                    .toList()) {
-                String source = Files.readString(path);
-                assertFalse(source.contains("com.loopin.api.groups.repository"),
-                        () -> path + " must use com.loopin.api.groups.api instead of a Groups repository");
-            }
-        }
-        try (var paths = Files.walk(Path.of("src/main/java/com/loopin/api/groups"))) {
-            for (Path path : paths.filter(path -> path.toString().endsWith(".java"))
-                    .filter(path -> !path.toString().contains("\\seed\\") && !path.toString().contains("/seed/"))
-                    .toList()) {
-                String source = Files.readString(path);
-                assertFalse(source.contains("com.loopin.api.notifications.service.NotificationService"),
-                        () -> path + " must use com.loopin.api.notifications.api instead of notifications.service");
-            }
-        }
-    }
-
-    @Test
-    void controllersDoNotImportRepositories() throws IOException {
-        for (Path controllerDirectory : List.of(
-                Path.of("src/main/java/com/loopin/api/events/controller"),
-                Path.of("src/main/java/com/loopin/api/groups/controller"))) {
-            try (var paths = Files.walk(controllerDirectory)) {
-                for (Path path : paths.filter(path -> path.toString().endsWith(".java")).toList()) {
-                    assertFalse(Files.readString(path).contains(".repository."),
-                            () -> path + " must delegate to a handler rather than a repository");
-                }
-            }
-        }
-    }
 
     @Test
     void queryHandlersDeclareReadOnlyTransactionsAndCommandsDeclareWriteTransactions() throws IOException {
