@@ -55,6 +55,12 @@ class ActuatorHealthEndpointTest {
     }
 
     @Test
+    void stagingAndProductionReadinessGroupsRequireRedis() {
+        assertEquals("readinessState,db,redis", readinessMembers("application-staging.yaml"));
+        assertEquals("readinessState,db,redis", readinessMembers("application-production.yaml"));
+    }
+
+    @Test
     void aggregateHealthAndSensitiveActuatorEndpointsAreNotPublic() throws Exception {
         mockMvc.perform(get("/api/actuator/health").contextPath("/api"))
                 .andExpect(status().isUnauthorized());
