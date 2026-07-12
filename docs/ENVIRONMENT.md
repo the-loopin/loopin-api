@@ -1,6 +1,21 @@
-﻿# Environment Configuration
+# Environment Configuration
 
 The Loopin API reads runtime parameters from system environment variables. This document catalogs all configuration options.
+
+---
+
+## Integrations Overview
+
+The Loopin API relies on several backing services. Here is a matrix of which dependencies are required vs. optional:
+
+| Service / Integration | Status | Description |
+| :--- | :--- | :--- |
+| **PostgreSQL** | **Required** | Primary relational database for all state persistence. |
+| **Google OAuth** | **Required** | Necessary for user authentication and signups. |
+| **S3 / MinIO** | **Required** | Object storage backend for uploading and hosting media (avatars, event images). |
+| **Redis** | **Optional** | Required for horizontal scaling (distributed rate-limiting and multi-node WebSocket chat broadcasting). If running a single local node, local memory can be used instead. |
+| **n8n / Webhooks** | **Optional** | Used for automated reminder push notifications. Defaults to disabled. |
+| **Loopin AI** | **Optional** | Used for automated content moderation and embedding models. Defaults to disabled. |
 
 ---
 
@@ -77,10 +92,11 @@ Additional variables used by Docker Compose and Redis-backed rate limiting:
 | `POSTGRES_DB` | PostgreSQL database created by the Compose image. | `loopin` | Docker Compose only |
 | `POSTGRES_PORT` | Host port mapped to PostgreSQL. | `5432` | Docker Compose only |
 | `REDIS_PORT` | Host port mapped to Redis. | `6379` | Docker Compose only |
-| `SPRING_DATA_REDIS_HOST` | Redis hostname used when `RATE_LIMIT_STORAGE=redis`. | `localhost` | Compose sets this to `redis` for the API container |
-| `SPRING_DATA_REDIS_PORT` | Redis port used when `RATE_LIMIT_STORAGE=redis`. | `6379` | Compose maps this to the Redis service |
+| `SPRING_DATA_REDIS_HOST` | Redis hostname used when `RATE_LIMIT_STORAGE=redis`. | `localhost` | Local/Compose only |
+| `SPRING_DATA_REDIS_PORT` | Redis port used when `RATE_LIMIT_STORAGE=redis`. | `6379` | Local/Compose only |
+| `SPRING_DATA_REDIS_URL` | Redis full connection string (e.g., redis://user:pass@host:port). | *Empty* | Production/Cloud Run standard |
 
-`RATE_LIMIT_STORAGE=redis` requires a reachable Redis instance. In Docker Compose, the API uses `SPRING_DATA_REDIS_HOST=redis`; when running the JVM directly on the host, use `localhost` unless Redis runs elsewhere.
+`RATE_LIMIT_STORAGE=redis` requires a reachable Redis instance. In Docker Compose, the API uses `SPRING_DATA_REDIS_HOST=redis`. In production, prefer setting `SPRING_DATA_REDIS_URL` with a secure connection string.
 
 ## Content moderation
 
