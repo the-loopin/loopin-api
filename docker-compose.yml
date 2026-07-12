@@ -49,14 +49,20 @@
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       RATE_LIMIT_STORAGE: ${RATE_LIMIT_STORAGE:-redis}
-      LIQUIBASE_ENABLED: ${LIQUIBASE_ENABLED:-true}
-      LIQUIBASE_CONTEXTS: ${LIQUIBASE_CONTEXTS:-local}
+      SPRING_LIQUIBASE_ENABLED: ${LIQUIBASE_ENABLED:-true}
+      SPRING_LIQUIBASE_CONTEXTS: ${LIQUIBASE_CONTEXTS:-local}
       JWT_SECRET: ${JWT_SECRET:-replace_with_at_least_32_bytes_of_random_secret_material}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-local-google-client-id}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
       N8N_NOTIFICATIONS_ENABLED: ${N8N_NOTIFICATIONS_ENABLED:-false}
       N8N_NOTIFICATION_WEBHOOK_URL: ${N8N_NOTIFICATION_WEBHOOK_URL:-http://n8n:5678/webhook/loopin-notifications}
       N8N_NOTIFICATION_WEBHOOK_SECRET: ${N8N_NOTIFICATION_WEBHOOK_SECRET:-}
+      # Use the Docker service hostname for SDK requests, but keep presigned URLs
+      # reachable from a browser running on the host.
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_PRESIGN_ENDPOINT: http://localhost:${MINIO_API_PORT:-9000}
+      STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER:-loopin-minio}
+      STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-loopin-minio-local-password}
     ports:
       - "${API_PORT:-8080}:8080"
     depends_on:
@@ -66,12 +72,12 @@
         condition: service_healthy
 
   minio:
-    image: minio/minio:${MINIO_IMAGE_TAG}
+    image: minio/minio:${MINIO_IMAGE_TAG:-latest}
     container_name: loopin-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-loopin-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-loopin-minio-local-password}
     ports:
       - "${MINIO_API_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"

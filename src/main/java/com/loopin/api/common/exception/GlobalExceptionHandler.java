@@ -132,17 +132,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception exception,
-            HttpServletRequest request
+        Exception exception,
+        HttpServletRequest request
     ) {
-        ErrorResponse response = buildErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unexpected server error",
-                request.getRequestURI(),
-                null
+        log.error(
+            "Unhandled exception for method={} path={}",
+            request.getMethod(),
+            request.getRequestURI(),
+            exception
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        ErrorResponse response = buildErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Unexpected server error",
+            request.getRequestURI(),
+            null
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(response);
     }
 
     private ErrorResponse buildErrorResponse(
