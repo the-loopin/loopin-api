@@ -1,6 +1,7 @@
 package com.loopin.api.common.exception;
 
 import com.loopin.api.common.exception.dto.ErrorResponse;
+import com.loopin.api.events.shared.validation.EventRequestValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -108,6 +109,21 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 request.getRequestURI(),
                 null
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(EventRequestValidationException.class)
+    public ResponseEntity<ErrorResponse> handleEventRequestValidation(
+            EventRequestValidationException exception,
+            HttpServletRequest request
+    ) {
+        ErrorResponse response = buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                request.getRequestURI(),
+                exception.getFieldErrors()
         );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
