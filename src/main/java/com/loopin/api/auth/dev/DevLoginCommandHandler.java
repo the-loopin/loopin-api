@@ -17,13 +17,9 @@ public class DevLoginCommandHandler {
 
     @Transactional(readOnly = true)
     public DevLoginResult handle(DevLoginCommand command) {
-        String normalizedEmail = command.email()
-            .trim()
-            .toLowerCase();
-
         User user = userRepository
-            .findByEmailAndDeletedAtIsNull(normalizedEmail)
-            .orElseThrow(() -> new UserNotFoundException(normalizedEmail));
+            .findByEmailAndIsActiveTrueAndDeletedAtIsNull(command.email())
+            .orElseThrow(() -> new UserNotFoundException(command.email()));
 
         String token = jwtUtils.generateToken(
             user.getEmail(),

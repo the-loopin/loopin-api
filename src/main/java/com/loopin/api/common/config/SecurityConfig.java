@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +24,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.security.config.Customizer;
 import java.util.List;
 
 @Configuration
@@ -39,7 +43,12 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        @Qualifier("devLoginAccessCustomizer") ObjectProvider<Customizer<HttpSecurity>> devLoginAccess
+    ) throws Exception {
+        devLoginAccess.ifAvailable(customizer -> customizer.customize(http));
+
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -70,6 +79,20 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    /**
+     * Development login is deliberately available only in non-production profiles.
+     * Security matchers exclude the servlet context path (/api).
+     */
+    @Bean("devLoginAccessCustomizer")
+    @Profile({"local", "dev", "test"})
+    public Customizer<HttpSecurity> devLoginAccess() {
+        return http -> http.authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.POST, "/v1/dev/auth/login").permitAll()
+        );
+    }
+
+
 
     @Bean
     public FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration() {
