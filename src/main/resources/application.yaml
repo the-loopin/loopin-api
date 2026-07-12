@@ -43,7 +43,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    enable:
+      hikaricp: true
+      http.server.requests: true
+      jvm: true
+      system: true
   endpoint:
     health:
       # Keep health responses safe for the publicly reachable probe endpoints.
