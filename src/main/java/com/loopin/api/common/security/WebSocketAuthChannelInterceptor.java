@@ -1,9 +1,8 @@
 package com.loopin.api.common.security;
 
-import com.loopin.api.groups.entity.EventGroup;
-import com.loopin.api.groups.repository.EventGroupRepository;
-import com.loopin.api.groups.repository.GroupMemberRepository;
 import com.loopin.api.auth.service.CustomUserDetailsService;
+import com.loopin.api.groups.api.GroupSubscriptionAuthorization;
+import com.loopin.api.groups.api.GroupSubscriptionAuthorizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.Message;
@@ -32,8 +31,7 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
-    private final GroupMemberRepository groupMemberRepository;
-    private final EventGroupRepository eventGroupRepository;
+    private final GroupSubscriptionAuthorizer groupSubscriptionAuthorizer;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -87,13 +85,16 @@ public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
         }
 
         UUID groupPublicId = UUID.fromString(matcher.group(1));
-        EventGroup group = eventGroupRepository.findByPublicId(groupPublicId)
-                .orElseThrow(() -> new AccessDeniedException("Group not found"));
-        Long internalGroupId = group.getId();
         Long currentUserId = getCurrentUserId(accessor.getUser());
+        GroupSubscriptionAuthorization authorization =
+                groupSubscriptionAuthorizer.authorize(groupPublicId, currentUserId);
 
-        if (!groupMemberRepository.existsByGroupIdAndUserId(internalGroupId, currentUserId)) {
-            throw new AccessDeniedException("Only group members can subscribe to group messages");
+        switch (authorization) {
+            case ALLOWED -> {
+                return;
+            }
+            case GROUP_NOT_FOUND -> throw new AccessDeniedException("Group not found");
+            case NOT_A_MEMBER -> throw new AccessDeniedException("Only group members can subscribe to group messages");
         }
     }
 
