@@ -7,6 +7,19 @@ spring:
   liquibase:
     contexts: staging
 
+logging:
+  structured:
+    format:
+      console: logstash
+    json:
+      add:
+        application: ${spring.application.name}
+      rename:
+        "@timestamp": timestamp
+        logger_name: logger
+        thread_name: threadName
+        stack_trace: exception
+
 management:
   endpoint:
     health:
