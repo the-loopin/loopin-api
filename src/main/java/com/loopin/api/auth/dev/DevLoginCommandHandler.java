@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 @Component
 @RequiredArgsConstructor
 public class DevLoginCommandHandler {
@@ -19,10 +21,10 @@ public class DevLoginCommandHandler {
     public DevLoginResult handle(DevLoginCommand command) {
         String normalizedEmail = command.email()
             .trim()
-            .toLowerCase();
+            .toLowerCase(Locale.ROOT);
 
         User user = userRepository
-            .findByEmailAndDeletedAtIsNull(normalizedEmail)
+            .findByEmailAndIsActiveTrueAndDeletedAtIsNull(normalizedEmail)
             .orElseThrow(() -> new UserNotFoundException(normalizedEmail));
 
         String token = jwtUtils.generateToken(
