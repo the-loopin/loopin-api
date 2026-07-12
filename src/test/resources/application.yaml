@@ -43,6 +43,9 @@ cors:
   allowed-origins: "*"
 
 loopin:
+  observability:
+    prometheus:
+      scrape-token: test-prometheus-scrape-token
   storage:
     endpoint: http://localhost:9000
     presign-endpoint: http://localhost:9000
