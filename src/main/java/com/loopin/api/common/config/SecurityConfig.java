@@ -64,6 +64,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/api/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html", "/api/swagger-ui.html").permitAll()
                 .requestMatchers("/actuator/health/liveness", "/actuator/health/readiness").permitAll()
+                // Prometheus exposes operational details and is deliberately restricted to administrators.
+                .requestMatchers("/actuator/prometheus").hasRole("ADMIN")
                 .requestMatchers("/v1/auth/**", "/api/v1/auth/**").permitAll()
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/users/register", "/api/v1/users/register").permitAll()
