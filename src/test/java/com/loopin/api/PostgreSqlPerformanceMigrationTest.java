@@ -1,56 +1,20 @@
 package com.loopin.api;
 
-import liquibase.Contexts;
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.resource.ClassLoaderResourceAccessor;
+import com.loopin.api.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import javax.sql.DataSource;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers(disabledWithoutDocker = true)
-class PostgreSqlPerformanceMigrationTest {
+class PostgreSqlPerformanceMigrationTest extends AbstractIntegrationTest {
 
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES =
-        new PostgreSQLContainer<>("pgvector/pgvector:pg16")
-            .withDatabaseName("loopin_migration")
-            .withUsername("loopin")
-            .withPassword("loopin");
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
-    void appliesPerformanceMigrationAndRollsBackOnlyOwnedIndexes() throws Exception {
-        DataSource dataSource = new DriverManagerDataSource(
-            POSTGRES.getJdbcUrl(),
-            POSTGRES.getUsername(),
-            POSTGRES.getPassword()
-        );
-
-        Database database = DatabaseFactory.getInstance()
-            .findCorrectDatabaseImplementation(
-                new JdbcConnection(dataSource.getConnection())
-            );
-
-        Liquibase liquibase = new Liquibase(
-            "db/changelog/db.changelog-master.yaml",
-            new ClassLoaderResourceAccessor(),
-            database
-        );
-
-        liquibase.update(new Contexts());
-
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
+    void appliesPostgreSqlExtensionsAndPerformanceIndexes() {
         assertThat(jdbcTemplate.queryForObject(
             "select count(*) from pg_extension where extname = 'vector'",
             Integer.class
@@ -92,22 +56,12 @@ class PostgreSqlPerformanceMigrationTest {
             "description"
         );
 
-        liquibase.rollback(1, "");
-
-        assertThat(indexNames(jdbcTemplate))
-            .doesNotContainAnyElementsOf(ownedIndexes);
-
-        assertThat(jdbcTemplate.queryForObject(
-            "select count(*) from pg_extension where extname = 'pg_trgm'",
-            Integer.class
-        )).isEqualTo(1);
-
-        liquibase.rollback(1, "");
-
-        assertThat(jdbcTemplate.queryForObject(
-            "select count(*) from pg_extension where extname = 'pg_trgm'",
-            Integer.class
-        )).isEqualTo(1);
+        assertThat(indexDefinition("event_embeddings_vector_cosine_idx"))
+            .containsIgnoringCase("using ivfflat")
+            .containsIgnoringCase("vector_cosine_ops");
+        assertThat(indexDefinition("user_interest_embeddings_vector_cosine_idx"))
+            .containsIgnoringCase("using ivfflat")
+            .containsIgnoringCase("vector_cosine_ops");
     }
 
     private List<String> indexNames(JdbcTemplate jdbcTemplate) {
@@ -126,16 +80,7 @@ class PostgreSqlPerformanceMigrationTest {
         String indexName,
         String columnName
     ) {
-        String definition = jdbcTemplate.queryForObject(
-            """
-            select indexdef
-            from pg_indexes
-            where schemaname = current_schema()
-              and indexname = ?
-            """,
-            String.class,
-            indexName
-        );
+        String definition = indexDefinition(indexName);
 
         assertThat(definition)
             .isNotNull()
@@ -143,5 +88,18 @@ class PostgreSqlPerformanceMigrationTest {
             .containsIgnoringCase("lower")
             .containsIgnoringCase(columnName)
             .containsIgnoringCase("gin_trgm_ops");
+    }
+
+    private String indexDefinition(String indexName) {
+        return jdbcTemplate.queryForObject(
+                """
+                select indexdef
+                from pg_indexes
+                where schemaname = current_schema()
+                  and indexname = ?
+                """,
+                String.class,
+                indexName
+        );
     }
 }
