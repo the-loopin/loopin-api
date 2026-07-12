@@ -1,9 +1,12 @@
 package com.loopin.api.common.exception;
 
 import com.loopin.api.common.exception.dto.ErrorResponse;
+import com.loopin.api.common.logging.CorrelationIdFilter;
+import com.loopin.api.common.logging.SafeDiagnosticException;
 import com.loopin.api.events.shared.validation.EventRequestValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Slf4j
 @RestControllerAdvice
@@ -155,12 +159,7 @@ public class GlobalExceptionHandler {
         Exception exception,
         HttpServletRequest request
     ) {
-        log.error(
-            "Unhandled exception for method={} path={}",
-            request.getMethod(),
-            request.getRequestURI(),
-            exception
-        );
+        logUnexpectedFailure("Unhandled request failure", exception, request);
 
         ErrorResponse response = buildErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -272,11 +271,7 @@ public class GlobalExceptionHandler {
         MediaStorageException exception,
         HttpServletRequest request
     ) {
-        log.error(
-            "Media storage operation failed for path={}",
-            request.getRequestURI(),
-            exception
-        );
+        logUnexpectedFailure("Media storage operation failed", exception, request);
 
         ErrorResponse response = buildErrorResponse(
             HttpStatus.SERVICE_UNAVAILABLE,
@@ -288,6 +283,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.SERVICE_UNAVAILABLE)
             .body(response);
+    }
+
+    private void logUnexpectedFailure(
+        String operation,
+        Exception exception,
+        HttpServletRequest request
+    ) {
+        String errorId = UUID.randomUUID().toString();
+        log.error(
+            "{} errorId={} requestId={} exceptionType={} method={} path={}",
+            operation,
+            errorId,
+            MDC.get(CorrelationIdFilter.MDC_KEY),
+            exception.getClass().getName(),
+            request.getMethod(),
+            request.getRequestURI(),
+            SafeDiagnosticException.from(exception)
+        );
     }
 
 }

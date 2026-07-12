@@ -34,7 +34,8 @@ public class UserEmbeddingListener {
                     sha256(event.sourceText())
             );
         } catch (RuntimeException exception) {
-            log.warn("Failed to index user embedding for user {}", event.userId(), exception);
+            log.warn("Failed to index user embedding for user {} type={}",
+                    event.userId(), exception.getClass().getSimpleName());
         }
     }
 

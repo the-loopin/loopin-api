@@ -34,7 +34,8 @@ public class EventEmbeddingListener {
                     sha256(event.sourceText())
             );
         } catch (RuntimeException exception) {
-            log.warn("Failed to index event embedding for event {}", event.eventId(), exception);
+            log.warn("Failed to index event embedding for event {} type={}",
+                    event.eventId(), exception.getClass().getSimpleName());
         }
     }
 

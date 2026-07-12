@@ -29,7 +29,7 @@ public class UserPresenceServiceImpl implements UserPresenceService {
         try {
             redisTemplate.opsForValue().set(ONLINE_KEY_PREFIX + userId, "true", TTL_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.warn("Failed to set presence in Redis for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to set presence in Redis for user {} type={}", userId, e.getClass().getSimpleName());
         }
     }
 
@@ -40,7 +40,7 @@ public class UserPresenceServiceImpl implements UserPresenceService {
         try {
             redisTemplate.delete(ONLINE_KEY_PREFIX + userId);
         } catch (Exception e) {
-            log.warn("Failed to delete presence in Redis for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to delete presence in Redis for user {} type={}", userId, e.getClass().getSimpleName());
         }
 
         try {
@@ -49,7 +49,7 @@ public class UserPresenceServiceImpl implements UserPresenceService {
                 userRepository.save(user);
             });
         } catch (Exception e) {
-            log.warn("Failed to update lastSeen in DB for user {}: {}", userId, e.getMessage());
+            log.warn("Failed to update lastSeen in DB for user {} type={}", userId, e.getClass().getSimpleName());
         }
     }
 }
