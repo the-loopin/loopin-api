@@ -50,9 +50,25 @@ public class LoopinMetrics {
     }
 
     public void recordOperation(String domain, String operation, boolean success, Duration duration) {
+        recordOperations(domain, operation, success, 1, duration);
+    }
+
+    /**
+     * Records a finite batch of successful domain operations without adding a batch-specific
+     * identifier or label. Failures are represented by one failed batch operation.
+     */
+    public void recordOperations(
+        String domain,
+        String operation,
+        boolean success,
+        long count,
+        Duration duration
+    ) {
         Operation metricOperation = new Operation(domain, operation);
         String outcome = success ? "success" : "failure";
-        operationCounter(metricOperation, outcome).increment();
+        if (count > 0) {
+            operationCounter(metricOperation, outcome).increment(count);
+        }
         operationTimer(metricOperation, outcome).record(duration);
     }
 
