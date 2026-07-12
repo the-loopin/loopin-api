@@ -13,6 +13,7 @@ import com.loopin.api.events.shared.finder.EventFinder;
 import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.validation.EventValidator;
+import com.loopin.api.events.shared.validation.EventRequestValidator;
 import com.loopin.api.notifications.api.NotificationWriter;
 import com.loopin.api.recommendation.api.RecommendationIndexer;
 import com.loopin.api.users.entity.User;
@@ -38,6 +39,7 @@ class CreateEventHandlerTest {
     private EventMapper eventMapper;
     private EventFinder eventFinder;
     private EventValidator eventValidator;
+    private EventRequestValidator eventRequestValidator;
     private EventInterestManager eventInterestManager;
     private EventModerationManager eventModerationManager;
     private RecommendationIndexer recommendationIndexer;
@@ -50,12 +52,13 @@ class CreateEventHandlerTest {
         eventMapper = mock(EventMapper.class);
         eventFinder = mock(EventFinder.class);
         eventValidator = mock(EventValidator.class);
+        eventRequestValidator = mock(EventRequestValidator.class);
         eventInterestManager = mock(EventInterestManager.class);
         eventModerationManager = mock(EventModerationManager.class);
         recommendationIndexer = mock(RecommendationIndexer.class);
         notificationWriter = mock(NotificationWriter.class);
         handler = new CreateEventHandler(
-                eventRepository, eventMapper, eventFinder, eventValidator, eventInterestManager,
+                eventRepository, eventMapper, eventFinder, eventValidator, eventRequestValidator, eventInterestManager,
                 eventModerationManager, recommendationIndexer, notificationWriter
         );
     }
@@ -79,6 +82,7 @@ class CreateEventHandlerTest {
         assertEquals(owner, event.getOwner());
         assertEquals(EventStatus.PUBLISHED, event.getStatus());
         verify(eventValidator).validateDateRange(request.getStartDateTime(), request.getEndDateTime());
+        verify(eventRequestValidator).validate(request);
         verify(eventValidator).validatePrice(request.getIsFree(), request.getPrice());
         verify(eventValidator).validateNoDuplicate(request.getTitle(), request.getCity(), request.getStartDateTime());
         verify(eventModerationManager).apply(event, request.getTitle(), request.getDescription());

@@ -10,6 +10,7 @@ import com.loopin.api.events.shared.interest.EventInterestManager;
 import com.loopin.api.events.shared.moderation.EventModerationManager;
 import com.loopin.api.events.shared.policy.EventLifecyclePolicy;
 import com.loopin.api.events.shared.validation.EventValidator;
+import com.loopin.api.events.shared.validation.EventRequestValidator;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationType;
 import com.loopin.api.notifications.service.NotificationCommand;
@@ -29,6 +30,7 @@ public class CreateEventHandler {
     private final EventMapper eventMapper;
     private final EventFinder eventFinder;
     private final EventValidator eventValidator;
+    private final EventRequestValidator eventRequestValidator;
     private final EventInterestManager eventInterestManager;
     private final EventModerationManager eventModerationManager;
     private final RecommendationIndexer recommendationIndexer;
@@ -42,6 +44,7 @@ public class CreateEventHandler {
     @Transactional
     public EventResponse handle(CreateEventCommand command) {
         EventCreateRequest request = command.request();
+        eventRequestValidator.validate(request);
         User currentUser = eventFinder.findCurrentUser(command.currentUsername());
         eventValidator.validateDateRange(request.getStartDateTime(), request.getEndDateTime());
         eventValidator.validatePrice(request.getIsFree(), request.getPrice());
