@@ -1,6 +1,7 @@
 package com.loopin.api.notifications.service;
 
 import com.loopin.api.notifications.enums.NotificationChannel;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.notifications.enums.NotificationDeliveryStatus;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationStatus;
@@ -37,6 +38,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
+    @LoopinOperation(domain = "notifications", operation = "create")
     public Notification create(NotificationCommand command) {
         if (command.deduplicationKey() != null
                 && notificationRepository.existsByDeduplicationKey(command.deduplicationKey())) {

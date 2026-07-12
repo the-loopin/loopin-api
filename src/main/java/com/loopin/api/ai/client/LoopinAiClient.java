@@ -1,6 +1,7 @@
 package com.loopin.api.ai.client;
 
 import com.loopin.api.ai.config.LoopinAiProperties;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopin.api.ai.dto.EmbeddingRequest;
@@ -32,14 +33,17 @@ public class LoopinAiClient {
                 .build();
     }
 
+    @LoopinOperation(domain = "ai", operation = "embed_passage")
     public EmbeddingResponse embedPassage(String text) {
         return embed(text, "passage");
     }
 
+    @LoopinOperation(domain = "ai", operation = "embed_query")
     public EmbeddingResponse embedQuery(String text) {
         return embed(text, "query");
     }
 
+    @LoopinOperation(domain = "ai", operation = "rerank")
     public RerankResponse rerank(String query, List<RerankCandidate> candidates, int topK) {
         return post("/v1/rerank", new RerankRequest(query, candidates, topK), RerankResponse.class);
     }
