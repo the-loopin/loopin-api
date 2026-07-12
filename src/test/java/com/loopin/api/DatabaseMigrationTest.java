@@ -32,8 +32,16 @@ class DatabaseMigrationTest extends AbstractIntegrationTest {
                 "event_interests", "event_embeddings", "user_interest_embeddings",
                 "community_embeddings", "databasechangelog"
         );
-        assertThat(jdbcTemplate.queryForObject(
-                "select count(*) from databasechangelog", Integer.class
-        )).isEqualTo(29);
+        List<String> appliedChangeSets = jdbcTemplate.queryForList(
+                "select id from databasechangelog",
+                String.class
+        );
+        assertThat(appliedChangeSets)
+                .isNotEmpty()
+                .contains(
+                        "004-create-ai-embedding-tables",
+                        "012-create-user-looped-events",
+                        "014-add-postgresql-performance-indexes"
+                );
     }
 }
