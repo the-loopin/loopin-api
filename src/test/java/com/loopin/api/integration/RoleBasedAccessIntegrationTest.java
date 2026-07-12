@@ -189,6 +189,8 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void ownerOrAdminCanModifyEvent_NonOwnerCannot_ReturnsExpectedStatus() throws Exception {
+        LocalDateTime eventStartDateTime = LocalDateTime.now().plusDays(1).withNano(0);
+
         // 1. User A (testUser) creates an event
         EventCreateRequest createRequest = new EventCreateRequest();
         createRequest.setTitle("Test Event");
@@ -196,8 +198,8 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         createRequest.setType(EventType.EVENT);
         createRequest.setCategory(EventCategory.TECH);
         createRequest.setCity("Dubai");
-        createRequest.setStartDateTime(LocalDateTime.now().plusDays(1));
-        createRequest.setEndDateTime(LocalDateTime.now().plusDays(2));
+        createRequest.setStartDateTime(eventStartDateTime);
+        createRequest.setEndDateTime(eventStartDateTime.plusHours(2));
         createRequest.setIsFree(true);
         createRequest.setPrice(BigDecimal.ZERO);
         createRequest.setOrganizerName("Test Organizer");
@@ -218,8 +220,8 @@ class RoleBasedAccessIntegrationTest extends AbstractIntegrationTest {
         updateRequest.setType(EventType.EVENT);
         updateRequest.setCategory(EventCategory.TECH);
         updateRequest.setCity("Dubai");
-        updateRequest.setStartDateTime(LocalDateTime.now().plusDays(1));
-        updateRequest.setEndDateTime(LocalDateTime.now().plusDays(2));
+        updateRequest.setStartDateTime(eventStartDateTime);
+        updateRequest.setEndDateTime(eventStartDateTime.plusHours(2));
         updateRequest.setIsFree(true);
         updateRequest.setPrice(BigDecimal.ZERO);
         updateRequest.setOrganizerName("Test Organizer");
