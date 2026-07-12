@@ -23,6 +23,8 @@ import com.loopin.api.notifications.service.NotificationService;
 import com.loopin.api.notifications.service.NotificationCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -131,6 +133,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    /** Administrator cancellation can affect any cached public-list filter and its detail entry. */
+    @Caching(evict = {
+            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = "eventById", key = "#eventId")
+    })
     @Transactional
     public void deleteEvent(UUID eventId, String currentAdminIdentifier) {
         Event event = eventRepository.findByPublicIdAndDeletedAtIsNull(eventId)

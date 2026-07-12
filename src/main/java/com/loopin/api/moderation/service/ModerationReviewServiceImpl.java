@@ -14,6 +14,8 @@ import com.loopin.api.moderation.repository.ModerationLogRepository;
 import com.loopin.api.users.repository.UserRepository;
 import com.loopin.api.moderation.service.ModerationReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,11 @@ public class ModerationReviewServiceImpl implements ModerationReviewService {
     }
 
     @Override
+    /** Approval can make an event visible in any cached filter/page combination. */
+    @Caching(evict = {
+            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = "eventById", key = "#eventId")
+    })
     @Transactional
     public ModerationItemResponse approveEvent(UUID eventId, String adminEmail) {
         Event event = findPendingEvent(eventId);
@@ -56,6 +63,11 @@ public class ModerationReviewServiceImpl implements ModerationReviewService {
     }
 
     @Override
+    /** Rejection removes public visibility and must also invalidate an existing detail response. */
+    @Caching(evict = {
+            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = "eventById", key = "#eventId")
+    })
     @Transactional
     public ModerationItemResponse rejectEvent(UUID eventId, String reason, String adminEmail) {
         Event event = findPendingEvent(eventId);
