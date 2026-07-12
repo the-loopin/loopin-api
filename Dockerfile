@@ -6,21 +6,31 @@ WORKDIR /workspace
 COPY pom.xml ./
 COPY .mvn ./.mvn
 COPY mvnw ./
+
 RUN mvn -B -DskipTests dependency:go-offline
 
 COPY src ./src
 RUN mvn -B -DskipTests package
 
+
 FROM eclipse-temurin:21-jre-alpine AS runtime
 WORKDIR /app
 
-RUN addgroup -S loopin && adduser -S loopin -G loopin
-COPY --from=build /workspace/target/*.jar /app/loopin-api.jar
+# Install available security updates and create a non-root user.
+RUN apk upgrade --no-cache \
+    && addgroup -S loopin \
+    && adduser -S loopin -G loopin
+
+COPY --from=build --chown=loopin:loopin \
+    /workspace/target/*.jar \
+    /app/loopin-api.jar
 
 ENV SERVER_PORT=8080 \
     SPRING_PROFILES_ACTIVE=production \
     JAVA_OPTS=""
 
 EXPOSE 8080
+
 USER loopin
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/loopin-api.jar"]
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/loopin-api.jar"]
