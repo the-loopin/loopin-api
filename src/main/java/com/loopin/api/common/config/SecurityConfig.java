@@ -9,6 +9,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -83,7 +84,7 @@ public class SecurityConfig {
      * Development login is deliberately available only in non-production profiles.
      * Security matchers exclude the servlet context path (/api).
      */
-    @Bean
+    @Bean("devLoginAccessCustomizer")
     @Profile({"local", "dev", "test"})
     public Customizer<HttpSecurity> devLoginAccess() {
         return http -> http.authorizeHttpRequests(auth -> auth
