@@ -3,7 +3,7 @@ package com.loopin.api.media.storage.s3;
 import com.loopin.api.common.exception.StoredObjectNotFoundException;
 import com.loopin.api.media.storage.PresignedUpload;
 import com.loopin.api.media.storage.StoredObjectMetadata;
-import com.loopin.api.support.AbstractIntegrationTest;
+import com.loopin.api.support.AbstractMinioIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class S3ObjectStorageIntegrationTest extends AbstractIntegrationTest {
+class S3ObjectStorageIntegrationTest extends AbstractMinioIntegrationTest {
 
     @Autowired
     private S3ObjectStorage objectStorage;
