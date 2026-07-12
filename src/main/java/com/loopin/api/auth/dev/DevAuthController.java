@@ -8,8 +8,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Locale;
+
 @RestController
-@RequestMapping("/api/dev/auth")
+@RequestMapping("/v1/dev/auth")
 @Profile({"local", "dev", "test"})
 @RequiredArgsConstructor
 public class DevAuthController {
@@ -34,5 +36,8 @@ public class DevAuthController {
         String email
 
     ) {
+        public DevLoginRequest {
+            email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+        }
     }
 }
