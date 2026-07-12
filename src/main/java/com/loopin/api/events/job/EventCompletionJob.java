@@ -59,7 +59,8 @@ public class EventCompletionJob {
                         archivedGroups += result.archivedGroups();
                     }
                 } catch (RuntimeException ex) {
-                    log.warn("Failed to complete event {} during event completion job.", eventId, ex);
+                    log.warn("Failed to complete event {} during event completion job type={}",
+                            eventId, ex.getClass().getSimpleName());
                 }
             }
         } finally {

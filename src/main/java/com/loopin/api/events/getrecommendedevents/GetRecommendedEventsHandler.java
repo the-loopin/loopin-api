@@ -40,7 +40,7 @@ public class GetRecommendedEventsHandler {
 
     @Transactional(readOnly = true)
     public List<EventResponse> handle(GetRecommendedEventsQuery query) {
-        log.info("Fetching recommended events for user: {}, limit: {}", query.currentUsername(), query.limit());
+        log.info("Fetching recommended events limit={}", query.limit());
         User currentUser = eventFinder.findCurrentUser(query.currentUsername());
 
         if (userEmbeddingRepository.existsByUserId(currentUser.getId())) {
@@ -51,8 +51,7 @@ public class GetRecommendedEventsHandler {
             }
         }
 
-        log.debug("No user embedding or recommendation candidates found for user: {}, falling back to recent events",
-                query.currentUsername());
+        log.debug("No recommendation candidates found; falling back to recent events");
         Page<Event> fallbackPage = eventRepository.findAll(
                 specifications.activePublishedAt(LocalDateTime.now()),
                 PageRequest.of(0, query.limit(), Sort.by(Sort.Direction.DESC, "createdAt"))

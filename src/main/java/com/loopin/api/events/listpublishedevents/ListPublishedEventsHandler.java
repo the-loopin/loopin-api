@@ -36,8 +36,9 @@ public class ListPublishedEventsHandler {
     @Cacheable(value = "publishedEvents", key = "#query")
     @Transactional(readOnly = true)
     public Page<EventResponse> handle(ListPublishedEventsQuery query) {
-        log.info("Fetching published events with filters - type: {}, category: {}, city: {}, isFree: {}, search: {}",
-                query.type(), query.category(), query.city(), query.isFree(), query.search());
+        log.info("Fetching published events type={} category={} city={} isFree={} hasSearch={}",
+                query.type(), query.category(), query.city(), query.isFree(),
+                query.search() != null && !query.search().isBlank());
 
         Page<Event> eventPage = eventRepository.findAll(
                 specifications.forPublishedListing(query),

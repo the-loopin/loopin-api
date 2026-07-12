@@ -72,8 +72,8 @@ public class ContentModerationService {
 
             return moderateWithAi(textFields);
         } catch (RuntimeException exception) {
-            log.warn("Local content moderation failed; allowing content to preserve availability: {}",
-                    exception.getMessage());
+            log.warn("Local content moderation failed; allowing content to preserve availability type={}",
+                    exception.getClass().getSimpleName());
             return ContentModerationDecision.approved();
         }
     }
@@ -95,8 +95,8 @@ public class ContentModerationService {
                     ? new ContentModerationDecision(ContentModerationStatus.PENDING_REVIEW, List.of())
                     : ContentModerationDecision.approved();
         } catch (RuntimeException exception) {
-            log.warn("AI moderation unavailable; allowing content according to fail-open policy: {}",
-                    exception.getMessage());
+            log.warn("AI moderation unavailable; allowing content according to fail-open policy type={}",
+                    exception.getClass().getSimpleName());
             return ContentModerationDecision.approved();
         }
     }

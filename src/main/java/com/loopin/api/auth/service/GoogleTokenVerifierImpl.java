@@ -75,8 +75,8 @@ public class GoogleTokenVerifierImpl implements GoogleTokenVerifier {
             throw exception;
         } catch (IOException | GeneralSecurityException exception) {
             log.warn(
-                "Google ID token verification temporarily failed",
-                exception
+                "Google ID token verification temporarily failed type={}",
+                exception.getClass().getSimpleName()
             );
 
             throw new ResponseStatusException(

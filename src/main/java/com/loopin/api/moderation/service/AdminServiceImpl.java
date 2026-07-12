@@ -92,7 +92,7 @@ public class AdminServiceImpl implements AdminService {
         targetUser.setRole(role);
         User updatedUser = userRepository.save(targetUser);
 
-        log.info("Admin {} performed role update to {} on user {}", currentAdminIdentifier, role, targetUserId);
+        log.info("Admin role update completed role={} targetUserId={}", role, targetUserId);
 
         return userMapper.toResponse(updatedUser);
     }
@@ -118,7 +118,7 @@ public class AdminServiceImpl implements AdminService {
         targetUser.markAsDeleted();
         userRepository.save(targetUser);
 
-        log.info("Admin {} performed soft-delete on user {}", currentAdminIdentifier, targetUserId);
+        log.info("Admin soft-delete completed targetUserId={}", targetUserId);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class AdminServiceImpl implements AdminService {
         event.setStatus(EventStatus.CANCELLED);
         eventRepository.save(event);
 
-        log.info("Admin {} performed deletion on event {}", currentAdminIdentifier, eventId);
+        log.info("Admin event deletion completed eventId={}", eventId);
     }
 
     private void archiveGroupsForEvent(Long eventId) {

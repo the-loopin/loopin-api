@@ -156,10 +156,10 @@ public class GlobalExceptionHandler {
         HttpServletRequest request
     ) {
         log.error(
-            "Unhandled exception for method={} path={}",
+            "Unhandled request failure type={} method={} path={}",
+            exception.getClass().getSimpleName(),
             request.getMethod(),
-            request.getRequestURI(),
-            exception
+            request.getRequestURI()
         );
 
         ErrorResponse response = buildErrorResponse(
@@ -273,9 +273,9 @@ public class GlobalExceptionHandler {
         HttpServletRequest request
     ) {
         log.error(
-            "Media storage operation failed for path={}",
-            request.getRequestURI(),
-            exception
+            "Media storage operation failed type={} path={}",
+            exception.getClass().getSimpleName(),
+            request.getRequestURI()
         );
 
         ErrorResponse response = buildErrorResponse(
