@@ -1,6 +1,7 @@
 package com.loopin.api.media.requestupload;
 
 import com.loopin.api.media.dto.request.RequestMediaUploadRequest;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.media.dto.response.MediaUploadResponse;
 import com.loopin.api.media.entity.MediaAsset;
 import com.loopin.api.media.repository.MediaAssetRepository;
@@ -31,6 +32,7 @@ public class RequestMediaUploadHandler {
     private final StorageProperties storageProperties;
 
     @Transactional
+    @LoopinOperation(domain = "media", operation = "request_upload")
     public MediaUploadResponse handle(RequestMediaUploadCommand command) {
         RequestMediaUploadRequest request = command.request();
 

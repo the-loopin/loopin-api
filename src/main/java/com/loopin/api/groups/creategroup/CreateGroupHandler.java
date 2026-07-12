@@ -1,6 +1,7 @@
 package com.loopin.api.groups.creategroup;
 
 import com.loopin.api.events.api.EventLookup;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.dto.response.GroupResponse;
 import com.loopin.api.groups.entity.EventGroup;
@@ -28,6 +29,7 @@ public class CreateGroupHandler {
     private final ContentModerationService moderationService;
 
     @Transactional
+    @LoopinOperation(domain = "groups", operation = "create")
     public GroupResponse handle(CreateGroupCommand command) {
         var request = command.request();
         if (!moderationService.moderate(request.getTitle(), request.getGroupNote()).isApproved()) {

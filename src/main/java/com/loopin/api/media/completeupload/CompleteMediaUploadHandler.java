@@ -1,6 +1,7 @@
 package com.loopin.api.media.completeupload;
 
 import com.loopin.api.common.exception.InvalidMediaStateException;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.media.dto.response.MediaCompletionResponse;
 import com.loopin.api.media.entity.MediaAsset;
 import com.loopin.api.media.enums.MediaStatus;
@@ -25,6 +26,7 @@ public class CompleteMediaUploadHandler {
     private final StoredMediaValidator storedMediaValidator;
     private final CompleteMediaUploadTransaction transaction;
 
+    @LoopinOperation(domain = "media", operation = "complete_upload")
     public MediaCompletionResponse handle(
         CompleteMediaUploadCommand command
     ) {

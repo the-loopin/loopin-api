@@ -1,6 +1,7 @@
 package com.loopin.api.media.deletemedia;
 
 import com.loopin.api.common.exception.InvalidMediaStateException;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.media.entity.MediaAsset;
 import com.loopin.api.media.enums.MediaStatus;
 import com.loopin.api.media.shared.access.MediaAccessPolicy;
@@ -21,6 +22,7 @@ public class DeleteMediaHandler {
     private final ObjectStorage objectStorage;
     private final DeleteMediaTransaction transaction;
 
+    @LoopinOperation(domain = "media", operation = "delete")
     public void handle(DeleteMediaCommand command) {
         User currentUser = userLookup.findByEmail(command.currentUserEmail());
         MediaAsset media = mediaFinder.findByPublicId(command.mediaId());

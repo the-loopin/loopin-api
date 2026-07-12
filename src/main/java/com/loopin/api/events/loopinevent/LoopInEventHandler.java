@@ -1,6 +1,7 @@
 package com.loopin.api.events.loopinevent;
 
 import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.events.dto.response.LoopedEventResponse;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.mapper.EventMapper;
@@ -30,6 +31,7 @@ public class LoopInEventHandler {
     private final NotificationWriter notificationWriter;
 
     @Transactional
+    @LoopinOperation(domain = "events", operation = "loop_in")
     public LoopedEventResponse handle(LoopInEventCommand command) {
         User currentUser =
             eventFinder.findCurrentUser(command.currentUsername());

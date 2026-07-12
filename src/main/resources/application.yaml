@@ -43,7 +43,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    enable:
+      hikaricp: true
+      http.server.requests: true
+      jvm: true
+      system: true
   endpoint:
     health:
       # Keep health responses safe for the publicly reachable probe endpoints.
@@ -145,3 +153,8 @@ loopin:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
     timeout: ${LOOPIN_AI_TIMEOUT:2s}
     embedding-model: ${LOOPIN_AI_EMBEDDING_MODEL:intfloat/multilingual-e5-small}
+  observability:
+    prometheus:
+      # Configure a long, randomly generated secret through PROMETHEUS_SCRAPE_TOKEN.
+      # When it is absent, the endpoint remains inaccessible rather than falling back to user JWTs.
+      scrape-token: ${PROMETHEUS_SCRAPE_TOKEN:}

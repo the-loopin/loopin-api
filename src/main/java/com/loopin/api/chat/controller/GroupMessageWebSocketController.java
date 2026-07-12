@@ -1,6 +1,7 @@
 package com.loopin.api.chat.controller;
 
 import com.loopin.api.common.security.CustomUserDetails;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.chat.dto.request.CreateGroupMessageRequest;
 import com.loopin.api.chat.dto.response.GroupMessageResponse;
 import com.loopin.api.chat.service.GroupMessageService;
@@ -26,6 +27,7 @@ public class GroupMessageWebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/groups/{groupId}/messages")
+    @LoopinOperation(domain = "websocket", operation = "message")
     public void sendMessage(
             @DestinationVariable UUID groupId,
             @Valid @Payload CreateGroupMessageRequest request,

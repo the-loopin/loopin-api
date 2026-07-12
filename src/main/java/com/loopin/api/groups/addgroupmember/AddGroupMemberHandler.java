@@ -1,6 +1,7 @@
 package com.loopin.api.groups.addgroupmember;
 
 import com.loopin.api.groups.dto.response.GroupMemberResponse;
+import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.groups.entity.EventGroup;
 import com.loopin.api.groups.entity.GroupMember;
 import com.loopin.api.groups.mapper.GroupMemberMapper;
@@ -32,6 +33,7 @@ public class AddGroupMemberHandler {
     private final NotificationWriter notificationWriter;
 
     @Transactional
+    @LoopinOperation(domain = "groups", operation = "add_member")
     public GroupMemberResponse handle(AddGroupMemberCommand command) {
         EventGroup group = groupFinder.findGroup(command.groupId());
         adminPolicy.requireAdmin(group, command.currentUsername());

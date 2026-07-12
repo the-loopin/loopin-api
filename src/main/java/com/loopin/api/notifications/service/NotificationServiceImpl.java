@@ -1,6 +1,8 @@
 package com.loopin.api.notifications.service;
 
 import com.loopin.api.notifications.enums.NotificationChannel;
+import com.loopin.api.common.metrics.LoopinOperation;
+import com.loopin.api.common.metrics.LoopinMetrics;
 import com.loopin.api.notifications.enums.NotificationDeliveryStatus;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
 import com.loopin.api.notifications.enums.NotificationStatus;
@@ -34,9 +36,11 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationDeliveryRepository deliveryRepository;
     private final UserRepository userRepository;
+    private final LoopinMetrics loopinMetrics;
 
     @Override
     @Transactional
+    @LoopinOperation(domain = "notifications", operation = "create")
     public Notification create(NotificationCommand command) {
         if (command.deduplicationKey() != null
                 && notificationRepository.existsByDeduplicationKey(command.deduplicationKey())) {
@@ -60,13 +64,29 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public List<Notification> createAll(Collection<NotificationCommand> commands) {
+        long startNanos = System.nanoTime();
         List<Notification> created = new ArrayList<>();
-        for (NotificationCommand command : commands) {
-            Notification notification = create(command);
-            if (notification != null) {
-                created.add(notification);
+        try {
+            for (NotificationCommand command : commands) {
+                Notification notification = create(command);
+                if (notification != null) {
+                    created.add(notification);
+                }
             }
+        } catch (RuntimeException exception) {
+            loopinMetrics.recordOperation(
+                "notifications", "create", false,
+                java.time.Duration.ofNanos(System.nanoTime() - startNanos)
+            );
+            throw exception;
         }
+
+        // create(...) is a self-invocation here, so its AOP metric is bypassed. Count each
+        // persisted notification explicitly, while preserving the same bounded metric labels.
+        loopinMetrics.recordOperations(
+            "notifications", "create", true, created.size(),
+            java.time.Duration.ofNanos(System.nanoTime() - startNanos)
+        );
         return created;
     }
 

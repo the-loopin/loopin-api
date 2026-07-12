@@ -1,5 +1,6 @@
 package com.loopin.api.common.security;
 
+import com.loopin.api.common.metrics.LoopinMetrics;
 import com.loopin.api.users.service.UserPresenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketLifecycleListener {
 
     private final UserPresenceService userPresenceService;
+    private final LoopinMetrics loopinMetrics;
     private final Map<String, Long> sessionStartTimes = new ConcurrentHashMap<>();
 
     @EventListener
@@ -29,6 +31,7 @@ public class WebSocketLifecycleListener {
         Long userId = getUserIdFromPrincipal(event.getUser());
 
         sessionStartTimes.put(sessionId, System.currentTimeMillis());
+        loopinMetrics.webSocketConnected();
 
         log.info("WebSocket connection established [sessionId: {}, userId: {}]", sessionId, userId);
 
@@ -49,6 +52,7 @@ public class WebSocketLifecycleListener {
 
         Long userId = getUserIdFromPrincipal(event.getUser());
         long durationMs = System.currentTimeMillis() - startTime;
+        loopinMetrics.webSocketDisconnected(java.time.Duration.ofMillis(durationMs));
 
         log.info("WebSocket connection closed [sessionId: {}, userId: {}, closeStatus: {}, durationMs: {}]",
                 sessionId, userId, event.getCloseStatus(), durationMs);
