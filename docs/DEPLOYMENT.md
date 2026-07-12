@@ -19,6 +19,8 @@ See `docs/DOCKER.md` for the full local workflow and environment variable list.
 
 The workflow always uploads JUnit XML and JaCoCo HTML/XML artifacts, even when verification fails. It also runs OWASP Dependency-Check (failing at CVSS 7.0 or higher), reviews newly introduced pull-request dependencies at high severity or above, builds `loopin-api:ci`, and scans that exact image with Trivy for high and critical vulnerabilities. Dependency-Check and Trivy reports are retained as CI artifacts; Trivy SARIF results are also uploaded to GitHub code scanning. No deployment secrets are available to this workflow, and newer runs cancel outdated runs for the same branch or pull request.
 
+Dependency-Check suppressions are maintained in `config/dependency-check-suppressions.xml`. They are intentionally narrow: Spring Boot DevTools is optional local-only code and excluded from the production archive, while the HttpCore suppression applies only to the incorrect Apache HTTP Server CPE association. All other dependency findings, including any genuine HttpCore vulnerability, continue to fail the gate.
+
 `Deploy to Cloud Run` is a manual workflow. Configure these GitHub repository variables:
 
 - `GCP_PROJECT_ID`
