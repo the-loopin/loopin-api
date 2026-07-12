@@ -72,10 +72,10 @@ class ActuatorHealthEndpointTest {
     }
 
     @Test
-    void prometheusEndpointIsAvailableToAdministratorsAndExportsRuntimeMetrics() throws Exception {
+    void prometheusEndpointIsAvailableToTheScraperCredentialAndExportsRuntimeMetrics() throws Exception {
         mockMvc.perform(get("/api/actuator/prometheus")
                         .contextPath("/api")
-                        .with(user("prometheus").roles("ADMIN")))
+                        .header("X-Prometheus-Token", "test-prometheus-scrape-token"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("jvm_memory")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("system_cpu")))
@@ -88,6 +88,14 @@ class ActuatorHealthEndpointTest {
     void prometheusEndpointIsNotPublic() throws Exception {
         mockMvc.perform(get("/api/actuator/prometheus").contextPath("/api"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void prometheusEndpointDoesNotAcceptAnAdminUserIdentity() throws Exception {
+        mockMvc.perform(get("/api/actuator/prometheus")
+                        .contextPath("/api")
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isForbidden());
     }
 
     @TestConfiguration

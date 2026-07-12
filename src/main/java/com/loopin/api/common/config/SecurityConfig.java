@@ -3,6 +3,7 @@ package com.loopin.api.common.config;
 import com.loopin.api.common.security.CustomAccessDeniedHandler;
 import com.loopin.api.common.security.CustomAuthEntryPoint;
 import com.loopin.api.common.security.JwtAuthFilter;
+import com.loopin.api.common.security.PrometheusScrapeAuthenticationFilter;
 import com.loopin.api.common.ratelimit.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -38,6 +39,7 @@ public class SecurityConfig {
     private List<String> allowedOrigins;
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final PrometheusScrapeAuthenticationFilter prometheusScrapeAuthenticationFilter;
     private final RateLimitFilter rateLimitFilter;
     private final CustomAuthEntryPoint customAuthEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
@@ -64,8 +66,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/api/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html", "/api/swagger-ui.html").permitAll()
                 .requestMatchers("/actuator/health/liveness", "/actuator/health/readiness").permitAll()
-                // Prometheus exposes operational details and is deliberately restricted to administrators.
-                .requestMatchers("/actuator/prometheus").hasRole("ADMIN")
+                // A dedicated machine-to-machine credential protects metrics; user JWTs cannot scrape it.
+                .requestMatchers("/actuator/prometheus").hasAuthority("SCOPE_PROMETHEUS")
                 .requestMatchers("/v1/auth/**", "/api/v1/auth/**").permitAll()
                 .requestMatchers("/ws", "/ws/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/users/register", "/api/v1/users/register").permitAll()
@@ -77,6 +79,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(prometheusScrapeAuthenticationFilter, JwtAuthFilter.class)
             .addFilterAfter(rateLimitFilter, JwtAuthFilter.class);
 
         return http.build();
