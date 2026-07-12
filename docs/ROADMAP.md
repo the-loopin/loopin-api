@@ -19,35 +19,35 @@ timeline
 
 ##  Detailed Milestone Breakdowns
 
-### Milestone 1: Core API Polish (Current Phase)
-* **Goal:** Establish a robust REST API baseline.
+### Milestone 1: Core API Polish (Delivered)
+* **Status:** Complete.
 * **Deliverables:**
-  - Complete user authentication and registration lifecycle.
-  - Implement full event creation, filtering, and discovery REST routes.
-  - Implement group creation and join request approval mechanisms.
-  - Seed initial database migration scripts with Liquibase.
+  - [x] Complete user authentication and registration lifecycle.
+  - [x] Implement full event creation, filtering, and discovery REST routes.
+  - [x] Implement group creation and join request approval mechanisms.
+  - [x] Seed initial database migration scripts with Liquibase.
 
-### Milestone 2: Real-Time Chat & Communications
-* **Goal:** Enable live messaging between approved event group members.
+### Milestone 2: Real-Time Chat & Communications (Delivered)
+* **Status:** Complete.
 * **Deliverables:**
-  - Add `spring-boot-starter-websocket` dependencies.
-  - Implement STOMP messaging handler with JWT subscription checks.
-  - Integrate message persistence using the `GroupMessage` schema structure.
-  - Build a mock client UI to verify live chat broadcasts.
-  - Configure Redis Pub/Sub as the message broker for multi-node deployments.
+  - [x] Add `spring-boot-starter-websocket` dependencies.
+  - [x] Implement STOMP messaging handler with JWT subscription checks.
+  - [x] Integrate message persistence using the `GroupMessage` schema structure.
+  - [x] Build a mock client UI to verify live chat broadcasts.
+  - [x] Configure Redis Pub/Sub as the message broker for multi-node deployments.
 
-### Milestone 3: Resilience & Enterprise Security
-* **Goal:** Harden the backend against production loads and security threats.
+### Milestone 3: Resilience & Enterprise Security (Delivered)
+* **Status:** Complete.
 * **Deliverables:**
-  - Switch rate-limiting storage from in-memory (`local`) to distributed (`redis`).
-  - Configure automated IP address lookup resolving behind proxy headers (e.g. Cloudflare / Nginx).
-  - Implement OAuth state parameter validation to protect against Cross-Site Request Forgery (CSRF).
-  - Integrate automated unit and integration tests using Testcontainers and H2/PostgreSQL.
+  - [x] Switch rate-limiting storage from in-memory (`local`) to distributed (`redis`).
+  - [x] Configure automated IP address lookup resolving behind proxy headers (e.g. Cloudflare / Nginx).
+  - [x] Implement OAuth state parameter validation to protect against Cross-Site Request Forgery (CSRF).
+  - [x] Integrate automated unit and integration tests using Testcontainers and H2/PostgreSQL.
 
-### Milestone 4: Global Administration & Advanced Moderation
-* **Goal:** Give administrators tools to manage the community.
+### Milestone 4: Global Administration & Advanced Moderation (Delivered)
+* **Status:** Complete.
 * **Deliverables:**
-  - Complete the dashboard metrics controller.
-  - Introduce moderation action logs (`moderation_logs` table) to track admin decisions.
-  - Integrate an automated content scanning service (e.g. Perspective API or custom NLP filters) for event descriptions and chat text.
-  - Implement soft-delete purge scheduling for old records.
+  - [x] Complete the dashboard metrics controller.
+  - [x] Introduce moderation action logs (`moderation_logs` table) to track admin decisions.
+  - [x] Integrate an automated content scanning service (e.g. Loopin AI, NLP filters, banned words check) for event descriptions and chat text.
+  - [x] Implement soft-delete purge scheduling for old records (retention policies).
