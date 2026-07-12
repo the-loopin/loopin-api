@@ -62,6 +62,20 @@ class DevAuthIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void inactiveUserReturnsNotFoundWithoutIssuingAToken() throws Exception {
+        User user = new User("inactive@example.com", "Inactive User", "google-inactive");
+        user.setRole(Role.USER);
+        user.setIsActive(false);
+        userRepository.save(user);
+
+        mockMvc.perform(post(CANONICAL_LOGIN_PATH)
+                        .contextPath("/api")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"inactive@example.com\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void blankOrInvalidEmailReturnsBadRequest() throws Exception {
         mockMvc.perform(post(CANONICAL_LOGIN_PATH)
                         .contextPath("/api")
