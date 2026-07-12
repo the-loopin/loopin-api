@@ -64,3 +64,13 @@ When scaling the Loopin API horizontally across multiple nodes/containers:
    - When Server B receives a message, it writes to the database and publishes it to a Redis topic.
    - All server nodes subscribe to the Redis topic.
    - When Server A receives the Redis subscription notification, it forwards the message to all local WebSocket sessions subscribed to `/topic/group.{groupId}`.
+
+---
+
+##  Connection Lifecycle & Reconnect Contract
+
+To prevent stale or hanging connections from accumulating and to facilitate graceful load balancing, the Loopin API enforces a hard server-side timeout on all active WebSocket connections.
+
+1. **Timeout Duration:** Connections are automatically and gracefully terminated by the server exactly **290 seconds** (4 minutes and 50 seconds) after they are established.
+2. **Graceful Close:** The server will close the session using a `CloseStatus.NORMAL` (code 1000) frame.
+3. **Client-Side Contract:** This design requires the frontend client to implement automatic reconnection logic. Upon receiving the normal close event, the client must immediately attempt to re-establish the connection and re-subscribe to its active topics. This is an optimal MVP approach that ensures connection rotation and cleans up zombie sockets.
