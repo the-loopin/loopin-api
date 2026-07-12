@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -8,11 +8,19 @@ on:
       - 'codex/**'
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+  pull-requests: read
+  checks: write
+  security-events: write
 
 jobs:
-  test-and-build:
+  verify:
+    name: Verify, test, and scan dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -25,8 +33,129 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Run tests
-        run: mvn -B test
+      - name: Restore OWASP Dependency-Check data
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: dependency-check-${{ runner.os }}-${{ hashFiles('pom.xml') }}
+          restore-keys: |
+            dependency-check-${{ runner.os }}-
 
-      - name: Build Docker image
-        run: docker build -t loopin-api:${{ github.sha }} .
+      - name: Run Maven verification
+        run: |
+          chmod +x mvnw
+          ./mvnw -B clean verify
+
+      - name: Generate JaCoCo report after a failed verification
+        if: failure()
+        continue-on-error: true
+        run: ./mvnw -B jacoco:report
+
+      - name: Publish JUnit test report
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: JUnit test report
+          path: '**/surefire-reports/TEST-*.xml,**/failsafe-reports/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: 'false'
+
+      - name: Upload JUnit XML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-test-results
+          path: |
+            target/surefire-reports/TEST-*.xml
+            target/failsafe-reports/TEST-*.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Scan Maven dependencies for vulnerabilities
+        id: dependency-check
+        if: success()
+        continue-on-error: true
+        run: ./mvnw -B dependency-check:check
+
+      - name: Upload Dependency-Check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.*
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail when Dependency-Check finds high-severity vulnerabilities
+        if: steps.dependency-check.outcome == 'failure'
+        run: exit 1
+
+  dependency-review:
+    name: Review pull request dependencies
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Review newly introduced dependencies
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  container-security:
+    name: Build and scan container image
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Restore Trivy vulnerability database
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            trivy-${{ runner.os }}-
+
+      - name: Build production Docker image
+        run: docker build -t loopin-api:ci .
+
+      - name: Scan Docker image with Trivy
+        id: trivy
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: loopin-api:ci
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Upload Trivy report to code scanning
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+          category: loopin-api-container
+
+      - name: Upload Trivy report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-container-scan
+          path: trivy-results.sarif
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Fail when Trivy finds high or critical vulnerabilities
+        if: steps.trivy.outcome == 'failure'
+        run: exit 1
