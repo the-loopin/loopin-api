@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         HttpServletResponse response,
         FilterChain filterChain
     ) throws ServletException, IOException {
+        Map<String, String> previousContext = MDC.getCopyOfContextMap();
         String requestId = validRequestIdOrNull(request.getHeader(HEADER_NAME));
         if (requestId == null) {
             requestId = UUID.randomUUID().toString();
@@ -47,7 +49,15 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
+            restoreContext(previousContext);
+        }
+    }
+
+    private void restoreContext(Map<String, String> previousContext) {
+        if (previousContext == null || previousContext.isEmpty()) {
             MDC.clear();
+        } else {
+            MDC.setContextMap(previousContext);
         }
     }
 

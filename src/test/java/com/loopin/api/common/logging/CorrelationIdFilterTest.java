@@ -7,6 +7,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.util.UUID;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +56,7 @@ class CorrelationIdFilterTest {
     }
 
     @Test
-    void clearsMdcAfterRequestCompletion() throws Exception {
+    void removesRequestIdAfterRequestCompletionWhenNoContextExisted() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         AtomicReference<String> requestIdSeenByHandler = new AtomicReference<>();
 
@@ -64,6 +65,38 @@ class CorrelationIdFilterTest {
 
         assertThat(requestIdSeenByHandler.get()).isNotBlank();
         assertThat(MDC.get(CorrelationIdFilter.MDC_KEY)).isNull();
+    }
+
+    @Test
+    void restoresPreExistingMdcContextAfterRequestCompletion() throws Exception {
+        MDC.put("operation", "scheduled-work");
+        AtomicReference<Map<String, String>> contextSeenByHandler = new AtomicReference<>();
+
+        filter.doFilter(new MockHttpServletRequest(), new MockHttpServletResponse(),
+            (ignoredRequest, ignoredResponse) -> contextSeenByHandler.set(MDC.getCopyOfContextMap()));
+
+        assertThat(contextSeenByHandler.get())
+            .containsEntry("operation", "scheduled-work")
+            .containsKey(CorrelationIdFilter.MDC_KEY);
+        assertThat(MDC.getCopyOfContextMap())
+            .containsEntry("operation", "scheduled-work")
+            .doesNotContainKey(CorrelationIdFilter.MDC_KEY);
+    }
+
+    @Test
+    void requestMdcDoesNotLeakIntoTheNextRequest() throws Exception {
+        AtomicReference<String> firstRequestId = new AtomicReference<>();
+        AtomicReference<String> secondRequestId = new AtomicReference<>();
+
+        filter.doFilter(new MockHttpServletRequest(), new MockHttpServletResponse(),
+            (ignoredRequest, ignoredResponse) -> firstRequestId.set(MDC.get(CorrelationIdFilter.MDC_KEY)));
+        assertThat(MDC.getCopyOfContextMap()).isNull();
+
+        filter.doFilter(new MockHttpServletRequest(), new MockHttpServletResponse(),
+            (ignoredRequest, ignoredResponse) -> secondRequestId.set(MDC.get(CorrelationIdFilter.MDC_KEY)));
+
+        assertThat(secondRequestId.get()).isNotEqualTo(firstRequestId.get());
+        assertThat(MDC.getCopyOfContextMap()).isNull();
     }
 
     private MockHttpServletResponse invokeFilter(MockHttpServletRequest request) throws Exception {
