@@ -36,6 +36,7 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/loopin_smoke
       DATABASE_USERNAME: loopin_smoke
       DATABASE_PASSWORD: loopin_smoke_password
+      LOOPIN_AI_EMBEDDING_JOBS_ENABLED: "false"
       LIQUIBASE_ENABLED: "true"
       LIQUIBASE_CONTEXTS: production
       RATE_LIMIT_STORAGE: redis
