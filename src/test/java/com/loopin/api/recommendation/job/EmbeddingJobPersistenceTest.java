@@ -25,6 +25,8 @@ class EmbeddingJobPersistenceTest {
     @BeforeEach void setUp() {
         properties.getEmbeddingJobs().setEmbeddingDimensions(2);
         persistence = new EmbeddingJobPersistence(jobs, events, users, properties);
+
+        when(jobs.lockActiveClaim(any())).thenReturn(true);
     }
 
     @Test void validLatestEventResultIsUpsertedIdempotently() {
@@ -67,6 +69,54 @@ class EmbeddingJobPersistenceTest {
                 persistence.recordFailure(job, 1, Instant.now(), true, "AI_HTTP_503", "unavailable"));
         verify(jobs).supersede(9L);
         verify(jobs, never()).retry(anyLong(), anyInt(), any(), anyString(), anyString());
+    }
+
+    @Test void staleClaimCannotWriteEmbeddingOrCompleteJob() {
+        EmbeddingJob job = job(EmbeddingEntityType.EVENT);
+        EmbeddingResponse response = response("model", List.of(.1, .2));
+    
+        when(jobs.lockActiveClaim(job)).thenReturn(false);
+    
+        assertEquals(
+                EmbeddingJobPersistence.PersistResult.SUPERSEDED,
+                persistence.persist(job, response)
+        );
+    
+        verifyNoInteractions(events);
+        verify(jobs, never()).complete(job.id());
+        verify(jobs, never()).isLatest(job);
+    }
+
+    @Test void staleClaimCannotScheduleRetry() {
+        EmbeddingJob job = job(EmbeddingEntityType.EVENT);
+    
+        when(jobs.lockActiveClaim(job)).thenReturn(false);
+    
+        assertEquals(
+                EmbeddingJobPersistence.FailureResult.SUPERSEDED,
+                persistence.recordFailure(
+                        job,
+                        1,
+                        Instant.now(),
+                        true,
+                        "AI_TIMEOUT",
+                        "timeout"
+                )
+        );
+    
+        verify(jobs, never()).retry(
+                anyLong(),
+                anyInt(),
+                any(),
+                anyString(),
+                anyString()
+        );
+        verify(jobs, never()).dead(
+                anyLong(),
+                anyInt(),
+                anyString(),
+                anyString()
+        );
     }
 
     private void assertPermanent(String code, EmbeddingResponse response) {
