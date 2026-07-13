@@ -60,6 +60,9 @@ public class EmbeddingJobPersistence {
     public FailureResult recordFailure(EmbeddingJob job, int attempts, Instant nextRetry,
                                        boolean retryable, String code, String message) {
         jobs.lockEntity(job.entityType(), job.entityId(), job.embeddingModel());
+        if (!jobs.lockActiveClaim(job)) {
+            return PersistResult.SUPERSEDED;
+        }
         if (!jobs.isLatest(job)) {
             jobs.supersede(job.id());
             return FailureResult.SUPERSEDED;
