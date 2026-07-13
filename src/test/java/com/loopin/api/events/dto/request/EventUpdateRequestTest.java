@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -278,22 +279,17 @@ class EventUpdateRequestTest {
     }
 
     @Test
-    void imageUrl_ExceedsMaxLength_ViolatesSizeConstraint() {
-        EventUpdateRequest request = createValidRequest();
-        request.setImageUrl("a".repeat(501));
+    void imageMediaId_validUuid_isValid() {
+        EventUpdateRequest request =
+            createValidRequest();
 
-        Set<ConstraintViolation<EventUpdateRequest>> violations = validator.validate(request);
+        request.setImageMediaId(
+            UUID.randomUUID()
+        );
 
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("imageUrl")));
-    }
-
-    @Test
-    void imageUrl_ExactMaxLength_IsValid() {
-        EventUpdateRequest request = createValidRequest();
-        request.setImageUrl("a".repeat(500));
-
-        Set<ConstraintViolation<EventUpdateRequest>> violations = validator.validate(request);
+        Set<ConstraintViolation<EventUpdateRequest>>
+            violations =
+            validator.validate(request);
 
         assertTrue(violations.isEmpty());
     }
