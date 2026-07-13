@@ -196,6 +196,24 @@ public class EmbeddingJobRepository {
         return age == null ? 0 : Math.max(0, age);
     }
 
+    public boolean lockActiveClaim(EmbeddingJob job) {
+        Boolean active = jdbcTemplate.query(
+                """
+                SELECT id
+                FROM embedding_jobs
+                WHERE id = ?
+                  AND status = 'PROCESSING'
+                  AND attempt_count = ?
+                FOR UPDATE
+                """,
+                rs -> rs.next(),
+                job.id(),
+                job.attemptCount()
+        );
+    
+        return Boolean.TRUE.equals(active);
+    }
+
     private String sanitize(String message) {
         if (message == null) return null;
         String safe = message.replaceAll("[\\r\\n\\t]", " ");
