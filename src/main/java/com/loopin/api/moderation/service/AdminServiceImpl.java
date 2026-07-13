@@ -1,6 +1,7 @@
 package com.loopin.api.moderation.service;
 
 import com.loopin.api.auth.enums.Role;
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.notifications.enums.NotificationReferenceType;
@@ -135,7 +136,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     /** Administrator cancellation can affect any cached public-list filter and its detail entry. */
     @Caching(evict = {
-            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
             @CacheEvict(value = "eventById", key = "#eventId")
     })
     @Transactional
