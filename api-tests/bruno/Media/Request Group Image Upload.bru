@@ -1,0 +1,40 @@
+meta {
+  name: Request Group Image Upload
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/media/uploads
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "purpose": "GROUP_IMAGE",
+    "fileName": "group-image.webp",
+    "contentType": "image/webp",
+    "sizeBytes": 100000
+  }
+}
+
+script:post-response {
+  if (res.status === 201 && res.body && res.body.mediaId) {
+    bru.setEnvVar("media_id", res.body.mediaId);
+    bru.setEnvVar("group_image_media_id", res.body.mediaId);
+    bru.setEnvVar("upload_url", res.body.uploadUrl);
+    bru.setEnvVar(
+      "media_content_type",
+      res.body.requiredHeaders["Content-Type"]
+    );
+  }
+}
