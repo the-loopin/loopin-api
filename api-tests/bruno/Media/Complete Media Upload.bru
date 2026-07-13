@@ -1,0 +1,23 @@
+meta {
+  name: Complete Media Upload
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/media/uploads/{{media_id}}/complete
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+tests {
+  test("Media upload is completed", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.mediaId).to.equal(bru.getEnvVar("media_id"));
+    expect(res.body.status).to.equal("UPLOADED");
+  });
+}
