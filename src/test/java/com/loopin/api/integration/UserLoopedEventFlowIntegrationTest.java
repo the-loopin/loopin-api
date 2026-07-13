@@ -505,9 +505,6 @@ class UserLoopedEventFlowIntegrationTest extends AbstractIntegrationTest {
         savedEvent.setPrice(BigDecimal.ZERO);
 
         savedEvent.setOrganizerName("Loopin");
-        savedEvent.setImageUrl(
-            "https://example.test/event.jpg"
-        );
 
         savedEvent.setStatus(EventStatus.PUBLISHED);
         savedEvent.setModerationStatus(
