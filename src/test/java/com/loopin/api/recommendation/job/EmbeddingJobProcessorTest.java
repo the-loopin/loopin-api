@@ -6,6 +6,7 @@ import com.loopin.api.ai.config.LoopinAiProperties;
 import com.loopin.api.ai.dto.EmbeddingBatchResponse;
 import com.loopin.api.ai.dto.EmbeddingResponse;
 import com.loopin.api.common.logging.CorrelationIdFilter;
+import com.loopin.api.common.logging.CorrelationIdGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
@@ -15,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -23,6 +25,7 @@ class EmbeddingJobProcessorTest {
     private final LoopinAiClient ai = mock(LoopinAiClient.class);
     private final EmbeddingJobPersistence persistence = mock(EmbeddingJobPersistence.class);
     private final EmbeddingJobMetrics metrics = mock(EmbeddingJobMetrics.class);
+    private final CorrelationIdGenerator correlationIds = mock(CorrelationIdGenerator.class);
     private final LoopinAiProperties properties = new LoopinAiProperties();
     private EmbeddingJobProcessor processor;
 
@@ -32,7 +35,8 @@ class EmbeddingJobProcessorTest {
         properties.getEmbeddingJobs().setMaxBackoff(Duration.ofSeconds(10));
         properties.getEmbeddingJobs().setBackoffJitter(0);
         properties.getEmbeddingJobs().setEmbeddingDimensions(2);
-        processor = new EmbeddingJobProcessor(ai, persistence, properties, metrics);
+        when(correlationIds.next()).thenReturn("generated-request-123");
+        processor = new EmbeddingJobProcessor(ai, persistence, properties, metrics, correlationIds);
     }
 
     @Test void successPersistsAndCompletesEventJob() {
@@ -59,6 +63,28 @@ class EmbeddingJobProcessorTest {
             processor.process(job);
             assertEquals("req-1", aiRequestId.get());
             assertEquals("worker-context", MDC.get(CorrelationIdFilter.MDC_KEY));
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    @Test void singleJobWithoutOriginalRequestIdUsesGeneratedSafeIdAndRestoresContextAfterFailure() {
+        EmbeddingJob job = new EmbeddingJob(9, EmbeddingEntityType.EVENT, 42, EmbeddingOperation.UPSERT,
+                "source", "hash", "model", 0, null, false);
+        AtomicReference<String> aiRequestId = new AtomicReference<>();
+        when(ai.embedPassage("source")).thenAnswer(invocation -> {
+            aiRequestId.set(MDC.get(CorrelationIdFilter.MDC_KEY));
+            throw new LoopinAiException("timeout", true, "AI_TIMEOUT");
+        });
+        when(persistence.recordFailure(eq(job), eq(1), any(), eq(true), eq("AI_TIMEOUT"), anyString()))
+                .thenReturn(EmbeddingJobPersistence.FailureResult.RETRY);
+        MDC.put(CorrelationIdFilter.MDC_KEY, "worker-context");
+        try {
+            processor.process(job);
+            assertEquals("generated-request-123", aiRequestId.get());
+            assertEquals(aiRequestId.get(), CorrelationIdFilter.validRequestIdOrNull(aiRequestId.get()));
+            assertEquals("worker-context", MDC.get(CorrelationIdFilter.MDC_KEY));
+            assertEquals(null, job.requestId());
         } finally {
             MDC.clear();
         }
@@ -118,6 +144,31 @@ class EmbeddingJobProcessorTest {
         verify(persistence).persist(eq(first), eq(new EmbeddingResponse("model", 2, List.of(.1, .2))));
         verify(persistence).persist(eq(second), eq(new EmbeddingResponse("model", 2, List.of(.3, .4))));
         verify(metrics).batchSize(2);
+    }
+
+    @Test void mixedOriginBatchUsesNewRequestIdAndRestoresPreviousContext() {
+        EmbeddingJob first = job(9, EmbeddingEntityType.EVENT, 0);
+        EmbeddingJob second = new EmbeddingJob(10, EmbeddingEntityType.USER_INTEREST, 43,
+                EmbeddingOperation.UPSERT, "other", "other-hash", "model", 0, "req-2", false);
+        AtomicReference<String> aiRequestId = new AtomicReference<>();
+        when(correlationIds.next()).thenReturn("batch-request-456");
+        when(ai.embedPassages(List.of("source", "other"))).thenAnswer(invocation -> {
+            aiRequestId.set(MDC.get(CorrelationIdFilter.MDC_KEY));
+            return new EmbeddingBatchResponse("model", 2, List.of(List.of(.1, .2), List.of(.3, .4)));
+        });
+        when(persistence.persist(any(), any())).thenReturn(EmbeddingJobPersistence.PersistResult.COMPLETED);
+        MDC.put(CorrelationIdFilter.MDC_KEY, "worker-context");
+        try {
+            processor.processBatch(List.of(first, second));
+            assertEquals("batch-request-456", aiRequestId.get());
+            assertThat(aiRequestId.get()).isNotIn(first.requestId(), second.requestId());
+            assertEquals(aiRequestId.get(), CorrelationIdFilter.validRequestIdOrNull(aiRequestId.get()));
+            assertEquals("req-1", first.requestId());
+            assertEquals("req-2", second.requestId());
+            assertEquals("worker-context", MDC.get(CorrelationIdFilter.MDC_KEY));
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Test void invalidItemInBatchDoesNotFailValidItems() {

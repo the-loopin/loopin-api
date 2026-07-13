@@ -96,6 +96,34 @@ class EmbeddingJobRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void claimReturnsOnlyOneCompatibleModelGroupAndLimitsDeleteToOneJob() {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.executeWithoutResult(status -> {
+            jobs.enqueue(EmbeddingEntityType.EVENT, 9301, EmbeddingOperation.UPSERT,
+                    "model-a-1", SourceTextHasher.sha256("model-a-1"), "model-a", "request-a");
+            jobs.enqueue(EmbeddingEntityType.EVENT, 9302, EmbeddingOperation.UPSERT,
+                    "model-a-2", SourceTextHasher.sha256("model-a-2"), "model-a", "request-a");
+            jobs.enqueue(EmbeddingEntityType.EVENT, 9303, EmbeddingOperation.UPSERT,
+                    "model-b-1", SourceTextHasher.sha256("model-b-1"), "model-b", "request-b");
+        });
+
+        assertThat(jobs.claimBatch(10)).extracting(EmbeddingJob::embeddingModel)
+                .containsOnly("model-a");
+        assertThat(jobs.claimBatch(10)).extracting(EmbeddingJob::embeddingModel)
+                .containsOnly("model-b");
+
+        jdbc.update("DELETE FROM embedding_jobs");
+        tx.executeWithoutResult(status -> {
+            jobs.enqueue(EmbeddingEntityType.USER_INTEREST, 9401, EmbeddingOperation.DELETE,
+                    "", SourceTextHasher.sha256(""), "model", "request-1");
+            jobs.enqueue(EmbeddingEntityType.USER_INTEREST, 9402, EmbeddingOperation.DELETE,
+                    "", SourceTextHasher.sha256(""), "model", "request-2");
+        });
+        assertThat(jobs.claimBatch(10)).singleElement()
+                .extracting(EmbeddingJob::operation).isEqualTo(EmbeddingOperation.DELETE);
+    }
+
+    @Test
     void repeatedlyAbandonedJobEventuallyBecomesDeadAndCanBeRetried() {
         jdbc.update("""
                 INSERT INTO embedding_jobs(entity_type, entity_id, operation_type, source_text,
