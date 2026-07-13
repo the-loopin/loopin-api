@@ -1,5 +1,6 @@
 package com.loopin.api.events.job;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.users.enums.BadgeType;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.entity.Event;
@@ -32,7 +33,7 @@ public class EventCompletionProcessor {
      * UUID. Completion is infrequent, so clearing that cache is safer than risking a stale detail.
      */
     @Caching(evict = {
-            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
             @CacheEvict(value = "eventById", allEntries = true)
     })
     @Transactional(propagation = Propagation.REQUIRES_NEW)
