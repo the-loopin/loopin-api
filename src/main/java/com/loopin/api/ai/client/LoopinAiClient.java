@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopin.api.ai.dto.EmbeddingRequest;
 import com.loopin.api.ai.dto.EmbeddingResponse;
+import com.loopin.api.ai.dto.EmbeddingBatchRequest;
+import com.loopin.api.ai.dto.EmbeddingBatchResponse;
 import com.loopin.api.ai.dto.RerankCandidate;
 import com.loopin.api.ai.dto.RerankRequest;
 import com.loopin.api.ai.dto.RerankResponse;
@@ -63,17 +65,29 @@ public class LoopinAiClient {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new IllegalStateException("Loopin AI request failed with status " + response.statusCode());
+                int status = response.statusCode();
+                boolean retryable = status == 408 || status == 429 || status >= 500;
+                throw new LoopinAiException("Loopin AI request failed with status " + status,
+                        retryable, "AI_HTTP_" + status);
             }
 
             return objectMapper.readValue(response.body(), responseType);
         } catch (JsonProcessingException exception) {
-            throw new IllegalStateException("Failed to serialize Loopin AI request", exception);
+            throw new LoopinAiException("Invalid Loopin AI payload or response", false,
+                    "AI_CONTRACT", exception);
         } catch (IOException exception) {
-            throw new IllegalStateException("Loopin AI request failed", exception);
+            throw new LoopinAiException("Loopin AI connection failed", true,
+                    "AI_CONNECTION", exception);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Loopin AI request was interrupted", exception);
+            throw new LoopinAiException("Loopin AI request was interrupted", true,
+                    "AI_INTERRUPTED", exception);
         }
+    }
+
+    @LoopinOperation(domain = "ai", operation = "embed_passage_batch")
+    public EmbeddingBatchResponse embedPassages(List<String> texts) {
+        return post("/v1/embeddings/text/batch",
+                new EmbeddingBatchRequest(texts, "passage"), EmbeddingBatchResponse.class);
     }
 }
