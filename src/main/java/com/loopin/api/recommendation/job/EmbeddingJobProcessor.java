@@ -5,14 +5,17 @@ import com.loopin.api.ai.client.LoopinAiException;
 import com.loopin.api.ai.config.LoopinAiProperties;
 import com.loopin.api.ai.dto.EmbeddingBatchResponse;
 import com.loopin.api.ai.dto.EmbeddingResponse;
+import com.loopin.api.common.logging.CorrelationIdFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 @Component
@@ -55,7 +58,10 @@ public class EmbeddingJobProcessor {
         metrics.batchSize(batch.size());
         EmbeddingBatchResponse response;
         try {
-            response = aiClient.embedPassages(batch.stream().map(EmbeddingJob::sourceText).toList());
+            String requestId = batch.stream().map(EmbeddingJob::requestId)
+                    .filter(java.util.Objects::nonNull).findFirst().orElse(null);
+            response = withRequestId(requestId,
+                    () -> aiClient.embedPassages(batch.stream().map(EmbeddingJob::sourceText).toList()));
             if (response == null || response.embeddings() == null || response.embeddings().size() != batch.size()) {
                 throw new LoopinAiException("Batch response mapping is incompatible", false, "AI_BATCH_CONTRACT");
             }
@@ -73,7 +79,8 @@ public class EmbeddingJobProcessor {
     private void processOne(EmbeddingJob job) {
         Instant started = Instant.now();
         try {
-            processResponse(job, aiClient.embedPassage(job.sourceText()), started);
+            processResponse(job, withRequestId(job.requestId(),
+                    () -> aiClient.embedPassage(job.sourceText())), started);
         } catch (RuntimeException exception) {
             handleFailure(job, exception, started);
         }
@@ -140,5 +147,17 @@ public class EmbeddingJobProcessor {
         double jitter = Math.max(0, Math.min(1, properties.getEmbeddingJobs().getBackoffJitter()));
         double factor = ThreadLocalRandom.current().nextDouble(1 - jitter, 1 + jitter + Math.ulp(1 + jitter));
         return Duration.ofMillis(Math.min(maximum.toMillis(), Math.max(1, Math.round(base * factor))));
+    }
+
+    private <T> T withRequestId(String requestId, Supplier<T> action) {
+        String previous = MDC.get(CorrelationIdFilter.MDC_KEY);
+        try {
+            if (requestId == null) MDC.remove(CorrelationIdFilter.MDC_KEY);
+            else MDC.put(CorrelationIdFilter.MDC_KEY, requestId);
+            return action.get();
+        } finally {
+            if (previous == null) MDC.remove(CorrelationIdFilter.MDC_KEY);
+            else MDC.put(CorrelationIdFilter.MDC_KEY, previous);
+        }
     }
 }

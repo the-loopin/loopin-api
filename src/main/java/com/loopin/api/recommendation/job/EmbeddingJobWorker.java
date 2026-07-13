@@ -2,6 +2,7 @@ package com.loopin.api.recommendation.job;
 
 import com.loopin.api.ai.config.LoopinAiProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class EmbeddingJobWorker {
     private final EmbeddingJobRepository jobs;
     private final EmbeddingJobProcessor processor;
@@ -21,9 +23,17 @@ public class EmbeddingJobWorker {
             initialDelayString = "${loopin.ai.embedding-jobs.worker-initial-delay-ms:5000}")
     public void processDueJobs() {
         if (!properties.getEmbeddingJobs().isEnabled()) return;
-        var claimed = jobs.claimBatch(properties.getEmbeddingJobs().getBatchSize(),
-                Instant.now().minus(properties.getEmbeddingJobs().getProcessingTimeout()));
-        metrics.recovered(claimed.stream().filter(EmbeddingJob::recovered).count());
+        int batchSize = properties.getEmbeddingJobs().getBatchSize();
+        Instant staleBefore = Instant.now().minus(properties.getEmbeddingJobs().getProcessingTimeout());
+        var recovery = jobs.recoverStuckJobs(staleBefore,
+                properties.getEmbeddingJobs().getMaxAttempts(), batchSize);
+        metrics.recovered(recovery.recovered());
+        metrics.failed(recovery.dead());
+        if (recovery.recovered() > 0) {
+            log.warn("embedding_job_stuck_recovery recovered={} dead={} staleBefore={}",
+                    recovery.recovered(), recovery.dead(), staleBefore);
+        }
+        var claimed = jobs.claimBatch(batchSize);
         processor.processBatch(claimed);
     }
 }

@@ -54,6 +54,7 @@ public class EmbeddingJobMetrics {
     public void completed() { completed.increment(); }
     public void retried() { retried.increment(); }
     public void failed() { terminalFailures.increment(); }
+    public void failed(long count) { if (count > 0) terminalFailures.increment(count); }
     public void recovered(long count) { if (count > 0) recovered.increment(count); }
     public void processing(Duration duration) { processing.record(duration); }
     public void batchSize(int size) { if (size > 0) batchSize.record(size); }

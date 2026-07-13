@@ -56,12 +56,11 @@ public class EmbeddingJobRepository {
         return inserted == 1;
     }
 
-    public List<EmbeddingJob> claimBatch(int limit, Instant processingBefore) {
+    public List<EmbeddingJob> claimBatch(int limit) {
         return jdbcTemplate.query("""
                 WITH claimed AS (
-                  SELECT id, status AS previous_status FROM embedding_jobs
-                  WHERE (status IN ('PENDING','RETRY') AND next_retry_at <= CURRENT_TIMESTAMP)
-                     OR (status = 'PROCESSING' AND processing_at < ?)
+                  SELECT id FROM embedding_jobs
+                  WHERE status IN ('PENDING','RETRY') AND next_retry_at <= CURRENT_TIMESTAMP
                   ORDER BY next_retry_at, created_at
                   LIMIT ?
                   FOR UPDATE SKIP LOCKED
@@ -71,13 +70,41 @@ public class EmbeddingJobRepository {
                 FROM claimed WHERE j.id=claimed.id
                 RETURNING j.id, j.entity_type, j.entity_id, j.operation_type, j.source_text,
                           j.source_text_hash, j.embedding_model, j.attempt_count, j.request_id,
-                          (claimed.previous_status = 'PROCESSING') AS recovered
+                          false AS recovered
                 """, (rs, row) -> new EmbeddingJob(rs.getLong("id"),
                         EmbeddingEntityType.valueOf(rs.getString("entity_type")), rs.getLong("entity_id"),
                         EmbeddingOperation.valueOf(rs.getString("operation_type")), rs.getString("source_text"),
                         rs.getString("source_text_hash"), rs.getString("embedding_model"),
                         rs.getInt("attempt_count"), rs.getString("request_id"), rs.getBoolean("recovered")),
-                Timestamp.from(processingBefore), limit);
+                limit);
+    }
+
+    public RecoverySummary recoverStuckJobs(Instant processingBefore, int maxAttempts, int limit) {
+        return jdbcTemplate.queryForObject("""
+                WITH stale AS (
+                  SELECT id FROM embedding_jobs
+                  WHERE status='PROCESSING' AND processing_at < ?
+                  ORDER BY processing_at
+                  LIMIT ?
+                  FOR UPDATE SKIP LOCKED
+                ), recovered AS (
+                  UPDATE embedding_jobs j
+                  SET attempt_count=j.attempt_count + 1,
+                      status=CASE WHEN j.attempt_count + 1 >= ? THEN 'DEAD' ELSE 'RETRY' END,
+                      next_retry_at=CURRENT_TIMESTAMP,
+                      last_error_code='PROCESSING_TIMEOUT_RECOVERY',
+                      last_error_message='Processing claim timed out before completion',
+                      processing_at=NULL,
+                      updated_at=CURRENT_TIMESTAMP
+                  FROM stale WHERE j.id=stale.id
+                  RETURNING j.status
+                )
+                SELECT count(*) AS recovered_count,
+                       count(*) FILTER (WHERE status='DEAD') AS dead_count
+                FROM recovered
+                """, (rs, row) -> new RecoverySummary(
+                        rs.getInt("recovered_count"), rs.getInt("dead_count")),
+                Timestamp.from(processingBefore), limit, maxAttempts);
     }
 
     public void lockEntity(EmbeddingEntityType type, long entityId, String model) {
@@ -166,4 +193,6 @@ public class EmbeddingJobRepository {
         String safe = message.replaceAll("[\\r\\n\\t]", " ");
         return safe.substring(0, Math.min(safe.length(), 1000));
     }
+
+    public record RecoverySummary(int recovered, int dead) { }
 }
