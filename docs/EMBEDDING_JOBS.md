@@ -20,6 +20,9 @@ ORDER BY created_at;
 `PROCESSING` jobs older than `LOOPIN_AI_EMBEDDING_PROCESSING_TIMEOUT` are reclaimed automatically.
 Each recovery consumes an attempt; repeatedly abandoned work transitions to `DEAD` at the configured
 maximum instead of cycling forever.
+Each worker pass claims only the immediately processed compatible group (or one delete), then claims
+the next group after that work completes. This prevents later jobs in a large worker pass from
+expiring their processing lease while waiting in memory.
 `DEAD` jobs remain available for inspection. The internal `EmbeddingJobOperations.retryDeadJobs`
 operation safely moves selected, still-latest dead jobs back to `RETRY`; it refuses obsolete jobs.
 Use that operation from an authenticated maintenance command rather than editing job status directly.
@@ -36,6 +39,10 @@ Use that operation from an authenticated maintenance command rather than editing
 Alert on a growing oldest-job age, any sustained `dead` count, or repeated retry/recovery events.
 Logs contain job identity, entity type, operation, attempt, request ID, and sanitized error code;
 they intentionally omit source text and embedding vectors.
+
+Every outbound multi-job AI batch receives a newly generated `X-Request-ID`. This identifies the AI
+batch itself rather than incorrectly attributing all jobs to one original API request. Job-level logs
+and `embedding_jobs.request_id` retain their original request IDs.
 
 ## Java-to-loopin-ai contract smoke test
 

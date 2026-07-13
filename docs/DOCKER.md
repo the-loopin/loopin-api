@@ -7,7 +7,8 @@
 
 ## Environment
 
-Create a local environment file before starting Compose:
+An environment file is optional for the default local Compose stack. Create one when you need to
+override defaults or enable optional integrations:
 
 ```bash
 cp .env.example .env
@@ -30,6 +31,11 @@ Required variables for the API:
 - `RATE_LIMIT_*_REQUESTS` and `RATE_LIMIT_*_WINDOW` values when overriding defaults
 
 Compose sets `DATABASE_URL` to `jdbc:postgresql://postgres:5432/loopin` for the API container and sets Redis host to `redis`. Local JVM runs can keep the `.env.example` localhost defaults.
+
+The default local stack does not start `loopin-ai`, so durable embedding workers are disabled by
+default. To enable them, provide both `LOOPIN_AI_SERVICE_TOKEN` and a `LOOPIN_AI_BASE_URL` that is
+reachable from the API container (for example, another Compose service hostname). Do not use
+`http://localhost:8000` unless loopin-ai runs in the API container itself.
 
 ## Commands
 
