@@ -1,0 +1,25 @@
+meta {
+  name: Update My Avatar
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{base_url}}/me/avatar
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "mediaId": "{{profile_avatar_media_id}}"
+  }
+}
