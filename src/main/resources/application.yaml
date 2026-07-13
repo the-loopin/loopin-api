@@ -153,6 +153,20 @@ loopin:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
     timeout: ${LOOPIN_AI_TIMEOUT:2s}
     embedding-model: ${LOOPIN_AI_EMBEDDING_MODEL:intfloat/multilingual-e5-small}
+    service-token: ${LOOPIN_AI_SERVICE_TOKEN:}
+    embedding-jobs:
+      enabled: ${LOOPIN_AI_EMBEDDING_JOBS_ENABLED:true}
+      batch-size: ${LOOPIN_AI_EMBEDDING_BATCH_SIZE:25}
+      max-attempts: ${LOOPIN_AI_EMBEDDING_MAX_ATTEMPTS:8}
+      initial-backoff: ${LOOPIN_AI_EMBEDDING_INITIAL_BACKOFF:5s}
+      max-backoff: ${LOOPIN_AI_EMBEDDING_MAX_BACKOFF:30m}
+      processing-timeout: ${LOOPIN_AI_EMBEDDING_PROCESSING_TIMEOUT:5m}
+      backoff-jitter: ${LOOPIN_AI_EMBEDDING_BACKOFF_JITTER:0.2}
+      embedding-dimensions: ${LOOPIN_AI_EMBEDDING_DIMENSIONS:384}
+      batch-enabled: ${LOOPIN_AI_EMBEDDING_BATCH_ENABLED:true}
+      ai-batch-size: ${LOOPIN_AI_EMBEDDING_AI_BATCH_SIZE:32}
+      worker-delay-ms: ${LOOPIN_AI_EMBEDDING_WORKER_DELAY_MS:5000}
+      worker-initial-delay-ms: ${LOOPIN_AI_EMBEDDING_WORKER_INITIAL_DELAY_MS:5000}
   observability:
     prometheus:
       # Configure a long, randomly generated secret through PROMETHEUS_SCRAPE_TOKEN.

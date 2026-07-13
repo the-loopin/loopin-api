@@ -25,6 +25,7 @@ public class LoopinMetrics {
         new Operation("notifications", "create"),
         new Operation("websocket", "message"),
         new Operation("ai", "embed_passage"),
+        new Operation("ai", "embed_passage_batch"),
         new Operation("ai", "embed_query"),
         new Operation("ai", "rerank"),
         new Operation("media", "request_upload"),

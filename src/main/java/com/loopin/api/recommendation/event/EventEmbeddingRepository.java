@@ -36,6 +36,10 @@ public class EventEmbeddingRepository {
         );
     }
 
+    public void delete(Long eventId) {
+        jdbcTemplate.update("DELETE FROM event_embeddings WHERE event_id = ?", eventId);
+    }
+
     public List<EventCandidate> findSimilarEvents(List<Double> queryEmbedding, int limit) {
         return findSimilarEvents(queryEmbedding, loopinAiProperties.getEmbeddingModel(), limit);
     }

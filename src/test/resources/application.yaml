@@ -43,6 +43,9 @@ cors:
   allowed-origins: "*"
 
 loopin:
+  ai:
+    embedding-jobs:
+      enabled: false
   observability:
     prometheus:
       scrape-token: test-prometheus-scrape-token

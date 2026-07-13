@@ -19,8 +19,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Rolls back only the final performance-index changeset in a database which is never used by
- * the Spring integration suite. Shared extensions must survive that rollback.
+ * Uses a dedicated changelog whose final changeset is the performance-index migration, so
+ * later production migrations cannot change the rollback target. Shared extensions must survive.
  */
 @Testcontainers
 class PostgreSqlPerformanceMigrationRollbackTest {
@@ -53,7 +53,7 @@ class PostgreSqlPerformanceMigrationRollbackTest {
                 new JdbcConnection(dataSource.getConnection())
         );
         Liquibase liquibase = new Liquibase(
-                "db/changelog/db.changelog-master.yaml",
+                "db/changelog/performance-rollback-test.yaml",
                 new ClassLoaderResourceAccessor(),
                 database
         );

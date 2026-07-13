@@ -61,7 +61,7 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
         }
     }
 
-    private String validRequestIdOrNull(String requestId) {
+    public static String validRequestIdOrNull(String requestId) {
         if (requestId == null || requestId.length() > MAX_REQUEST_ID_LENGTH) {
             return null;
         }

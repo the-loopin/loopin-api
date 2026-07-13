@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-create-embedding-jobs
+      author: loopin
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TABLE embedding_jobs (
+                id BIGSERIAL PRIMARY KEY,
+                entity_type VARCHAR(30) NOT NULL,
+                entity_id BIGINT NOT NULL,
+                operation_type VARCHAR(20) NOT NULL,
+                source_text TEXT NOT NULL,
+                source_text_hash VARCHAR(64) NOT NULL,
+                embedding_model VARCHAR(255) NOT NULL,
+                status VARCHAR(20) NOT NULL,
+                attempt_count INTEGER NOT NULL DEFAULT 0,
+                next_retry_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                last_error_code VARCHAR(80),
+                last_error_message VARCHAR(1000),
+                request_id VARCHAR(128),
+                processing_at TIMESTAMPTZ,
+                completed_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT ck_embedding_jobs_entity_type
+                  CHECK (entity_type IN ('EVENT', 'USER_INTEREST')),
+                CONSTRAINT ck_embedding_jobs_operation
+                  CHECK (operation_type IN ('UPSERT', 'DELETE')),
+                CONSTRAINT ck_embedding_jobs_status
+                  CHECK (status IN ('PENDING', 'PROCESSING', 'RETRY', 'COMPLETED', 'DEAD', 'SUPERSEDED')),
+                CONSTRAINT ck_embedding_jobs_attempt_count CHECK (attempt_count >= 0)
+              );
+
+              CREATE INDEX idx_embedding_jobs_due
+                ON embedding_jobs (next_retry_at, created_at)
+                WHERE status IN ('PENDING', 'RETRY');
+
+              CREATE UNIQUE INDEX uk_embedding_jobs_active_source
+                ON embedding_jobs (entity_type, entity_id, embedding_model, source_text_hash, operation_type)
+                WHERE status IN ('PENDING', 'PROCESSING', 'RETRY');
+
+              CREATE INDEX idx_embedding_jobs_processing
+                ON embedding_jobs (processing_at)
+                WHERE status = 'PROCESSING';
+
+              CREATE INDEX idx_embedding_jobs_operational
+                ON embedding_jobs (status, updated_at);
+
+              CREATE INDEX idx_embedding_jobs_latest_entity
+                ON embedding_jobs (entity_type, entity_id, embedding_model, id DESC);
+      rollback:
+        - sql:
+            sql: DROP TABLE IF EXISTS embedding_jobs;
