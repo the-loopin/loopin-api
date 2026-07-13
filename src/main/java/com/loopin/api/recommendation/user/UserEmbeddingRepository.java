@@ -36,6 +36,10 @@ public class UserEmbeddingRepository {
         );
     }
 
+    public void delete(Long userId) {
+        jdbcTemplate.update("DELETE FROM user_interest_embeddings WHERE user_id = ?", userId);
+    }
+
     public boolean existsByUserIdAndModel(Long userId, String embeddingModel) {
         Boolean exists = jdbcTemplate.queryForObject(
                 """

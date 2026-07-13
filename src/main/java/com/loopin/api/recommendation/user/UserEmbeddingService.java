@@ -1,8 +1,10 @@
 package com.loopin.api.recommendation.user;
 
 import com.loopin.api.interests.entity.Interest;
+import com.loopin.api.recommendation.job.EmbeddingEntityType;
+import com.loopin.api.recommendation.job.EmbeddingJobEnqueuer;
+import com.loopin.api.recommendation.job.EmbeddingOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,15 +13,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserEmbeddingService {
 
-    private final ApplicationEventPublisher eventPublisher;
+    private final EmbeddingJobEnqueuer jobEnqueuer;
     private final UserEmbeddingTextBuilder userEmbeddingTextBuilder;
 
     public void indexUser(Long userId, List<Interest> interests) {
         String sourceText = userEmbeddingTextBuilder.build(interests);
-        if (userId == null || sourceText.isBlank()) {
+        if (userId == null) {
             return;
         }
 
-        eventPublisher.publishEvent(new UserEmbeddingRequestedEvent(userId, sourceText));
+        EmbeddingOperation operation = sourceText.isBlank() ? EmbeddingOperation.DELETE : EmbeddingOperation.UPSERT;
+        jobEnqueuer.enqueue(EmbeddingEntityType.USER_INTEREST, userId, operation, sourceText);
     }
 }

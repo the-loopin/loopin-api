@@ -1,15 +1,17 @@
 package com.loopin.api.recommendation.event;
 
 import com.loopin.api.events.entity.Event;
+import com.loopin.api.recommendation.job.EmbeddingEntityType;
+import com.loopin.api.recommendation.job.EmbeddingJobEnqueuer;
+import com.loopin.api.recommendation.job.EmbeddingOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class EventEmbeddingService {
 
-    private final ApplicationEventPublisher eventPublisher;
+    private final EmbeddingJobEnqueuer jobEnqueuer;
     private final EventEmbeddingTextBuilder eventEmbeddingTextBuilder;
 
     public void indexEvent(Event event) {
@@ -18,6 +20,6 @@ public class EventEmbeddingService {
             return;
         }
 
-        eventPublisher.publishEvent(new EventEmbeddingRequestedEvent(event.getId(), sourceText));
+        jobEnqueuer.enqueue(EmbeddingEntityType.EVENT, event.getId(), EmbeddingOperation.UPSERT, sourceText);
     }
 }
