@@ -86,6 +86,12 @@ com.loopin.api
    `- seed            # cross-module development-data orchestration
 ```
 
+Embedding indexing uses a transactional job pattern. Event and user-interest command transactions
+write `embedding_jobs` through the Recommendation boundary; they never call Loopin AI. Scheduled
+workers claim bounded batches after commit. Job and embedding state transitions use the same
+PostgreSQL transaction and a per-entity advisory lock, which provides idempotency and prevents a
+late result from overwriting newer content. See [Embedding Job Operations](EMBEDDING_JOBS.md).
+
 Each business module owns its layer-specific types, preserving the current service behavior while removing the global `controller`, `service`, `repository`, `entity`, `dto`, and `mapper` packages.
 
 ### Group Aggregate Ownership
