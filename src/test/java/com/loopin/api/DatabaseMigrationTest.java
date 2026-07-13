@@ -30,7 +30,7 @@ class DatabaseMigrationTest extends AbstractIntegrationTest {
                 "group_members", "group_join_requests", "group_messages", "job_locks",
                 "user_reports", "moderation_logs", "interests", "user_interests",
                 "event_interests", "event_embeddings", "user_interest_embeddings",
-                "community_embeddings", "databasechangelog"
+                "community_embeddings", "embedding_jobs", "databasechangelog"
         );
         List<String> appliedChangeSets = jdbcTemplate.queryForList(
                 "select id from databasechangelog",
@@ -41,7 +41,8 @@ class DatabaseMigrationTest extends AbstractIntegrationTest {
                 .contains(
                         "004-create-ai-embedding-tables",
                         "012-create-user-looped-events",
-                        "014-add-postgresql-performance-indexes"
+                        "014-add-postgresql-performance-indexes",
+                        "025-create-embedding-jobs"
                 );
     }
 }
