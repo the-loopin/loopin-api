@@ -43,6 +43,9 @@ public class EmbeddingJobPersistence {
     @Transactional
     public PersistResult delete(EmbeddingJob job) {
         jobs.lockEntity(job.entityType(), job.entityId(), job.embeddingModel());
+        if (!jobs.lockActiveClaim(job)) {
+            return PersistResult.SUPERSEDED;
+        }
         if (!jobs.isLatest(job)) {
             jobs.supersede(job.id());
             return PersistResult.SUPERSEDED;
