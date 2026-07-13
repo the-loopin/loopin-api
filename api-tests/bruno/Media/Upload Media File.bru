@@ -1,0 +1,19 @@
+meta {
+  name: Upload Media File
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{upload_url}}
+  body: file
+  auth: none
+}
+
+headers {
+  Content-Type: {{media_content_type}}
+}
+
+body:file {
+  file: {{media_file_path}}
+}
