@@ -1,13 +1,13 @@
 package com.loopin.api.groups.mapper;
 
-
+import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.dto.request.CreateGroupRequest;
 import com.loopin.api.groups.dto.response.GroupResponse;
-import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.entity.EventGroup;
-import com.loopin.api.users.entity.User;
 import com.loopin.api.groups.enums.GroupStatus;
 import com.loopin.api.groups.repository.GroupMemberRepository;
+import com.loopin.api.media.mapper.MediaReferenceMapper;
+import com.loopin.api.users.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,9 +16,15 @@ import org.springframework.stereotype.Component;
 public class GroupMapper {
 
     private final GroupMemberRepository groupMemberRepository;
+    private final MediaReferenceMapper mediaReferenceMapper;
 
-    public EventGroup toEntity(CreateGroupRequest request, User admin, Event event) {
+    public EventGroup toEntity(
+        CreateGroupRequest request,
+        User admin,
+        Event event
+    ) {
         EventGroup group = new EventGroup();
+
         group.setEvent(event);
         group.setAdmin(admin);
         group.setTitle(request.getTitle());
@@ -26,24 +32,40 @@ public class GroupMapper {
         group.setMaxMembers(request.getMaxMembers());
         group.setGroupNote(request.getGroupNote());
         group.setStatus(GroupStatus.OPEN);
+
+        /*
+         * imageMedia is intentionally not mapped here.
+         * Media ownership, purpose and status must be validated
+         * by the command handler.
+         */
         return group;
     }
 
-    public GroupResponse toGroupResponse(EventGroup group) {
-        int memberCount = groupMemberRepository.countByGroupId(group.getId());
+    public GroupResponse toGroupResponse(
+        EventGroup group
+    ) {
+        int memberCount =
+            groupMemberRepository.countByGroupId(
+                group.getId()
+            );
+
         return new GroupResponse(
-                group.getPublicId(),
-                group.getEvent() != null ? group.getEvent().getPublicId() : null,
-                group.getAdmin().getPublicId(),
-                group.getAdmin().getEmail(),
-                group.getTitle(),
-                group.getGroupSize(),
-                group.getMaxMembers(),
-                group.getStatus(),
-                group.getGroupNote(),
-                memberCount,
-                group.getCreatedAt()
+            group.getPublicId(),
+            group.getEvent() != null
+                ? group.getEvent().getPublicId()
+                : null,
+            group.getAdmin().getPublicId(),
+            group.getAdmin().getEmail(),
+            group.getTitle(),
+            group.getGroupSize(),
+            group.getMaxMembers(),
+            group.getStatus(),
+            group.getGroupNote(),
+            mediaReferenceMapper.toResponse(
+                group.getImageMedia()
+            ),
+            memberCount,
+            group.getCreatedAt()
         );
     }
-
 }
