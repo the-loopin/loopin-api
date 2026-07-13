@@ -24,6 +24,9 @@ public class EmbeddingJobPersistence {
     public PersistResult persist(EmbeddingJob job, EmbeddingResponse response) {
         validate(job, response);
         jobs.lockEntity(job.entityType(), job.entityId(), job.embeddingModel());
+        if (!jobs.lockActiveClaim(job)) {
+            return PersistResult.SUPERSEDED;
+        }
         if (!jobs.isLatest(job)) {
             jobs.supersede(job.id());
             return PersistResult.SUPERSEDED;
