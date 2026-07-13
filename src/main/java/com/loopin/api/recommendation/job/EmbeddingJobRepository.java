@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.stereotype.Repository;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -206,7 +207,7 @@ public class EmbeddingJobRepository {
                   AND attempt_count = ?
                 FOR UPDATE
                 """,
-                rs -> rs.next(),
+                (ResultSetExtractor<Boolean>) rs -> rs.next(),
                 job.id(),
                 job.attemptCount()
         );
