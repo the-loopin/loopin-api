@@ -1,5 +1,6 @@
 package com.loopin.api.events.update;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.dto.request.EventUpdateRequest;
 import com.loopin.api.events.dto.response.EventResponse;
 import com.loopin.api.events.entity.Event;
@@ -38,7 +39,7 @@ public class UpdateEventHandler {
 
     /** Clears all filtered/pageable list variants; the command can change any discovery field. */
     @Caching(evict = {
-        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
         @CacheEvict(value = "eventById", key = "#command.id")
     })
     @Transactional
