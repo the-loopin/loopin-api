@@ -61,7 +61,7 @@ public class EmbeddingJobPersistence {
                                        boolean retryable, String code, String message) {
         jobs.lockEntity(job.entityType(), job.entityId(), job.embeddingModel());
         if (!jobs.lockActiveClaim(job)) {
-            return PersistResult.SUPERSEDED;
+            return FailureResult.SUPERSEDED;
         }
         if (!jobs.isLatest(job)) {
             jobs.supersede(job.id());
