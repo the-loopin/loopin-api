@@ -5,12 +5,15 @@ import com.loopin.api.ai.client.LoopinAiException;
 import com.loopin.api.ai.config.LoopinAiProperties;
 import com.loopin.api.ai.dto.EmbeddingBatchResponse;
 import com.loopin.api.ai.dto.EmbeddingResponse;
+import com.loopin.api.common.logging.CorrelationIdFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,6 +43,25 @@ class EmbeddingJobProcessorTest {
         processor.process(job);
         verify(persistence).persist(job, response);
         verify(metrics).completed();
+    }
+
+    @Test void backgroundJobRequestIdIsAppliedForAiCallAndPreviousContextIsRestored() {
+        EmbeddingJob job = job(9, EmbeddingEntityType.EVENT, 0);
+        EmbeddingResponse response = new EmbeddingResponse("model", 2, List.of(.1, .2));
+        AtomicReference<String> aiRequestId = new AtomicReference<>();
+        when(ai.embedPassage("source")).thenAnswer(invocation -> {
+            aiRequestId.set(MDC.get(CorrelationIdFilter.MDC_KEY));
+            return response;
+        });
+        when(persistence.persist(job, response)).thenReturn(EmbeddingJobPersistence.PersistResult.COMPLETED);
+        MDC.put(CorrelationIdFilter.MDC_KEY, "worker-context");
+        try {
+            processor.process(job);
+            assertEquals("req-1", aiRequestId.get());
+            assertEquals("worker-context", MDC.get(CorrelationIdFilter.MDC_KEY));
+        } finally {
+            MDC.clear();
+        }
     }
 
     @Test void timeoutSchedulesExponentialRetry() {

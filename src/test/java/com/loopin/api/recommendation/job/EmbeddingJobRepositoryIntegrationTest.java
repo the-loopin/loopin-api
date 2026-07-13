@@ -85,9 +85,9 @@ class EmbeddingJobRepositoryIntegrationTest extends AbstractIntegrationTest {
             }
         });
         CompletableFuture<List<EmbeddingJob>> first = CompletableFuture.supplyAsync(
-                () -> jobs.claimBatch(2, Instant.now().minusSeconds(60)));
+                () -> jobs.claimBatch(2));
         CompletableFuture<List<EmbeddingJob>> second = CompletableFuture.supplyAsync(
-                () -> jobs.claimBatch(2, Instant.now().minusSeconds(60)));
+                () -> jobs.claimBatch(2));
         Set<Long> firstIds = new HashSet<>(first.join().stream().map(EmbeddingJob::id).toList());
         Set<Long> secondIds = new HashSet<>(second.join().stream().map(EmbeddingJob::id).toList());
         assertThat(firstIds).hasSize(2);
@@ -96,21 +96,38 @@ class EmbeddingJobRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void stuckProcessingJobIsRecoveredAndLatestDeadJobCanBeRetried() {
+    void repeatedlyAbandonedJobEventuallyBecomesDeadAndCanBeRetried() {
         jdbc.update("""
                 INSERT INTO embedding_jobs(entity_type, entity_id, operation_type, source_text,
                   source_text_hash, embedding_model, status, processing_at, next_retry_at)
                 VALUES ('EVENT', 9201, 'UPSERT', 'source', ?, 'model', 'PROCESSING',
                   CURRENT_TIMESTAMP - INTERVAL '10 minutes', CURRENT_TIMESTAMP)
                 """, SourceTextHasher.sha256("source"));
-        List<EmbeddingJob> recovered = jobs.claimBatch(1, Instant.now().minusSeconds(60));
-        assertThat(recovered).singleElement().extracting(EmbeddingJob::recovered).isEqualTo(true);
+        long id = jdbc.queryForObject("SELECT id FROM embedding_jobs WHERE entity_id=9201", Long.class);
 
-        long id = recovered.getFirst().id();
-        jdbc.update("UPDATE embedding_jobs SET status='DEAD', processing_at=NULL WHERE id=?", id);
+        for (int expectedAttempt = 1; expectedAttempt < 3; expectedAttempt++) {
+            EmbeddingJobRepository.RecoverySummary recovery = jobs.recoverStuckJobs(
+                    Instant.now().minusSeconds(60), 3, 1);
+            assertThat(recovery.recovered()).isOne();
+            assertThat(recovery.dead()).isZero();
+            assertThat(jobs.claimBatch(1)).singleElement()
+                    .extracting(EmbeddingJob::attemptCount).isEqualTo(expectedAttempt);
+            jdbc.update("UPDATE embedding_jobs SET processing_at=CURRENT_TIMESTAMP - INTERVAL '10 minutes' WHERE id=?", id);
+        }
+
+        EmbeddingJobRepository.RecoverySummary terminal = jobs.recoverStuckJobs(
+                Instant.now().minusSeconds(60), 3, 1);
+        assertThat(terminal.recovered()).isOne();
+        assertThat(terminal.dead()).isOne();
+        assertThat(jobs.claimBatch(1)).isEmpty();
+        assertThat(jdbc.queryForMap("SELECT status, attempt_count FROM embedding_jobs WHERE id=?", id))
+                .containsEntry("status", "DEAD")
+                .containsEntry("attempt_count", 3);
+
         assertThat(operations.retryDeadJobs(List.of(id))).isOne();
-        assertThat(jdbc.queryForObject("SELECT status FROM embedding_jobs WHERE id=?", String.class, id))
-                .isEqualTo("RETRY");
+        assertThat(jdbc.queryForMap("SELECT status, attempt_count FROM embedding_jobs WHERE id=?", id))
+                .containsEntry("status", "RETRY")
+                .containsEntry("attempt_count", 0);
     }
 
     private long countEvents(String title) {
