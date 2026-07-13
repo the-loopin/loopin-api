@@ -1,0 +1,136 @@
+package com.loopin.api.recommendation.job;
+
+import com.loopin.api.events.entity.Event;
+import com.loopin.api.events.enums.EventCategory;
+import com.loopin.api.events.enums.EventStatus;
+import com.loopin.api.events.enums.EventType;
+import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.moderation.enums.ContentModerationStatus;
+import com.loopin.api.recommendation.event.EventEmbeddingService;
+import com.loopin.api.support.AbstractIntegrationTest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+class EmbeddingJobRepositoryIntegrationTest extends AbstractIntegrationTest {
+    @Autowired private EmbeddingJobRepository jobs;
+    @Autowired private EmbeddingJobOperations operations;
+    @Autowired private EventEmbeddingService eventEmbeddingService;
+    @Autowired private EventRepository events;
+    @Autowired private JdbcTemplate jdbc;
+    @Autowired private PlatformTransactionManager transactionManager;
+
+    @AfterEach
+    void cleanUp() {
+        jdbc.update("DELETE FROM embedding_jobs");
+        jdbc.update("DELETE FROM events WHERE title LIKE 'Embedding atomicity %'");
+    }
+
+    @Test
+    void eventAndJobCommitAtomicallyAndRollbackTogether() {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.executeWithoutResult(status -> {
+            Event event = events.saveAndFlush(event("Embedding atomicity rollback"));
+            eventEmbeddingService.indexEvent(event);
+            status.setRollbackOnly();
+        });
+        assertThat(countEvents("Embedding atomicity rollback")).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM embedding_jobs", Long.class)).isZero();
+
+        tx.executeWithoutResult(status -> {
+            Event event = events.saveAndFlush(event("Embedding atomicity commit"));
+            eventEmbeddingService.indexEvent(event);
+        });
+        assertThat(countEvents("Embedding atomicity commit")).isOne();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM embedding_jobs", Long.class)).isOne();
+    }
+
+    @Test
+    void duplicateSourceIsDeduplicatedAndNewSourceSupersedesOldWork() {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.executeWithoutResult(status -> {
+            assertThat(jobs.enqueue(EmbeddingEntityType.EVENT, 9001, EmbeddingOperation.UPSERT,
+                    "old", SourceTextHasher.sha256("old"), "model", "request-1")).isTrue();
+            assertThat(jobs.enqueue(EmbeddingEntityType.EVENT, 9001, EmbeddingOperation.UPSERT,
+                    "old", SourceTextHasher.sha256("old"), "model", "request-1")).isFalse();
+            assertThat(jobs.enqueue(EmbeddingEntityType.EVENT, 9001, EmbeddingOperation.UPSERT,
+                    "new", SourceTextHasher.sha256("new"), "model", "request-2")).isTrue();
+        });
+        assertThat(jdbc.queryForList("SELECT status FROM embedding_jobs ORDER BY id", String.class))
+                .containsExactly("SUPERSEDED", "PENDING");
+    }
+
+    @Test
+    void concurrentWorkersClaimDisjointRows() {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.executeWithoutResult(status -> {
+            for (long id = 1; id <= 4; id++) {
+                jobs.enqueue(EmbeddingEntityType.EVENT, 9100 + id, EmbeddingOperation.UPSERT,
+                        "source-" + id, SourceTextHasher.sha256("source-" + id), "model", "request");
+            }
+        });
+        CompletableFuture<List<EmbeddingJob>> first = CompletableFuture.supplyAsync(
+                () -> jobs.claimBatch(2, Instant.now().minusSeconds(60)));
+        CompletableFuture<List<EmbeddingJob>> second = CompletableFuture.supplyAsync(
+                () -> jobs.claimBatch(2, Instant.now().minusSeconds(60)));
+        Set<Long> firstIds = new HashSet<>(first.join().stream().map(EmbeddingJob::id).toList());
+        Set<Long> secondIds = new HashSet<>(second.join().stream().map(EmbeddingJob::id).toList());
+        assertThat(firstIds).hasSize(2);
+        assertThat(secondIds).hasSize(2);
+        assertThat(firstIds).doesNotContainAnyElementsOf(secondIds);
+    }
+
+    @Test
+    void stuckProcessingJobIsRecoveredAndLatestDeadJobCanBeRetried() {
+        jdbc.update("""
+                INSERT INTO embedding_jobs(entity_type, entity_id, operation_type, source_text,
+                  source_text_hash, embedding_model, status, processing_at, next_retry_at)
+                VALUES ('EVENT', 9201, 'UPSERT', 'source', ?, 'model', 'PROCESSING',
+                  CURRENT_TIMESTAMP - INTERVAL '10 minutes', CURRENT_TIMESTAMP)
+                """, SourceTextHasher.sha256("source"));
+        List<EmbeddingJob> recovered = jobs.claimBatch(1, Instant.now().minusSeconds(60));
+        assertThat(recovered).singleElement().extracting(EmbeddingJob::recovered).isEqualTo(true);
+
+        long id = recovered.getFirst().id();
+        jdbc.update("UPDATE embedding_jobs SET status='DEAD', processing_at=NULL WHERE id=?", id);
+        assertThat(operations.retryDeadJobs(List.of(id))).isOne();
+        assertThat(jdbc.queryForObject("SELECT status FROM embedding_jobs WHERE id=?", String.class, id))
+                .isEqualTo("RETRY");
+    }
+
+    private long countEvents(String title) {
+        Long count = jdbc.queryForObject("SELECT count(*) FROM events WHERE title=?", Long.class, title);
+        return count == null ? 0 : count;
+    }
+
+    private Event event(String title) {
+        Event event = new Event();
+        event.setTitle(title);
+        event.setDescription("Description");
+        event.setType(EventType.EVENT);
+        event.setCategory(EventCategory.OTHER);
+        event.setCity("Baku");
+        event.setStartDateTime(LocalDateTime.now().plusDays(1));
+        event.setEndDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
+        event.setIsFree(true);
+        event.setOrganizerName("Loopin");
+        event.setStatus(EventStatus.PUBLISHED);
+        event.setModerationStatus(ContentModerationStatus.APPROVED);
+        return event;
+    }
+}
