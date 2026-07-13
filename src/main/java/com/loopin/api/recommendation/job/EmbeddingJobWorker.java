@@ -33,7 +33,18 @@ public class EmbeddingJobWorker {
             log.warn("embedding_job_stuck_recovery recovered={} dead={} staleBefore={}",
                     recovery.recovered(), recovery.dead(), staleBefore);
         }
-        var claimed = jobs.claimBatch(batchSize);
-        processor.processBatch(claimed);
+        int remaining = batchSize;
+        int immediateGroupSize = immediateGroupSize(batchSize);
+        while (remaining > 0) {
+            var claimed = jobs.claimBatch(Math.min(immediateGroupSize, remaining));
+            if (claimed.isEmpty()) return;
+            processor.processBatch(claimed);
+            remaining -= claimed.size();
+        }
+    }
+
+    private int immediateGroupSize(int workerPassLimit) {
+        if (!properties.getEmbeddingJobs().isBatchEnabled()) return 1;
+        return Math.min(workerPassLimit, properties.getEmbeddingJobs().getAiBatchSize());
     }
 }

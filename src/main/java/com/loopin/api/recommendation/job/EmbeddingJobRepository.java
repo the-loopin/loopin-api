@@ -58,11 +58,19 @@ public class EmbeddingJobRepository {
 
     public List<EmbeddingJob> claimBatch(int limit) {
         return jdbcTemplate.query("""
-                WITH claimed AS (
-                  SELECT id FROM embedding_jobs
+                WITH next_group AS (
+                  SELECT operation_type, embedding_model FROM embedding_jobs
                   WHERE status IN ('PENDING','RETRY') AND next_retry_at <= CURRENT_TIMESTAMP
                   ORDER BY next_retry_at, created_at
-                  LIMIT ?
+                  LIMIT 1
+                  FOR UPDATE SKIP LOCKED
+                ), claimed AS (
+                  SELECT j.id FROM embedding_jobs j
+                  JOIN next_group g ON j.operation_type=g.operation_type
+                    AND j.embedding_model=g.embedding_model
+                  WHERE j.status IN ('PENDING','RETRY') AND j.next_retry_at <= CURRENT_TIMESTAMP
+                  ORDER BY j.next_retry_at, j.created_at
+                  LIMIT (CASE WHEN (SELECT operation_type FROM next_group) = 'DELETE' THEN 1 ELSE ? END)
                   FOR UPDATE SKIP LOCKED
                 )
                 UPDATE embedding_jobs j

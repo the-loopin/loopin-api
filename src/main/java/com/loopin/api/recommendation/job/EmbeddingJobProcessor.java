@@ -6,6 +6,7 @@ import com.loopin.api.ai.config.LoopinAiProperties;
 import com.loopin.api.ai.dto.EmbeddingBatchResponse;
 import com.loopin.api.ai.dto.EmbeddingResponse;
 import com.loopin.api.common.logging.CorrelationIdFilter;
+import com.loopin.api.common.logging.CorrelationIdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -26,6 +28,7 @@ public class EmbeddingJobProcessor {
     private final EmbeddingJobPersistence persistence;
     private final LoopinAiProperties properties;
     private final EmbeddingJobMetrics metrics;
+    private final CorrelationIdGenerator correlationIdGenerator;
 
     public void processBatch(List<EmbeddingJob> claimed) {
         claimed.stream().filter(job -> job.operation() == EmbeddingOperation.DELETE).forEach(this::processDelete);
@@ -56,11 +59,13 @@ public class EmbeddingJobProcessor {
     private void processAiBatch(List<EmbeddingJob> batch) {
         Instant started = Instant.now();
         metrics.batchSize(batch.size());
+        String batchRequestId = generatedRequestId();
+        log.info("embedding_job_batch_request batchRequestId={} batchSize={} operation=UPSERT model={} jobIds={}",
+                batchRequestId, batch.size(), batch.getFirst().embeddingModel(),
+                batch.stream().map(EmbeddingJob::id).toList());
         EmbeddingBatchResponse response;
         try {
-            String requestId = batch.stream().map(EmbeddingJob::requestId)
-                    .filter(java.util.Objects::nonNull).findFirst().orElse(null);
-            response = withRequestId(requestId,
+            response = withRequestId(batchRequestId,
                     () -> aiClient.embedPassages(batch.stream().map(EmbeddingJob::sourceText).toList()));
             if (response == null || response.embeddings() == null || response.embeddings().size() != batch.size()) {
                 throw new LoopinAiException("Batch response mapping is incompatible", false, "AI_BATCH_CONTRACT");
@@ -79,7 +84,7 @@ public class EmbeddingJobProcessor {
     private void processOne(EmbeddingJob job) {
         Instant started = Instant.now();
         try {
-            processResponse(job, withRequestId(job.requestId(),
+            processResponse(job, withRequestId(requestIdForSingle(job),
                     () -> aiClient.embedPassage(job.sourceText())), started);
         } catch (RuntimeException exception) {
             handleFailure(job, exception, started);
@@ -159,5 +164,15 @@ public class EmbeddingJobProcessor {
             if (previous == null) MDC.remove(CorrelationIdFilter.MDC_KEY);
             else MDC.put(CorrelationIdFilter.MDC_KEY, previous);
         }
+    }
+
+    private String requestIdForSingle(EmbeddingJob job) {
+        String originalRequestId = CorrelationIdFilter.validRequestIdOrNull(job.requestId());
+        return originalRequestId == null ? generatedRequestId() : originalRequestId;
+    }
+
+    private String generatedRequestId() {
+        String generated = CorrelationIdFilter.validRequestIdOrNull(correlationIdGenerator.next());
+        return generated == null ? UUID.randomUUID().toString() : generated;
     }
 }
