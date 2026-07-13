@@ -117,6 +117,8 @@ jobs:
     name: Build and scan container image
     needs: verify
     runs-on: ubuntu-latest
+    env:
+      SMOKE_COMPOSE_PROJECT: loopin-production-smoke
 
     steps:
       - name: Check out code
@@ -133,9 +135,9 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p production-image-smoke-logs
-          docker compose --project-name loopin-production-smoke --file docker-compose.smoke.yml ps --all | tee production-image-smoke-logs/compose-status.txt || true
-          docker compose --project-name loopin-production-smoke --file docker-compose.smoke.yml logs --no-color | tee production-image-smoke-logs/compose-logs.txt || true
-          container_ids="$(docker compose --project-name loopin-production-smoke --file docker-compose.smoke.yml ps --quiet --all || true)"
+          docker compose --project-name "$SMOKE_COMPOSE_PROJECT" --file docker-compose.smoke.yml ps --all | tee production-image-smoke-logs/compose-status.txt || true
+          docker compose --project-name "$SMOKE_COMPOSE_PROJECT" --file docker-compose.smoke.yml logs --no-color | tee production-image-smoke-logs/compose-logs.txt || true
+          container_ids="$(docker compose --project-name "$SMOKE_COMPOSE_PROJECT" --file docker-compose.smoke.yml ps --quiet --all || true)"
           if [ -n "$container_ids" ]; then
             docker inspect $container_ids > production-image-smoke-logs/container-inspect.json || true
           else
@@ -154,7 +156,7 @@ jobs:
       - name: Clean up production-image smoke environment
         if: always()
         continue-on-error: true
-        run: docker compose --project-name loopin-production-smoke --file docker-compose.smoke.yml down --volumes --remove-orphans
+        run: docker compose --project-name "$SMOKE_COMPOSE_PROJECT" --file docker-compose.smoke.yml down --volumes --remove-orphans
 
       - name: Scan Docker image with Trivy
         id: trivy
