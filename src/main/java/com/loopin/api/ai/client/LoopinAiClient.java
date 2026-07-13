@@ -22,12 +22,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Component
 public class LoopinAiClient {
-
-    private static final Pattern SAFE_REQUEST_ID = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}");
 
     private final LoopinAiProperties properties;
     private final ObjectMapper objectMapper;
@@ -71,7 +68,7 @@ public class LoopinAiClient {
                     .timeout(properties.getTimeout())
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + properties.getServiceToken().trim());
-            String requestId = safeRequestId(MDC.get(CorrelationIdFilter.MDC_KEY));
+            String requestId = CorrelationIdFilter.validRequestIdOrNull(MDC.get(CorrelationIdFilter.MDC_KEY));
             if (requestId != null) requestBuilder.header(CorrelationIdFilter.HEADER_NAME, requestId);
             HttpRequest request = requestBuilder
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(payload)))
@@ -103,10 +100,5 @@ public class LoopinAiClient {
     public EmbeddingBatchResponse embedPassages(List<String> texts) {
         return post("/v1/embeddings/batch",
                 new EmbeddingBatchRequest(texts, "passage"), EmbeddingBatchResponse.class);
-    }
-
-    private String safeRequestId(String requestId) {
-        if (requestId == null || requestId.length() > 128) return null;
-        return SAFE_REQUEST_ID.matcher(requestId).matches() ? requestId : null;
     }
 }
