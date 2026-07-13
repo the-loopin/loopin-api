@@ -112,4 +112,14 @@ public class MediaAsset extends BaseEntity {
 
         this.status = MediaStatus.ATTACHED;
     }
+
+    public void markDetached() {
+        if (status != MediaStatus.ATTACHED) {
+            throw new InvalidMediaStateException(
+                "Only attached media can be detached"
+            );
+        }
+
+        this.status = MediaStatus.UPLOADED;
+    }
 }
