@@ -1,5 +1,6 @@
 package com.loopin.api.events.create;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.dto.request.EventCreateRequest;
 import com.loopin.api.common.metrics.LoopinOperation;
 import com.loopin.api.events.dto.response.EventResponse;
@@ -41,7 +42,7 @@ public class CreateEventHandler {
      * List cache keys include arbitrary filters, sort orders, and page values, so a precise key
      * cannot be derived safely from this command. Clear all public-list variants after a write.
      */
-    @CacheEvict(value = "publishedEvents", allEntries = true)
+    @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true)
     @Transactional
     @LoopinOperation(domain = "events", operation = "create")
     public EventResponse handle(CreateEventCommand command) {

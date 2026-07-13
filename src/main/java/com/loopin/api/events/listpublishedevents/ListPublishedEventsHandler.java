@@ -1,5 +1,6 @@
 package com.loopin.api.events.listpublishedevents;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.dto.response.EventResponse;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.mapper.EventMapper;
@@ -9,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,9 +33,9 @@ public class ListPublishedEventsHandler {
      * The query record includes every filter and the complete pageable value, giving the cache a
      * stable key for equivalent public-list requests.
      */
-    @Cacheable(value = "publishedEvents", key = "#query")
+    @Cacheable(value = CacheNames.PUBLISHED_EVENTS, key = "#query")
     @Transactional(readOnly = true)
-    public Page<EventResponse> handle(ListPublishedEventsQuery query) {
+    public CachedEventPage handle(ListPublishedEventsQuery query) {
         log.info("Fetching published events type={} category={} city={} isFree={} hasSearch={}",
                 query.type(), query.category(), query.city(), query.isFree(),
                 query.search() != null && !query.search().isBlank());
@@ -48,7 +48,10 @@ public class ListPublishedEventsHandler {
                 .map(eventMapper::toResponse)
                 .toList();
 
-        return new PageImpl<>(responses, query.pageable(), eventPage.getTotalElements());
+        return new CachedEventPage(
+            responses,
+            eventPage.getTotalElements()
+        );
     }
 
     private List<Event> loadWithInterestsInPageOrder(List<Event> events) {

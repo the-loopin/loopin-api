@@ -1,5 +1,6 @@
 package com.loopin.api.events;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.cancel.CancelEventHandler;
 import com.loopin.api.events.create.CreateEventHandler;
 import com.loopin.api.events.delete.DeleteEventHandler;
@@ -42,7 +43,7 @@ class PublicEventCacheInvalidationTest {
                 : caching.evict();
 
         assertThat(Arrays.stream(evictions).anyMatch(eviction ->
-                eviction.value()[0].equals("publishedEvents") && eviction.allEntries())).isEqualTo(published);
+                eviction.value()[0].equals(CacheNames.PUBLISHED_EVENTS) && eviction.allEntries())).isEqualTo(published);
         assertThat(Arrays.stream(evictions).anyMatch(eviction ->
                 eviction.value()[0].equals("eventById"))).isEqualTo(detail);
     }

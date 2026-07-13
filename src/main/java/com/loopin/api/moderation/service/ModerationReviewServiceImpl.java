@@ -1,5 +1,6 @@
 package com.loopin.api.moderation.service;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.moderation.enums.ContentModerationStatus;
 import com.loopin.api.moderation.enums.ModerationAction;
 import com.loopin.api.moderation.enums.ModerationContentType;
@@ -45,7 +46,7 @@ public class ModerationReviewServiceImpl implements ModerationReviewService {
     @Override
     /** Approval can make an event visible in any cached filter/page combination. */
     @Caching(evict = {
-            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
             @CacheEvict(value = "eventById", key = "#eventId")
     })
     @Transactional
@@ -65,7 +66,7 @@ public class ModerationReviewServiceImpl implements ModerationReviewService {
     @Override
     /** Rejection removes public visibility and must also invalidate an existing detail response. */
     @Caching(evict = {
-            @CacheEvict(value = "publishedEvents", allEntries = true),
+            @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
             @CacheEvict(value = "eventById", key = "#eventId")
     })
     @Transactional

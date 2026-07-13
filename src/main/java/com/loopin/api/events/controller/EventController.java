@@ -16,6 +16,7 @@ import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdHandler;
 import com.loopin.api.events.getpublishedbyid.GetPublishedEventByIdQuery;
 import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsHandler;
 import com.loopin.api.events.getrecommendedevents.GetRecommendedEventsQuery;
+import com.loopin.api.events.listpublishedevents.CachedEventPage;
 import com.loopin.api.events.listpublishedevents.ListPublishedEventsHandler;
 import com.loopin.api.events.listpublishedevents.ListPublishedEventsQuery;
 import com.loopin.api.events.loopinevent.LoopInEventCommand;
@@ -79,7 +80,8 @@ public class EventController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @ParameterObject Pageable pageable
     ) {
-        Page<EventResponse> events = listPublishedEventsHandler.handle(new ListPublishedEventsQuery(
+        ListPublishedEventsQuery query =
+            new ListPublishedEventsQuery(
                 type,
                 category,
                 city,
@@ -88,9 +90,14 @@ public class EventController {
                 startDate,
                 endDate,
                 pageable
-        ));
+            );
 
-        return ResponseEntity.ok(events);
+        CachedEventPage cachedPage =
+            listPublishedEventsHandler.handle(query);
+
+        return ResponseEntity.ok(
+            cachedPage.toPage(pageable)
+        );
     }
 
     @GetMapping("/{id}")

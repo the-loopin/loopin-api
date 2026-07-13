@@ -1,5 +1,6 @@
 package com.loopin.api.events.cancel;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.repository.EventRepository;
 import com.loopin.api.events.shared.access.EventAccessPolicy;
@@ -24,7 +25,7 @@ public class CancelEventHandler {
 
     /** Clears all filtered/pageable list variants because a cancellation removes public visibility. */
     @Caching(evict = {
-        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
         @CacheEvict(value = "eventById", key = "#command.id")
     })
     @Transactional

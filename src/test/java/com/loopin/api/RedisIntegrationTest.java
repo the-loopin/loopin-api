@@ -7,6 +7,7 @@ import com.loopin.api.support.AbstractRedisIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -23,7 +24,20 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.loopin.api.common.cache.CacheNames;
+import com.loopin.api.events.dto.response.EventResponse;
+import com.loopin.api.events.listpublishedevents.CachedEventPage;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.data.domain.PageRequest;
+
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
 @TestPropertySource(properties = {
+        "spring.cache.type=redis",
         "rate-limit.enabled=true",
         "rate-limit.storage=redis",
         "rate-limit.key-prefix=loopin:integration-rate-limit",
@@ -40,6 +54,7 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
     @Autowired private LettuceConnectionFactory lettuceConnectionFactory;
     @Autowired private RedisConnectionFactory redisConnectionFactory;
     @Autowired private StringRedisTemplate redisTemplate;
+    @Autowired private CacheManager cacheManager;
 
     @BeforeEach
     void clearRedis() {
@@ -89,5 +104,88 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
             listenerContainer.stop();
             listenerContainer.destroy();
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void publishedEventsCache_canSerializeAndDeserializeCachedEventPage() {
+        EventResponse event = new EventResponse();
+        event.setId(UUID.randomUUID());
+        event.setTitle("Cached Baku Event");
+        event.setInterests(List.of());
+
+        CachedEventPage original = new CachedEventPage(
+            List.of(event),
+            1
+        );
+
+        Cache cache = cacheManager.getCache(
+            CacheNames.PUBLISHED_EVENTS
+        );
+
+        assertThat(cache)
+            .as("Published events cache must exist")
+            .isNotNull();
+
+        String cacheKey = "serialization-roundtrip";
+
+        cache.put(cacheKey, original);
+
+        /*
+         * RedisCache default key format:
+         * cacheName::key
+         */
+        String physicalRedisKey =
+            CacheNames.PUBLISHED_EVENTS + "::" + cacheKey;
+
+        assertThat(redisTemplate.hasKey(physicalRedisKey))
+            .as("cache.put must create the physical Redis key")
+            .isTrue();
+
+        Cache.ValueWrapper wrapper = cache.get(cacheKey);
+
+        assertThat(wrapper)
+            .as("Cache entry must be readable immediately after put")
+            .isNotNull();
+
+        Object restoredValue = wrapper.get();
+
+        assertThat(restoredValue)
+            .as("Cache entry value must not be null")
+            .isNotNull();
+
+        assertThat(restoredValue)
+            .as("Redis must restore CachedEventPage, not a Map or PageImpl")
+            .isInstanceOf(CachedEventPage.class);
+
+        CachedEventPage restored =
+            (CachedEventPage) restoredValue;
+
+        assertThat(restored.getContent())
+            .as("Cached content must be deserialized")
+            .isNotNull()
+            .hasSize(1);
+
+        assertThat(restored.getTotalElements())
+            .isEqualTo(1);
+
+        EventResponse restoredEvent =
+            restored.getContent().getFirst();
+
+        assertThat(restoredEvent)
+            .isNotNull();
+
+        assertThat(restoredEvent.getTitle())
+            .isEqualTo("Cached Baku Event");
+
+        Page<EventResponse> restoredPage = restored.toPage(
+            PageRequest.of(0, 20)
+        );
+
+        assertThat(restoredPage.getContent())
+            .hasSize(1);
+
+        assertThat(restoredPage.getTotalElements())
+            .isEqualTo(1);
     }
 }

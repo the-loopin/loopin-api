@@ -1,5 +1,6 @@
 package com.loopin.api.events.delete;
 
+import com.loopin.api.common.cache.CacheNames;
 import com.loopin.api.events.entity.Event;
 import com.loopin.api.groups.api.GroupLifecycle;
 import com.loopin.api.events.repository.EventInterestRepository;
@@ -27,7 +28,7 @@ public class DeleteEventHandler {
 
     /** Clears all filtered/pageable list variants because a deleted event may be present in any one. */
     @Caching(evict = {
-        @CacheEvict(value = "publishedEvents", allEntries = true),
+        @CacheEvict(value = CacheNames.PUBLISHED_EVENTS, allEntries = true),
         @CacheEvict(value = "eventById", key = "#command.id")
     })
     @Transactional
