@@ -71,31 +71,79 @@ class EventRequestValidatorTest {
     }
 
     @Test
-    void rejectsInvalidUrlCoordinatesAndInterestIds() {
-        EventCreateRequest invalidUrl = validCreateRequest();
-        invalidUrl.setImageUrl("ftp://example.com/image.jpg");
-        assertField(invalidUrl, "imageUrl");
+    void rejectsInvalidCoordinatesAndInterestIds() {
+        EventCreateRequest latitudeOnly =
+            validCreateRequest();
 
-        EventCreateRequest latitudeOnly = validCreateRequest();
-        latitudeOnly.setLatitude(BigDecimal.ONE);
-        assertField(latitudeOnly, "coordinates");
+        latitudeOnly.setLatitude(
+            BigDecimal.ONE
+        );
 
-        EventCreateRequest longitudeOnly = validCreateRequest();
-        longitudeOnly.setLongitude(BigDecimal.ONE);
-        assertField(longitudeOnly, "coordinates");
+        assertField(
+            latitudeOnly,
+            "coordinates"
+        );
 
-        EventCreateRequest tooMany = validCreateRequest();
-        tooMany.setInterestIds(java.util.stream.IntStream.range(0, 11).mapToObj(i -> UUID.randomUUID()).toList());
-        assertField(tooMany, "interestIds");
+        EventCreateRequest longitudeOnly =
+            validCreateRequest();
 
-        EventCreateRequest nullInterest = validCreateRequest();
-        nullInterest.setInterestIds(java.util.Arrays.asList(UUID.randomUUID(), null));
-        assertField(nullInterest, "interestIds");
+        longitudeOnly.setLongitude(
+            BigDecimal.ONE
+        );
 
-        EventCreateRequest duplicateInterest = validCreateRequest();
-        UUID id = UUID.randomUUID();
-        duplicateInterest.setInterestIds(List.of(id, id));
-        assertField(duplicateInterest, "interestIds");
+        assertField(
+            longitudeOnly,
+            "coordinates"
+        );
+
+        EventCreateRequest tooMany =
+            validCreateRequest();
+
+        tooMany.setInterestIds(
+            java.util.stream.IntStream
+                .range(0, 11)
+                .mapToObj(
+                    index -> UUID.randomUUID()
+                )
+                .toList()
+        );
+
+        assertField(
+            tooMany,
+            "interestIds"
+        );
+
+        EventCreateRequest nullInterest =
+            validCreateRequest();
+
+        nullInterest.setInterestIds(
+            java.util.Arrays.asList(
+                UUID.randomUUID(),
+                null
+            )
+        );
+
+        assertField(
+            nullInterest,
+            "interestIds"
+        );
+
+        EventCreateRequest duplicateInterest =
+            validCreateRequest();
+
+        UUID interestId = UUID.randomUUID();
+
+        duplicateInterest.setInterestIds(
+            List.of(
+                interestId,
+                interestId
+            )
+        );
+
+        assertField(
+            duplicateInterest,
+            "interestIds"
+        );
     }
 
     @Test
@@ -109,7 +157,7 @@ class EventRequestValidatorTest {
         update.setPrice(new BigDecimal("12.50"));
         update.setLatitude(new BigDecimal("40.4093"));
         update.setLongitude(new BigDecimal("49.8671"));
-        update.setImageUrl("https://example.com/image.jpg");
+        update.setImageMediaId(UUID.randomUUID());
         update.setInterestIds(List.of(UUID.randomUUID()));
         assertDoesNotThrow(() -> validator.validate(update));
     }
