@@ -11,7 +11,10 @@ import com.loopin.api.ai.dto.EmbeddingBatchResponse;
 import com.loopin.api.ai.dto.RerankCandidate;
 import com.loopin.api.ai.dto.RerankRequest;
 import com.loopin.api.ai.dto.RerankResponse;
+import com.loopin.api.common.logging.CorrelationIdFilter;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,9 +22,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Component
 public class LoopinAiClient {
+
+    private static final Pattern SAFE_REQUEST_ID = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._:-]{0,127}");
 
     private final LoopinAiProperties properties;
     private final ObjectMapper objectMapper;
@@ -55,11 +61,19 @@ public class LoopinAiClient {
     }
 
     private <T> T post(String path, Object payload, Class<T> responseType) {
+        if (!StringUtils.hasText(properties.getServiceToken())) {
+            throw new LoopinAiException("Loopin AI service token is not configured", false,
+                    "AI_CONFIGURATION");
+        }
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                     .uri(URI.create(properties.getBaseUrl() + path))
                     .timeout(properties.getTimeout())
                     .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + properties.getServiceToken().trim());
+            String requestId = safeRequestId(MDC.get(CorrelationIdFilter.MDC_KEY));
+            if (requestId != null) requestBuilder.header(CorrelationIdFilter.HEADER_NAME, requestId);
+            HttpRequest request = requestBuilder
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(payload)))
                     .build();
 
@@ -87,7 +101,12 @@ public class LoopinAiClient {
 
     @LoopinOperation(domain = "ai", operation = "embed_passage_batch")
     public EmbeddingBatchResponse embedPassages(List<String> texts) {
-        return post("/v1/embeddings/text/batch",
+        return post("/v1/embeddings/batch",
                 new EmbeddingBatchRequest(texts, "passage"), EmbeddingBatchResponse.class);
+    }
+
+    private String safeRequestId(String requestId) {
+        if (requestId == null || requestId.length() > 128) return null;
+        return SAFE_REQUEST_ID.matcher(requestId).matches() ? requestId : null;
     }
 }
