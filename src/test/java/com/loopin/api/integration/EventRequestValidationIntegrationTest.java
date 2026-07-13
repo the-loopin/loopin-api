@@ -42,30 +42,59 @@ class EventRequestValidationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void createReturnsStandardBadRequestForCrossFieldValidation() throws Exception {
-        mockMvc.perform(post("/v1/events")
-                        .header("Authorization", authorization)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "title": "Validation event",
-                                  "description": "Validation description",
-                                  "type": "EVENT",
-                                  "category": "TECH",
-                                  "city": "Baku",
-                                  "startDateTime": "2020-01-01T10:00:00",
-                                  "endDateTime": "2020-01-01T12:00:00",
-                                  "isFree": true,
-                                  "price": 0,
-                                  "organizerName": "Loopin",
-                                  "imageUrl": "ftp://example.com/image.jpg"
-                                }
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status", is(400)))
-                .andExpect(jsonPath("$.message", is("Validation failed")))
-                .andExpect(jsonPath("$.fieldErrors.startDateTime").exists())
-                .andExpect(jsonPath("$.fieldErrors.imageUrl").exists());
+    void createReturnsStandardBadRequestForCrossFieldValidation()
+        throws Exception {
+
+        mockMvc.perform(
+                post("/v1/events")
+                    .header(
+                        "Authorization",
+                        authorization
+                    )
+                    .contentType(
+                        MediaType.APPLICATION_JSON
+                    )
+                    .content("""
+                    {
+                      "title": "Validation event",
+                      "description": "Validation description",
+                      "type": "EVENT",
+                      "category": "TECH",
+                      "city": "Baku",
+                      "latitude": 40.4093,
+                      "startDateTime": "2020-01-01T10:00:00",
+                      "endDateTime": "2020-01-01T12:00:00",
+                      "isFree": true,
+                      "price": 0,
+                      "organizerName": "Loopin"
+                    }
+                    """)
+            )
+            .andExpect(
+                status().isBadRequest()
+            )
+            .andExpect(
+                jsonPath(
+                    "$.status",
+                    is(400)
+                )
+            )
+            .andExpect(
+                jsonPath(
+                    "$.message",
+                    is("Validation failed")
+                )
+            )
+            .andExpect(
+                jsonPath(
+                    "$.fieldErrors.startDateTime"
+                ).exists()
+            )
+            .andExpect(
+                jsonPath(
+                    "$.fieldErrors.coordinates"
+                ).exists()
+            );
     }
 
     @Test
