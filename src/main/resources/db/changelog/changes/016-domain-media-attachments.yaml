@@ -1,0 +1,135 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-add-domain-media-attachments
+      author: loopin
+
+      changes:
+        # Events
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: image_media_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: events
+            baseColumnNames: image_media_id
+            referencedTableName: media_assets
+            referencedColumnNames: id
+            constraintName: fk_events_image_media
+
+        - addUniqueConstraint:
+            tableName: events
+            columnNames: image_media_id
+            constraintName: uk_events_image_media
+
+        - createIndex:
+            tableName: events
+            indexName: idx_events_image_media_id
+            columns:
+              - column:
+                  name: image_media_id
+
+        # Event groups
+        - addColumn:
+            tableName: event_groups
+            columns:
+              - column:
+                  name: image_media_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: event_groups
+            baseColumnNames: image_media_id
+            referencedTableName: media_assets
+            referencedColumnNames: id
+            constraintName: fk_event_groups_image_media
+
+        - addUniqueConstraint:
+            tableName: event_groups
+            columnNames: image_media_id
+            constraintName: uk_event_groups_image_media
+
+        - createIndex:
+            tableName: event_groups
+            indexName: idx_event_groups_image_media_id
+            columns:
+              - column:
+                  name: image_media_id
+
+        # User profiles
+        - addColumn:
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: avatar_media_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: user_profiles
+            baseColumnNames: avatar_media_id
+            referencedTableName: media_assets
+            referencedColumnNames: id
+            constraintName: fk_user_profiles_avatar_media
+
+        - addUniqueConstraint:
+            tableName: user_profiles
+            columnNames: avatar_media_id
+            constraintName: uk_user_profiles_avatar_media
+
+        - createIndex:
+            tableName: user_profiles
+            indexName: idx_user_profiles_avatar_media_id
+            columns:
+              - column:
+                  name: avatar_media_id
+
+      rollback:
+        - dropIndex:
+            tableName: user_profiles
+            indexName: idx_user_profiles_avatar_media_id
+
+        - dropUniqueConstraint:
+            tableName: user_profiles
+            constraintName: uk_user_profiles_avatar_media
+
+        - dropForeignKeyConstraint:
+            baseTableName: user_profiles
+            constraintName: fk_user_profiles_avatar_media
+
+        - dropColumn:
+            tableName: user_profiles
+            columnName: avatar_media_id
+
+        - dropIndex:
+            tableName: event_groups
+            indexName: idx_event_groups_image_media_id
+
+        - dropUniqueConstraint:
+            tableName: event_groups
+            constraintName: uk_event_groups_image_media
+
+        - dropForeignKeyConstraint:
+            baseTableName: event_groups
+            constraintName: fk_event_groups_image_media
+
+        - dropColumn:
+            tableName: event_groups
+            columnName: image_media_id
+
+        - dropIndex:
+            tableName: events
+            indexName: idx_events_image_media_id
+
+        - dropUniqueConstraint:
+            tableName: events
+            constraintName: uk_events_image_media
+
+        - dropForeignKeyConstraint:
+            baseTableName: events
+            constraintName: fk_events_image_media
+
+        - dropColumn:
+            tableName: events
+            columnName: image_media_id
