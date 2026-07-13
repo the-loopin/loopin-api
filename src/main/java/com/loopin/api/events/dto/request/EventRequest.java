@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/** Fields shared by event create and update requests. */
+/**
+ * Defines the fields shared by event create and update requests.
+ */
 public interface EventRequest {
 
     BigDecimal getLatitude();
@@ -20,7 +22,7 @@ public interface EventRequest {
 
     BigDecimal getPrice();
 
-    String getImageUrl();
+    UUID getImageMediaId();
 
     List<UUID> getInterestIds();
 }
