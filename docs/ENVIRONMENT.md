@@ -42,6 +42,16 @@ The Loopin API relies on several backing services. Here is a matrix of which dep
 | `AI_MODERATION_ENDPOINT_PATH` | Provider path appended to the base URL. | `/v1/moderation/check` | The provider receives `{ "textFields": [...] }` and must return `{ "risky": boolean, "reason": string }`. |
 | `AI_MODERATION_TIMEOUT` | Connection and request timeout for the AI provider. | `2s` | Spring duration format, such as `500ms` or `2s`. |
 | `AI_MODERATION_API_KEY` | Optional provider API key sent as `X-API-Key`. | *Empty* | Inject from a secret manager; never commit a real value. |
+| `LOOPIN_AI_EMBEDDING_JOBS_ENABLED` | Enables durable embedding-job workers. Job creation remains transactional. | `true` | Disable only for maintenance or dedicated worker deployments. |
+| `LOOPIN_AI_EMBEDDING_BATCH_SIZE` | Maximum jobs claimed per worker pass. | `25` | Bounds database and in-memory work. |
+| `LOOPIN_AI_EMBEDDING_AI_BATCH_SIZE` | Maximum compatible items sent to one Loopin AI batch request. | `32` | Must not exceed the AI service limit. |
+| `LOOPIN_AI_EMBEDDING_BATCH_ENABLED` | Uses the batch embedding endpoint for compatible multi-item groups. | `true` | Single jobs still use the single-item endpoint. |
+| `LOOPIN_AI_EMBEDDING_MAX_ATTEMPTS` | Attempts before a job transitions to `DEAD`. | `8` | Includes the final failed attempt. |
+| `LOOPIN_AI_EMBEDDING_INITIAL_BACKOFF` | Initial retry delay. | `5s` | Exponential backoff base. |
+| `LOOPIN_AI_EMBEDDING_MAX_BACKOFF` | Maximum retry delay. | `30m` | Upper bound after jitter. |
+| `LOOPIN_AI_EMBEDDING_BACKOFF_JITTER` | Symmetric retry jitter ratio. | `0.2` | `0.2` means up to ±20%. |
+| `LOOPIN_AI_EMBEDDING_PROCESSING_TIMEOUT` | Age after which an abandoned `PROCESSING` claim is recoverable. | `5m` | Set above the AI request timeout. |
+| `LOOPIN_AI_EMBEDDING_DIMENSIONS` | Required vector dimension. | `384` | Must match the configured model and pgvector schema. |
 | **JWT Authentication** | | | |
 | `JWT_SECRET` | HS256 key signature token. Must be cryptographically strong. | **Required (No Default)** | E.g. 512-bit Base64 encoded string |
 | `JWT_EXPIRATION` | Duration in milliseconds that issued tokens remain valid. | `86400000` (24 Hours) | Adjust based on security policy |
