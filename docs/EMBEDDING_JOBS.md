@@ -18,6 +18,8 @@ ORDER BY created_at;
 ```
 
 `PROCESSING` jobs older than `LOOPIN_AI_EMBEDDING_PROCESSING_TIMEOUT` are reclaimed automatically.
+Each recovery consumes an attempt; repeatedly abandoned work transitions to `DEAD` at the configured
+maximum instead of cycling forever.
 `DEAD` jobs remain available for inspection. The internal `EmbeddingJobOperations.retryDeadJobs`
 operation safely moves selected, still-latest dead jobs back to `RETRY`; it refuses obsolete jobs.
 Use that operation from an authenticated maintenance command rather than editing job status directly.
@@ -34,3 +36,21 @@ Use that operation from an authenticated maintenance command rather than editing
 Alert on a growing oldest-job age, any sustained `dead` count, or repeated retry/recovery events.
 Logs contain job identity, entity type, operation, attempt, request ID, and sanitized error code;
 they intentionally omit source text and embedding vectors.
+
+## Java-to-loopin-ai contract smoke test
+
+The normal unit suite uses a local HTTP server and does not load AI models. To run the opt-in
+contract test against a ready `loopin-ai` instance:
+
+```powershell
+$env:LOOPIN_AI_CONTRACT_TEST_ENABLED = "true"
+$env:LOOPIN_AI_BASE_URL = "http://localhost:8000"
+$env:LOOPIN_AI_SERVICE_TOKEN = "<shared service token>"
+$env:LOOPIN_AI_EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
+$env:LOOPIN_AI_EMBEDDING_DIMENSIONS = "384"
+mvn -Dtest=LoopinAiContractSmokeTest test
+```
+
+The test waits for `/ready`, sends authenticated requests to the single and batch embedding
+paths with a known `X-Request-ID`, and validates model identity, dimensions, finite vectors,
+and positional batch cardinality.

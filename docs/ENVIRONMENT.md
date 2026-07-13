@@ -42,6 +42,7 @@ The Loopin API relies on several backing services. Here is a matrix of which dep
 | `AI_MODERATION_ENDPOINT_PATH` | Provider path appended to the base URL. | `/v1/moderation/check` | The provider receives `{ "textFields": [...] }` and must return `{ "risky": boolean, "reason": string }`. |
 | `AI_MODERATION_TIMEOUT` | Connection and request timeout for the AI provider. | `2s` | Spring duration format, such as `500ms` or `2s`. |
 | `AI_MODERATION_API_KEY` | Optional provider API key sent as `X-API-Key`. | *Empty* | Inject from a secret manager; never commit a real value. |
+| `LOOPIN_AI_SERVICE_TOKEN` | Bearer token used for authenticated Loopin AI requests. | *Empty* | Required when durable embedding workers are enabled; inject from a secret manager. |
 | `LOOPIN_AI_EMBEDDING_JOBS_ENABLED` | Enables durable embedding-job workers. Job creation remains transactional. | `true` | Disable only for maintenance or dedicated worker deployments. |
 | `LOOPIN_AI_EMBEDDING_BATCH_SIZE` | Maximum jobs claimed per worker pass. | `25` | Bounds database and in-memory work. |
 | `LOOPIN_AI_EMBEDDING_AI_BATCH_SIZE` | Maximum compatible items sent to one Loopin AI batch request. | `32` | Must not exceed the AI service limit. |
