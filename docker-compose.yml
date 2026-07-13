@@ -57,7 +57,7 @@
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
       # The local stack does not include loopin-ai. Enable only with an explicitly
       # reachable service URL and a supplied LOOPIN_AI_SERVICE_TOKEN.
-      LOOPIN_AI_EMBEDDING_JOBS_ENABLED: "false"
+      LOOPIN_AI_EMBEDDING_JOBS_ENABLED: ${LOOPIN_AI_EMBEDDING_JOBS_ENABLED:-false}
       N8N_NOTIFICATIONS_ENABLED: ${N8N_NOTIFICATIONS_ENABLED:-false}
       N8N_NOTIFICATION_WEBHOOK_URL: ${N8N_NOTIFICATION_WEBHOOK_URL:-http://n8n:5678/webhook/loopin-notifications}
       N8N_NOTIFICATION_WEBHOOK_SECRET: ${N8N_NOTIFICATION_WEBHOOK_SECRET:-}
