@@ -17,7 +17,21 @@ See `docs/DOCKER.md` for the full local workflow and environment variable list.
 
 `CI` runs on pull requests and pushes. It uses the Maven Wrapper to run `./mvnw -B clean verify`, which includes compilation, unit/integration tests, JaCoCo report generation, and the bundle-level line coverage gate. The current 75% coverage threshold is deliberately set below the measured 77.55% baseline (2026-07-13), after excluding generated mapper/builder code and configuration-only classes; raise it gradually as coverage improves.
 
-The workflow always uploads JUnit XML and JaCoCo HTML/XML artifacts, even when verification fails. It also runs OWASP Dependency-Check (failing at CVSS 7.0 or higher), reviews newly introduced pull-request dependencies at high severity or above, builds `loopin-api:ci`, and scans that exact image with Trivy for high and critical vulnerabilities. Dependency-Check and Trivy reports are retained as CI artifacts; Trivy SARIF results are also uploaded to GitHub code scanning. No deployment secrets are available to this workflow, and newer runs cancel outdated runs for the same branch or pull request.
+The workflow always uploads JUnit XML and JaCoCo HTML/XML artifacts, even when verification fails. It also runs OWASP Dependency-Check (failing at CVSS 7.0 or higher), reviews newly introduced pull-request dependencies at high severity or above, builds `loopin-api:ci`, smoke-tests that exact image, and then scans it with Trivy for high and critical vulnerabilities. Dependency-Check and Trivy reports are retained as CI artifacts; Trivy SARIF results are also uploaded to GitHub code scanning. No deployment secrets are available to this workflow, and newer runs cancel outdated runs for the same branch or pull request.
+
+### Production-image smoke test
+
+The container job starts the already-built `loopin-api:ci` image with the `production` Spring profile in the isolated `docker-compose.smoke.yml` environment. It starts only pgvector PostgreSQL 16, Redis, and the API—no n8n or MinIO—and uses fixed, non-sensitive CI-only configuration values rather than deployment secrets.
+
+The smoke script waits up to 120 seconds for `GET /api/actuator/health/readiness` to return HTTP success with `{"status":"UP"}`. It then verifies that PostgreSQL's `databasechangelog` table has applied Liquibase records and calls the unauthenticated `GET /api/v1/events?page=0&size=1` endpoint, validating that its response is JSON. On failure, CI prints Compose status, API/PostgreSQL/Redis logs, and container inspection data; it also uploads them as the `production-image-smoke-logs` artifact. The workflow always removes the smoke containers, network, and volumes before proceeding to the image scan.
+
+Run the same check locally after building the image:
+
+```bash
+docker build -t loopin-api:ci .
+bash scripts/ci/run-production-image-smoke.sh
+docker compose -p loopin-production-smoke -f docker-compose.smoke.yml down -v --remove-orphans
+```
 
 Dependency-Check suppressions are maintained in `config/dependency-check-suppressions.xml`. They are intentionally narrow: Spring Boot DevTools is optional local-only code and excluded from the production archive, while the HttpCore suppression applies only to the incorrect Apache HTTP Server CPE association. All other dependency findings, including any genuine HttpCore vulnerability, continue to fail the gate.
 
