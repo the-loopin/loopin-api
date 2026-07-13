@@ -153,6 +153,7 @@ loopin:
     base-url: ${LOOPIN_AI_BASE_URL:http://localhost:8000}
     timeout: ${LOOPIN_AI_TIMEOUT:2s}
     embedding-model: ${LOOPIN_AI_EMBEDDING_MODEL:intfloat/multilingual-e5-small}
+    service-token: ${LOOPIN_AI_SERVICE_TOKEN:}
     embedding-jobs:
       enabled: ${LOOPIN_AI_EMBEDDING_JOBS_ENABLED:true}
       batch-size: ${LOOPIN_AI_EMBEDDING_BATCH_SIZE:25}
