@@ -105,6 +105,7 @@ class UserProfileMapperTest {
             new MediaReferenceResponse(
                 UUID.randomUUID(),
                 "image/webp",
+                "image/webp",
                 123_000L
             );
 
