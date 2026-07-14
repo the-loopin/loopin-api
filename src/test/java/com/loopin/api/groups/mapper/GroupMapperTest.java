@@ -151,6 +151,7 @@ class GroupMapperTest {
             new MediaReferenceResponse(
                 UUID.randomUUID(),
                 "image/webp",
+                "image/webp",
                 300_000L
             );
 
