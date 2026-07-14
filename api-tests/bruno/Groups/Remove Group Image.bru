@@ -1,0 +1,15 @@
+meta {
+  name: Remove Group Image
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/groups/{{group_id}}/image
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}

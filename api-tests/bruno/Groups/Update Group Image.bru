@@ -1,0 +1,25 @@
+meta {
+  name: Update Group Image
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/groups/{{group_id}}/image
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{auth_token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "mediaId": "{{group_image_media_id}}"
+  }
+}

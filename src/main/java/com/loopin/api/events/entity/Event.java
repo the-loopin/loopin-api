@@ -1,11 +1,12 @@
 package com.loopin.api.events.entity;
 
 import com.loopin.api.common.entity.BaseEntity;
-import com.loopin.api.users.entity.User;
 import com.loopin.api.events.enums.EventCategory;
-import com.loopin.api.moderation.enums.ContentModerationStatus;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
+import com.loopin.api.media.entity.MediaAsset;
+import com.loopin.api.moderation.enums.ContentModerationStatus;
+import com.loopin.api.users.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,6 +14,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -72,24 +75,40 @@ public class Event extends BaseEntity {
     @Column(nullable = false, length = 120)
     private String organizerName;
 
-    @Column(length = 500)
-    private String imageUrl;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "image_media_id",
+        unique = true
+    )
+    private MediaAsset imageMedia;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private EventStatus status = EventStatus.PUBLISHED;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "moderation_status", nullable = false, length = 30)
-    private ContentModerationStatus moderationStatus = ContentModerationStatus.APPROVED;
+    @Column(
+        name = "moderation_status",
+        nullable = false,
+        length = 30
+    )
+    private ContentModerationStatus moderationStatus =
+        ContentModerationStatus.APPROVED;
 
-    @Column(name = "moderation_rejection_reason", length = 1000)
+    @Column(
+        name = "moderation_rejection_reason",
+        length = 1000
+    )
     private String moderationRejectionReason;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    @jakarta.persistence.OneToMany(mappedBy = "event", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+        mappedBy = "event",
+        cascade = jakarta.persistence.CascadeType.ALL,
+        orphanRemoval = true
+    )
     private Set<EventInterest> interests;
 }

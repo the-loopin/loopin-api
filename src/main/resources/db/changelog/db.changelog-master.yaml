@@ -29,3 +29,5 @@ databaseChangeLog:
       file: db/changelog/changes/014-postgresql-performance-indexes.yaml
   - include:
       file: db/changelog/changes/015-embedding-jobs.yaml
+  - include:
+      file: db/changelog/changes/016-domain-media-attachments.yaml

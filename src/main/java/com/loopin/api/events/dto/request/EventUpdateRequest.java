@@ -21,11 +21,17 @@ import java.util.UUID;
 public class EventUpdateRequest implements EventRequest {
 
     @NotBlank(message = "Title is required")
-    @Size(max = 120, message = "Title must not exceed 120 characters")
+    @Size(
+        max = 120,
+        message = "Title must not exceed 120 characters"
+    )
     private String title;
 
     @NotBlank(message = "Description is required")
-    @Size(max = 2000, message = "Description must not exceed 2000 characters")
+    @Size(
+        max = 2000,
+        message = "Description must not exceed 2000 characters"
+    )
     private String description;
 
     @NotNull(message = "Event type is required")
@@ -35,18 +41,36 @@ public class EventUpdateRequest implements EventRequest {
     private EventCategory category;
 
     @NotBlank(message = "City is required")
-    @Size(max = 100, message = "City must not exceed 100 characters")
+    @Size(
+        max = 100,
+        message = "City must not exceed 100 characters"
+    )
     private String city;
 
-    @Size(max = 255, message = "Address must not exceed 255 characters")
+    @Size(
+        max = 255,
+        message = "Address must not exceed 255 characters"
+    )
     private String address;
 
-    @DecimalMin(value = "-90.0", message = "Latitude must be greater than or equal to -90")
-    @DecimalMax(value = "90.0", message = "Latitude must be less than or equal to 90")
+    @DecimalMin(
+        value = "-90.0",
+        message = "Latitude must be greater than or equal to -90"
+    )
+    @DecimalMax(
+        value = "90.0",
+        message = "Latitude must be less than or equal to 90"
+    )
     private BigDecimal latitude;
 
-    @DecimalMin(value = "-180.0", message = "Longitude must be greater than or equal to -180")
-    @DecimalMax(value = "180.0", message = "Longitude must be less than or equal to 180")
+    @DecimalMin(
+        value = "-180.0",
+        message = "Longitude must be greater than or equal to -180"
+    )
+    @DecimalMax(
+        value = "180.0",
+        message = "Longitude must be less than or equal to 180"
+    )
     private BigDecimal longitude;
 
     @NotNull(message = "Start date and time is required")
@@ -61,11 +85,17 @@ public class EventUpdateRequest implements EventRequest {
     private BigDecimal price;
 
     @NotBlank(message = "Organizer name is required")
-    @Size(max = 120, message = "Organizer name must not exceed 120 characters")
+    @Size(
+        max = 120,
+        message = "Organizer name must not exceed 120 characters"
+    )
     private String organizerName;
 
-    @Size(max = 500, message = "Image URL must not exceed 500 characters")
-    private String imageUrl;
+    /**
+     * References an uploaded and completed EVENT_IMAGE media asset.
+     * The field is optional because events may be created without an image.
+     */
+    private UUID imageMediaId;
 
     private List<UUID> interestIds = new ArrayList<>();
 }

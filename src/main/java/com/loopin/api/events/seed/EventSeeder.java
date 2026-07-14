@@ -150,7 +150,6 @@ public class EventSeeder {
             event.setIsFree(isFrees[i]);
             event.setPrice(prices[i]);
             event.setOrganizerName(organizers[i]);
-            event.setImageUrl("https://images.loopin.com/event-" + (i + 1) + ".png");
             event.setStatus(EventStatus.PUBLISHED);
 
             // Assign owner round-robin style from the regular users only
