@@ -121,24 +121,36 @@ public class EventController {
     @Operation(summary = "Create a new event", description = "Create a new event. Requires authentication.")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<EventResponse> createEvent(
-            @Valid @RequestBody EventCreateRequest request
+        @Valid @RequestBody EventCreateRequest request
     ) {
         EventResponse createdEvent = createEventHandler.handle(
-                new CreateEventCommand(request, SecurityUtils.getRequiredCurrentUserEmail())
+            new CreateEventCommand(
+                request,
+                SecurityUtils.getRequiredCurrentUserEmail()
+            )
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdEvent);
+
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(createdEvent);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an event", description = "Update an event. Requires authentication.")
     @SecurityRequirement(name = "BearerAuth")
     public ResponseEntity<EventResponse> updateEvent(
-            @PathVariable UUID id,
-            @Valid @RequestBody EventUpdateRequest request
+        @PathVariable UUID id,
+        @Valid @RequestBody EventUpdateRequest request
     ) {
-        return ResponseEntity.ok(updateEventHandler.handle(
-                new UpdateEventCommand(id, request, SecurityUtils.getRequiredCurrentUserEmail())
-        ));
+        return ResponseEntity.ok(
+            updateEventHandler.handle(
+                new UpdateEventCommand(
+                    id,
+                    request,
+                    SecurityUtils.getRequiredCurrentUserEmail()
+                )
+            )
+        );
     }
 
     @RequestMapping(value = "/{id}/cancel", method = {RequestMethod.POST, RequestMethod.PATCH})
