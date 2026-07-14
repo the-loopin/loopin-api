@@ -228,6 +228,7 @@ class EventMapperTest {
             new MediaReferenceResponse(
                 UUID.randomUUID(),
                 "image/webp",
+                "image/webp",
                 250_000L
             );
 
