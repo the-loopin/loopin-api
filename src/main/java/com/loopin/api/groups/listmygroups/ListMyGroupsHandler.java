@@ -11,12 +11,12 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ListMyGroupsHandler {
 
     private final GroupMemberRepository memberRepository;
     private final GroupMapper groupMapper;
 
-    @Transactional(readOnly = true)
     public List<GroupResponse> handle(
         ListMyGroupsQuery query
     ) {
