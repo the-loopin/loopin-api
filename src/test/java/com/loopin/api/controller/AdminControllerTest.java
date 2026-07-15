@@ -1,13 +1,14 @@
 package com.loopin.api.controller;
 
 import com.loopin.api.auth.enums.Role;
+import com.loopin.api.common.security.JwtUtils;
+import com.loopin.api.events.entity.Event;
 import com.loopin.api.events.enums.EventCategory;
 import com.loopin.api.events.enums.EventStatus;
 import com.loopin.api.events.enums.EventType;
-import com.loopin.api.events.entity.Event;
-import com.loopin.api.users.entity.User;
-import com.loopin.api.groups.repository.EventGroupRepository;
 import com.loopin.api.events.repository.EventRepository;
+import com.loopin.api.groups.repository.EventGroupRepository;
+import com.loopin.api.users.entity.User;
 import com.loopin.api.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,12 +23,14 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.loopin.api.common.security.JwtUtils;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -49,7 +52,8 @@ class AdminControllerTest {
     @Autowired
     private JwtUtils jwtUtils;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper =
+            new ObjectMapper();
 
     private User adminUser;
     private User regularUser;
@@ -62,176 +66,446 @@ class AdminControllerTest {
         eventRepository.deleteAll();
         userRepository.deleteAll();
 
-        adminUser = new User("admin@email.com", "Admin User", null);
+        adminUser =
+                new User(
+                        "admin@email.com",
+                        "Admin User",
+                        null
+                );
+
         adminUser.setRole(Role.ADMIN);
+        adminUser.setIsActive(true);
         adminUser = userRepository.save(adminUser);
 
-        regularUser = new User("user@email.com", "Regular User", null);
+        regularUser =
+                new User(
+                        "user@email.com",
+                        "Regular User",
+                        null
+                );
+
         regularUser.setRole(Role.USER);
+        regularUser.setIsActive(true);
         regularUser = userRepository.save(regularUser);
 
-        adminToken = jwtUtils.generateToken(adminUser.getEmail(), Role.ADMIN.name());
-        userToken = jwtUtils.generateToken(regularUser.getEmail(), Role.USER.name());
+        adminToken =
+                jwtUtils.generateToken(
+                        adminUser.getEmail(),
+                        Role.ADMIN.name()
+                );
+
+        userToken =
+                jwtUtils.generateToken(
+                        regularUser.getEmail(),
+                        Role.USER.name()
+                );
     }
 
     @Test
-    void getDashboardStats_Success() throws Exception {
+    void getDashboardStats_Success()
+            throws Exception {
         Event event = new Event();
         event.setTitle("Test Event");
         event.setDescription("Desc");
         event.setType(EventType.EVENT);
         event.setCategory(EventCategory.TECH);
         event.setCity("Baku");
-        event.setStartDateTime(LocalDateTime.now().plusDays(1));
-        event.setEndDateTime(LocalDateTime.now().plusDays(2));
+        event.setStartDateTime(
+                LocalDateTime.now().plusDays(1)
+        );
+        event.setEndDateTime(
+                LocalDateTime.now().plusDays(2)
+        );
         event.setIsFree(true);
         event.setOrganizerName("Org");
         event.setStatus(EventStatus.PUBLISHED);
         eventRepository.save(event);
 
-        mockMvc.perform(get("/v1/admin/dashboard/stats")
-                        .header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(
+                        get("/v1/admin/dashboard/stats")
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalUsers", is(2)))
-                .andExpect(jsonPath("$.activeEvents", is(1)))
-                .andExpect(jsonPath("$.totalGroups", is(0)));
+                .andExpect(
+                        jsonPath(
+                                "$.totalUsers",
+                                is(2)
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.activeEvents",
+                                is(1)
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.totalGroups",
+                                is(0)
+                        )
+                );
     }
 
     @Test
-    void getUsers_Paged_Success() throws Exception {
-        mockMvc.perform(get("/v1/admin/users?page=0&size=10")
-                        .header("Authorization", "Bearer " + adminToken))
+    void getUsers_Paged_Success()
+            throws Exception {
+        mockMvc.perform(
+                        get(
+                                "/v1/admin/users"
+                                        + "?page=0&size=10"
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()", is(2)))
-                .andExpect(jsonPath("$.totalElements", is(2)));
+                .andExpect(
+                        jsonPath(
+                                "$.content.length()",
+                                is(2)
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.totalElements",
+                                is(2)
+                        )
+                );
     }
 
     @Test
-    void updateUserRole_Success() throws Exception {
-        User secondAdmin = new User("admin2@email.com", "Admin Two", null);
+    void updateUserRole_Success()
+            throws Exception {
+        User secondAdmin =
+                new User(
+                        "admin2@email.com",
+                        "Admin Two",
+                        null
+                );
+
         secondAdmin.setRole(Role.ADMIN);
+        secondAdmin.setIsActive(true);
         userRepository.save(secondAdmin);
 
-        mockMvc.perform(put("/v1/admin/users/" + regularUser.getPublicId() + "/role")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"ADMIN\"}"))
+        mockMvc.perform(
+                        put(
+                                "/v1/admin/users/"
+                                        + regularUser.getPublicId()
+                                        + "/role"
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                                .contentType(
+                                        MediaType.APPLICATION_JSON
+                                )
+                                .content(
+                                        """
+                                        {"role":"ADMIN"}
+                                        """
+                                )
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role", is("ADMIN")));
+                .andExpect(
+                        jsonPath(
+                                "$.role",
+                                is("ADMIN")
+                        )
+                );
     }
 
     @Test
-    void updateUserRole_SelfDemotion_Forbidden() throws Exception {
-        mockMvc.perform(put("/v1/admin/users/" + adminUser.getPublicId() + "/role")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"USER\"}"))
+    void updateUserRole_SelfDemotion_Forbidden()
+            throws Exception {
+        mockMvc.perform(
+                        put(
+                                "/v1/admin/users/"
+                                        + adminUser.getPublicId()
+                                        + "/role"
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                                .contentType(
+                                        MediaType.APPLICATION_JSON
+                                )
+                                .content(
+                                        """
+                                        {"role":"USER"}
+                                        """
+                                )
+                )
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void updateUserRole_LastAdminDemotion_BadRequest() throws Exception {
-        User otherAdmin = new User("anotherAdmin@email.com", "Other Admin", null);
-        otherAdmin.setRole(Role.ADMIN);
-        otherAdmin.setIsActive(false);
-        userRepository.save(otherAdmin);
+    void updateUserRole_InactiveAdmin_Unauthorized()
+            throws Exception {
+        User inactiveAdmin =
+                new User(
+                        "anotherAdmin@email.com",
+                        "Inactive Admin",
+                        null
+                );
 
-        String otherAdminToken = jwtUtils.generateToken("anotherAdmin@email.com", Role.ADMIN.name());
-        mockMvc.perform(put("/v1/admin/users/" + adminUser.getPublicId() + "/role")
-                        .header("Authorization", "Bearer " + otherAdminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"USER\"}"))
+        inactiveAdmin.setRole(Role.ADMIN);
+        inactiveAdmin.setIsActive(false);
+        userRepository.save(inactiveAdmin);
+
+        String inactiveAdminToken =
+                jwtUtils.generateToken(
+                        inactiveAdmin.getEmail(),
+                        Role.ADMIN.name()
+                );
+
+        mockMvc.perform(
+                        put(
+                                "/v1/admin/users/"
+                                        + adminUser.getPublicId()
+                                        + "/role"
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer "
+                                                + inactiveAdminToken
+                                )
+                                .contentType(
+                                        MediaType.APPLICATION_JSON
+                                )
+                                .content(
+                                        """
+                                        {"role":"USER"}
+                                        """
+                                )
+                )
+                .andExpect(status().isUnauthorized());
+
+        User unchangedAdmin =
+                userRepository
+                        .findById(adminUser.getId())
+                        .orElseThrow();
+
+        assertEquals(
+                Role.ADMIN,
+                unchangedAdmin.getRole()
+        );
+    }
+
+    @Test
+    void updateUserRole_InvalidRole_BadRequest()
+            throws Exception {
+        mockMvc.perform(
+                        put(
+                                "/v1/admin/users/"
+                                        + regularUser.getPublicId()
+                                        + "/role"
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                                .contentType(
+                                        MediaType.APPLICATION_JSON
+                                )
+                                .content(
+                                        """
+                                        {"role":"INVALID_ROLE"}
+                                        """
+                                )
+                )
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void updateUserRole_InvalidRole_BadRequest() throws Exception {
-        mockMvc.perform(put("/v1/admin/users/" + regularUser.getPublicId() + "/role")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"INVALID_ROLE\"}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void deleteUser_SoftDeletesUser() throws Exception {
-        mockMvc.perform(delete("/v1/admin/users/" + regularUser.getPublicId())
-                        .header("Authorization", "Bearer " + adminToken))
+    void deleteUser_SoftDeletesUser()
+            throws Exception {
+        mockMvc.perform(
+                        delete(
+                                "/v1/admin/users/"
+                                        + regularUser.getPublicId()
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                )
                 .andExpect(status().isNoContent());
 
-        User deleted = userRepository.findById(regularUser.getId()).orElseThrow();
-        assertFalse(deleted.getIsActive());
+        User deleted =
+                userRepository
+                        .findById(regularUser.getId())
+                        .orElseThrow();
+
+        assertFalse(
+                Boolean.TRUE.equals(
+                        deleted.getIsActive()
+                )
+        );
+
         assertTrue(deleted.isDeleted());
     }
 
     @Test
-    void deleteUser_SelfDelete_Forbidden() throws Exception {
-        mockMvc.perform(delete("/v1/admin/users/" + adminUser.getPublicId())
-                        .header("Authorization", "Bearer " + adminToken))
+    void deleteUser_SelfDelete_Forbidden()
+            throws Exception {
+        mockMvc.perform(
+                        delete(
+                                "/v1/admin/users/"
+                                        + adminUser.getPublicId()
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                )
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void deleteUser_LastAdmin_BadRequest() throws Exception {
-        User otherAdmin = new User("anotherAdmin@email.com", "Other Admin", null);
-        otherAdmin.setRole(Role.ADMIN);
-        otherAdmin.setIsActive(false);
-        userRepository.save(otherAdmin);
+    void deleteUser_InactiveAdmin_Unauthorized()
+            throws Exception {
+        User inactiveAdmin =
+                new User(
+                        "anotherAdmin@email.com",
+                        "Inactive Admin",
+                        null
+                );
 
-        String otherAdminToken = jwtUtils.generateToken("anotherAdmin@email.com", Role.ADMIN.name());
-        mockMvc.perform(delete("/v1/admin/users/" + adminUser.getPublicId())
-                        .header("Authorization", "Bearer " + otherAdminToken))
-                .andExpect(status().isBadRequest());
+        inactiveAdmin.setRole(Role.ADMIN);
+        inactiveAdmin.setIsActive(false);
+        userRepository.save(inactiveAdmin);
+
+        String inactiveAdminToken =
+                jwtUtils.generateToken(
+                        inactiveAdmin.getEmail(),
+                        Role.ADMIN.name()
+                );
+
+        mockMvc.perform(
+                        delete(
+                                "/v1/admin/users/"
+                                        + adminUser.getPublicId()
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer "
+                                                + inactiveAdminToken
+                                )
+                )
+                .andExpect(status().isUnauthorized());
+
+        User unchangedAdmin =
+                userRepository
+                        .findById(adminUser.getId())
+                        .orElseThrow();
+
+        assertTrue(
+                Boolean.TRUE.equals(
+                        unchangedAdmin.getIsActive()
+                )
+        );
+
+        assertFalse(unchangedAdmin.isDeleted());
     }
 
     @Test
-    void getEvents_FilterByStatus_Success() throws Exception {
+    void getEvents_FilterByStatus_Success()
+            throws Exception {
         Event event = new Event();
         event.setTitle("Published Event");
         event.setDescription("Desc");
         event.setType(EventType.EVENT);
         event.setCategory(EventCategory.TECH);
         event.setCity("Baku");
-        event.setStartDateTime(LocalDateTime.now().plusDays(1));
-        event.setEndDateTime(LocalDateTime.now().plusDays(2));
+        event.setStartDateTime(
+                LocalDateTime.now().plusDays(1)
+        );
+        event.setEndDateTime(
+                LocalDateTime.now().plusDays(2)
+        );
         event.setIsFree(true);
         event.setOrganizerName("Org");
         event.setStatus(EventStatus.PUBLISHED);
         eventRepository.save(event);
 
-        mockMvc.perform(get("/v1/admin/events?status=PUBLISHED")
-                        .header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(
+                        get(
+                                "/v1/admin/events"
+                                        + "?status=PUBLISHED"
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()", is(1)));
+                .andExpect(
+                        jsonPath(
+                                "$.content.length()",
+                                is(1)
+                        )
+                );
     }
 
     @Test
-    void deleteEvent_TransitionsToCancelled() throws Exception {
+    void deleteEvent_TransitionsToCancelled()
+            throws Exception {
         Event event = new Event();
         event.setTitle("Event to Cancel");
         event.setDescription("Desc");
         event.setType(EventType.EVENT);
         event.setCategory(EventCategory.TECH);
         event.setCity("Baku");
-        event.setStartDateTime(LocalDateTime.now().plusDays(1));
-        event.setEndDateTime(LocalDateTime.now().plusDays(2));
+        event.setStartDateTime(
+                LocalDateTime.now().plusDays(1)
+        );
+        event.setEndDateTime(
+                LocalDateTime.now().plusDays(2)
+        );
         event.setIsFree(true);
         event.setOrganizerName("Org");
         event.setStatus(EventStatus.PUBLISHED);
         event = eventRepository.save(event);
 
-        mockMvc.perform(delete("/v1/admin/events/" + event.getPublicId())
-                        .header("Authorization", "Bearer " + adminToken))
+        mockMvc.perform(
+                        delete(
+                                "/v1/admin/events/"
+                                        + event.getPublicId()
+                        )
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + adminToken
+                                )
+                )
                 .andExpect(status().isNoContent());
 
-        Event cancelledEvent = eventRepository.findById(event.getId()).orElseThrow();
-        assertEquals(EventStatus.CANCELLED, cancelledEvent.getStatus());
+        Event cancelledEvent =
+                eventRepository
+                        .findById(event.getId())
+                        .orElseThrow();
+
+        assertEquals(
+                EventStatus.CANCELLED,
+                cancelledEvent.getStatus()
+        );
     }
 
     @Test
-    void adminEndpoints_UserRole_Forbidden() throws Exception {
-        mockMvc.perform(get("/v1/admin/dashboard/stats")
-                        .header("Authorization", "Bearer " + userToken))
+    void adminEndpoints_UserRole_Forbidden()
+            throws Exception {
+        mockMvc.perform(
+                        get("/v1/admin/dashboard/stats")
+                                .header(
+                                        "Authorization",
+                                        "Bearer " + userToken
+                                )
+                )
                 .andExpect(status().isForbidden());
     }
 }
