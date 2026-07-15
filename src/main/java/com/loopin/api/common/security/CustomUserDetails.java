@@ -18,12 +18,16 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        return Collections.singletonList(
+                new SimpleGrantedAuthority(
+                        "ROLE_" + user.getRole().name()
+                )
+        );
     }
 
     @Override
     public String getPassword() {
-        return ""; // Passwordless login
+        return "";
     }
 
     @Override
@@ -48,7 +52,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !user.isDeleted();
+        return Boolean.TRUE.equals(user.getIsActive())
+                && !user.isDeleted();
     }
 
     public User getUser() {
