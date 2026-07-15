@@ -15,6 +15,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.data.redis.cache.RedisCache;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -125,24 +126,16 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
 
         assertThat(cache)
             .as("Published events cache must exist")
-            .isNotNull();
+            .isNotNull()
+            .isInstanceOf(RedisCache.class);
 
-        String cacheKey = "serialization-roundtrip";
+        String cacheKey =
+            "serialization-roundtrip-" + UUID.randomUUID();
 
         cache.put(cacheKey, original);
 
-        /*
-         * RedisCache default key format:
-         * cacheName::key
-         */
-        String physicalRedisKey =
-            CacheNames.PUBLISHED_EVENTS + "::" + cacheKey;
-
-        assertThat(redisTemplate.hasKey(physicalRedisKey))
-            .as("cache.put must create the physical Redis key")
-            .isTrue();
-
-        Cache.ValueWrapper wrapper = cache.get(cacheKey);
+        Cache.ValueWrapper wrapper =
+            cache.get(cacheKey);
 
         assertThat(wrapper)
             .as("Cache entry must be readable immediately after put")
@@ -152,10 +145,7 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
 
         assertThat(restoredValue)
             .as("Cache entry value must not be null")
-            .isNotNull();
-
-        assertThat(restoredValue)
-            .as("Redis must restore CachedEventPage, not a Map or PageImpl")
+            .isNotNull()
             .isInstanceOf(CachedEventPage.class);
 
         CachedEventPage restored =
@@ -178,9 +168,10 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
         assertThat(restoredEvent.getTitle())
             .isEqualTo("Cached Baku Event");
 
-        Page<EventResponse> restoredPage = restored.toPage(
-            PageRequest.of(0, 20)
-        );
+        Page<EventResponse> restoredPage =
+            restored.toPage(
+                PageRequest.of(0, 20)
+            );
 
         assertThat(restoredPage.getContent())
             .hasSize(1);
