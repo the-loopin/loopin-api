@@ -134,8 +134,6 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
 
         cache.put(cacheKey, original);
 
-        cache.put(cacheKey, original);
-
         Cache.ValueWrapper wrapper = null;
 
         for (int attempt = 0; attempt < 10; attempt++) {
