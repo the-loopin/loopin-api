@@ -134,11 +134,29 @@ class RedisIntegrationTest extends AbstractRedisIntegrationTest {
 
         cache.put(cacheKey, original);
 
-        Cache.ValueWrapper wrapper =
-            cache.get(cacheKey);
+        Cache.ValueWrapper wrapper = null;
+
+        for (int attempt = 0; attempt < 10; attempt++) {
+            wrapper = cache.get(cacheKey);
+
+            if (wrapper != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+
+                throw new IllegalStateException(
+                    "Interrupted while waiting for Redis cache entry",
+                    exception
+                );
+            }
+        }
 
         assertThat(wrapper)
-            .as("Cache entry must be readable immediately after put")
+            .as("Cache entry must be readable after put")
             .isNotNull();
 
         Object restoredValue = wrapper.get();

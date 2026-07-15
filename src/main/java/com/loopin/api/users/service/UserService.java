@@ -8,10 +8,21 @@ import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
-    UserResponse registerUser(UserRegisterRequest request);
+
+    UserResponse registerUser(
+            UserRegisterRequest request
+    );
+
     List<UserResponse> getAllUsers();
+
     UserResponse getUserById(UUID id);
+
     UserResponse getUserByEmail(String email);
-    UserResponse updateUserRole(UUID id, Role role);
+
+    UserResponse updateUserRole(
+            UUID id,
+            Role role
+    );
+
     void deleteUser(UUID id);
 }

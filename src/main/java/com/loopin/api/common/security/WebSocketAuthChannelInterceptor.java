@@ -14,6 +14,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,84 +27,227 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class WebSocketAuthChannelInterceptor implements ChannelInterceptor {
 
+    private static final String UUID_PATTERN =
+            "([0-9a-fA-F]{8}-"
+                    + "[0-9a-fA-F]{4}-"
+                    + "[0-9a-fA-F]{4}-"
+                    + "[0-9a-fA-F]{4}-"
+                    + "[0-9a-fA-F]{12})";
+
     private static final Pattern GROUP_MESSAGES_TOPIC =
-            Pattern.compile("^/topic/groups/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/messages$");
+            Pattern.compile(
+                    "^/topic/groups/"
+                            + UUID_PATTERN
+                            + "/messages$"
+            );
+
+    private static final Pattern GROUP_MESSAGES_APPLICATION_DESTINATION =
+            Pattern.compile(
+                    "^/app/groups/"
+                            + UUID_PATTERN
+                            + "/messages$"
+            );
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
     private final GroupSubscriptionAuthorizer groupSubscriptionAuthorizer;
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+    public Message<?> preSend(
+            Message<?> message,
+            MessageChannel channel
+    ) {
+        StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(
+                        message,
+                        StompHeaderAccessor.class
+                );
+
         if (accessor == null || accessor.getCommand() == null) {
             return message;
         }
 
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            authenticateConnect(accessor);
-        }
-
-        if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            validateMessageSubscription(accessor);
+        switch (accessor.getCommand()) {
+            case CONNECT -> authenticateConnect(accessor);
+            case SUBSCRIBE -> validateSubscription(accessor);
+            case SEND -> validateSend(accessor);
+            default -> {
+                // ACK, NACK, UNSUBSCRIBE and DISCONNECT do not create
+                // a new authorization boundary.
+            }
         }
 
         return message;
     }
 
-    private void authenticateConnect(StompHeaderAccessor accessor) {
-        String authorizationHeader = accessor.getFirstNativeHeader("Authorization");
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new AccessDeniedException("Missing WebSocket authorization token");
+    private void authenticateConnect(
+            StompHeaderAccessor accessor
+    ) {
+        String authorizationHeader =
+                accessor.getFirstNativeHeader("Authorization");
+
+        if (authorizationHeader == null
+                || !authorizationHeader.startsWith("Bearer ")) {
+            throw new AccessDeniedException(
+                    "Missing WebSocket authorization token"
+            );
         }
 
-        String token = authorizationHeader.substring(7);
-        if (!jwtUtils.isTokenValid(token)) {
-            throw new AccessDeniedException("Invalid WebSocket authorization token");
+        String token = authorizationHeader.substring(7).trim();
+
+        if (token.isEmpty() || !jwtUtils.isTokenValid(token)) {
+            throw new AccessDeniedException(
+                    "Invalid WebSocket authorization token"
+            );
         }
 
         String userEmail = jwtUtils.getUsernameFromToken(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null,
-                userDetails.getAuthorities()
-        );
 
-        accessor.setUser(authentication);
+        try {
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(userEmail);
+
+            if (!userDetails.isEnabled()) {
+                throw new AccessDeniedException(
+                        "User account is disabled"
+                );
+            }
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+
+            accessor.setUser(authentication);
+        } catch (UsernameNotFoundException exception) {
+            throw new AccessDeniedException(
+                    "Invalid WebSocket authorization token"
+            );
+        }
     }
 
-    private void validateMessageSubscription(StompHeaderAccessor accessor) {
+    private void validateSubscription(
+            StompHeaderAccessor accessor
+    ) {
         String destination = accessor.getDestination();
+
         if (destination == null) {
-            return;
+            throw new AccessDeniedException(
+                    "Subscription destination is required"
+            );
         }
 
         Matcher matcher = GROUP_MESSAGES_TOPIC.matcher(destination);
+
         if (!matcher.matches()) {
-            return;
+            throw new AccessDeniedException(
+                    "Unsupported subscription destination"
+            );
         }
 
-        UUID groupPublicId = UUID.fromString(matcher.group(1));
-        Long currentUserId = getCurrentUserId(accessor.getUser());
+        UUID groupPublicId =
+                UUID.fromString(matcher.group(1));
+
+        Long currentUserId =
+                getCurrentUserId(accessor.getUser());
+
+        authorizeGroupAccess(
+                groupPublicId,
+                currentUserId,
+                "Only group members can subscribe to group messages"
+        );
+    }
+
+    private void validateSend(
+            StompHeaderAccessor accessor
+    ) {
+        String destination = accessor.getDestination();
+
+        if (destination == null) {
+            throw new AccessDeniedException(
+                    "Message destination is required"
+            );
+        }
+
+        if (isBrokerDestination(destination)) {
+            throw new AccessDeniedException(
+                    "Direct broker publishing is not allowed"
+            );
+        }
+
+        Matcher matcher =
+                GROUP_MESSAGES_APPLICATION_DESTINATION.matcher(
+                        destination
+                );
+
+        if (!matcher.matches()) {
+            throw new AccessDeniedException(
+                    "Unsupported message destination"
+            );
+        }
+
+        UUID groupPublicId =
+                UUID.fromString(matcher.group(1));
+
+        Long currentUserId =
+                getCurrentUserId(accessor.getUser());
+
+        authorizeGroupAccess(
+                groupPublicId,
+                currentUserId,
+                "Only group members can send group messages"
+        );
+    }
+
+    private boolean isBrokerDestination(
+            String destination
+    ) {
+        return destination.startsWith("/topic/")
+                || destination.startsWith("/queue/")
+                || destination.startsWith("/user/");
+    }
+
+    private void authorizeGroupAccess(
+            UUID groupPublicId,
+            Long currentUserId,
+            String notMemberMessage
+    ) {
         GroupSubscriptionAuthorization authorization =
-                groupSubscriptionAuthorizer.authorize(groupPublicId, currentUserId);
+                groupSubscriptionAuthorizer.authorize(
+                        groupPublicId,
+                        currentUserId
+                );
 
         switch (authorization) {
             case ALLOWED -> {
                 return;
             }
-            case GROUP_NOT_FOUND -> throw new AccessDeniedException("Group not found");
-            case NOT_A_MEMBER -> throw new AccessDeniedException("Only group members can subscribe to group messages");
+            case GROUP_NOT_FOUND ->
+                    throw new AccessDeniedException(
+                            "Group not found"
+                    );
+            case NOT_A_MEMBER ->
+                    throw new AccessDeniedException(
+                            notMemberMessage
+                    );
         }
     }
 
-    private Long getCurrentUserId(Principal principal) {
-        if (principal instanceof UsernamePasswordAuthenticationToken authentication
-                && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+    private Long getCurrentUserId(
+            Principal principal
+    ) {
+        if (principal
+                instanceof UsernamePasswordAuthenticationToken authentication
+                && authentication.getPrincipal()
+                instanceof CustomUserDetails userDetails) {
             return userDetails.getUser().getId();
         }
 
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required.");
+        throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "Authentication required."
+        );
     }
 }
